@@ -169,7 +169,7 @@ function finCard(c) {
   const src = S.hiRes(S.cutoutSrc(c));
   return h('button', { class: 'arch fin', onclick: () => openCard(c.id) },
     h('div', { class: 'obj' },
-      src ? img(src, c.title) : h('div', { class: 'noimg' }, h('div', { class: 'label' }, 'No photo'))),
+      src ? img(src, c.title) : h('div', { class: 'noimg' }, h('div', { class: 'ic', html: ICON.plus }))),
     h('div', { class: 'info' },
       h('div', { class: 't' }, titleCase(c.title)),
       archStatusRow(archStatus(c))));
