@@ -37,19 +37,10 @@ export function renderItems(root) {
 
   /* ── 2. READY TO SHARE ───────────────────────────────── */
   if (rts.length) {
-    const c = rts[0];
-    const n = (c.photos || []).length;
     scroll.append(h('div', { class: 'blk' },
       h('div', { class: 'blk-head' }, h('div', { class: 'sec-t' }, 'Ready to post')),
       h('div', { class: 'meta', style: { padding: '0 20px 12px' } }, 'done while you were away'),
-      h('div', { class: 'share-strip' },
-        h('div', { class: 'thumb' }, img(S.heroSrc(c), c.title)),
-        h('div', { style: { flex: '1', minWidth: '0' } },
-          h('h4', {}, c.title),
-          h('p', {}, `${n} photo${n === 1 ? '' : 's'} cleaned up. Caption written from your notes.`),
-          h('div', { class: 'acts' },
-            h('button', { class: 'pill-dark', onclick: () => openShare(c.id) }, 'Preview'),
-            h('button', { class: 'pill-out', onclick: () => openCard(c.id) }, 'Open card'))))));
+      h('div', { class: 'rtp-row' }, ...rts.map(rtpCard))));
   }
 
   /* ── 3. ARCHIVE ──────────────────────────────────────── */
@@ -100,6 +91,22 @@ function nowCard(c, sub, mode) {
             nav.refresh();
           }) }, 'Start making')));
   squircle(el, 48);
+  return el;
+}
+
+function rtpCard(c) {
+  const n = (c.photos || []).length;
+  const src = cutoutFor(c);
+  const el = h('div', { class: 'rtp-card' },
+    h('div', { class: 'thumb' }, src ? img(src, c.title) : null),
+    h('div', { class: 'body' },
+      h('div', { class: 'head' },
+        h('div', { class: 't' }, titleCase(c.title)),
+        h('div', { class: 'sub' }, `${n} photo${n === 1 ? '' : 's'} cleaned up`)),
+      h('div', { class: 'acts' },
+        h('button', { onclick: () => openShare(c.id) }, 'Post'),
+        h('button', { onclick: () => openCard(c.id) }, 'Edit'))));
+  squircle(el, 32);
   return el;
 }
 
