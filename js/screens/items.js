@@ -74,7 +74,17 @@ const cutoutFor = (c) => {
 function nowCard(c, sub, mode) {
   const src = cutoutFor(c);
   const act = (fn) => (e) => { e.stopPropagation(); fn(); };
-  const el = h('div', { class: 'mkcard ' + mode, onclick: () => openCard(c.id) },
+  /* Gradient bottom stop now uses the card's own glow (same field every
+     other card in the app already draws its accent from) instead of a
+     fixed hex -- so each piece's hero card tints toward its real color
+     rather than a generic blue for every "making" card. */
+  const stop = mode === 'making' ? '23.558%' : '23.32%';
+  const tint = c.glow || (mode === 'making' ? '#7192ff' : '#6ab8ef');
+  const el = h('div', {
+    class: 'mkcard ' + mode,
+    style: { background: `linear-gradient(180deg, #f6f4ec ${stop}, ${tint} 100%)` },
+    onclick: () => openCard(c.id),
+  },
     h('div', { class: 'status' },
       mode === 'making' ? h('span', { class: 'dot' }) : h('span', { html: ICON.ideaStar }),
       h('span', {}, mode === 'making' ? 'making' : 'Idea, ' + ago(c.created))),
