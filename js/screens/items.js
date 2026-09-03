@@ -157,7 +157,7 @@ function archStatusRow(st) {
 }
 
 function finCard(c) {
-  const src = S.cutoutSrc(c);
+  const src = S.hiRes(S.cutoutSrc(c));
   return h('button', { class: 'arch fin', onclick: () => openCard(c.id) },
     h('div', { class: 'obj' }, src ? img(src, c.title) : null),
     h('div', { class: 'info' },

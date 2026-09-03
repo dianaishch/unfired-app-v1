@@ -79,6 +79,16 @@ export function cutoutSrc(c) {
   return heroSrc(c);
 }
 
+/* assets/pieces/<key>.webp is the low-res cutout set (~1.4MB total, always
+   available). assets/pieces without bg/<key> 1.png is the same cutouts at
+   full export resolution. Given any src from heroSrc/cutoutSrc, swap to the
+   HD version when the key follows that pattern; anything else (a process/
+   snap photo, a null hero) passes through unchanged. */
+export function hiRes(src) {
+  const m = /^assets\/pieces\/([^/]+)\.webp$/.exec(src || '');
+  return m ? `assets/pieces without bg/${m[1]} 1.png` : src;
+}
+
 /* ---------- mutations ---------- */
 export const uid = (p = 'x') => p + Math.random().toString(36).slice(2, 9);
 

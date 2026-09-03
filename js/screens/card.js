@@ -28,7 +28,7 @@ export function openCard(id) {
 
 function body(c, render, closePage) {
   const scroll = h('div', { class: 'scroll' });
-  const hero = S.heroSrc(c);
+  const hero = S.hiRes(S.heroSrc(c));
 
   /* A. HERO */
   scroll.append(
