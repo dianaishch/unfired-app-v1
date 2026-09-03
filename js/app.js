@@ -21,13 +21,13 @@ function chrome() {
     h('button', { class: 'navword' + (route === 'insights' ? ' on' : ''), onclick: () => go('insights') }, 'Insights'),
     h('div', { class: 'spacer' }),
     route === 'items'
-      ? h('button', { class: 'iconbtn', html: ICON.search, onclick: () => openSearch(), 'aria-label': 'Search' })
-      : h('button', { class: 'iconbtn', html: ICON.cards, onclick: () => openDiscover(), 'aria-label': 'Discover' }));
+      ? h('button', { class: 'circlebtn', html: ICON.topSearch, onclick: () => openSearch(), 'aria-label': 'Search' })
+      : h('button', { class: 'circlebtn', html: ICON.cards, onclick: () => openDiscover(), 'aria-label': 'Discover' }));
 
   const dock = h('div', { class: 'logdock' },
-    h('button', { class: 'side left', html: ICON.cards, onclick: openDiscover, 'aria-label': 'Discover' }),
+    h('button', { class: 'side', html: ICON.dockDiscover, onclick: openDiscover, 'aria-label': 'Discover' }),
     h('button', { class: 'logbtn', onclick: () => openCapture({}) }, h('span', { class: 'dot' }), 'Log'),
-    h('button', { class: 'side', html: ICON.watch, onclick: () => openWatch(), 'aria-label': 'Watch' }));
+    h('button', { class: 'side', html: ICON.dockWatch, onclick: () => openWatch(), 'aria-label': 'Watch' }));
 
   return { bar, dock };
 }

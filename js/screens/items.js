@@ -19,16 +19,16 @@ export function renderItems(root) {
     const total = Math.max(4, (c.plan?.steps || []).length);
     scroll.append(h('div', { class: 'hero-now' },
       h('div', { class: 'kicker' },
-        h('div', { class: 'label' }, 'MAKING NOW'),
-        h('button', { class: 'meta', onclick: () => nav.openLock(c.id) }, 'Studio mode →')),
+        h('div', { class: 'sec-t' }, 'Making now'),
+        h('button', { class: 'circlebtn', html: ICON.arrowFwd, onclick: () => nav.openLock(c.id), 'aria-label': 'Studio mode' })),
       nowCard(c, `${done} process photo${done === 1 ? '' : 's'} · started ${ago(c.startedMaking || c.created)}`,
         Math.min(.92, .18 + done * .22))));
   } else if (ids.length) {
     const c = ids[0];
     scroll.append(h('div', { class: 'hero-now' },
       h('div', { class: 'kicker' },
-        h('div', { class: 'label' }, 'MAKE NEXT'),
-        h('button', { class: 'meta', onclick: () => nav.openDiscover() }, 'Discover →')),
+        h('div', { class: 'sec-t' }, 'Make next'),
+        h('button', { class: 'circlebtn', html: ICON.arrowFwd, onclick: () => nav.openDiscover(), 'aria-label': 'Discover' })),
       nowCard(c, 'Plan already prepared · ' + (c.plan?.assumptions?.[0] || ''), null)));
   } else {
     scroll.append(h('div', { class: 'hero-now' },
@@ -43,8 +43,8 @@ export function renderItems(root) {
     const c = rts[0];
     const n = (c.photos || []).length;
     scroll.append(h('div', { class: 'blk' },
-      h('div', { class: 'blk-head' }, h('div', { class: 'label' }, 'READY TO SHARE'),
-        h('div', { class: 'meta' }, 'done while you were away')),
+      h('div', { class: 'blk-head' }, h('div', { class: 'sec-t' }, 'Ready to post')),
+      h('div', { class: 'meta', style: { padding: '0 20px 12px' } }, 'done while you were away'),
       h('div', { class: 'share-strip' },
         h('div', { class: 'thumb' }, img(S.heroSrc(c), c.title)),
         h('div', { style: { flex: '1', minWidth: '0' } },
@@ -57,9 +57,9 @@ export function renderItems(root) {
 
   /* ── 3. ARCHIVE ──────────────────────────────────────── */
   scroll.append(h('div', { class: 'blk' },
-    h('div', { class: 'blk-head' },
-      h('div', { class: 'h-mid' }, 'ARCHIVE'),
-      h('button', { class: 'meta', onclick: () => openSearch() }, 'Ask your archive →')),
+    h('div', { class: 'blk-head act' },
+      h('div', { class: 'sec-t' }, 'Archive'),
+      h('button', { class: 'circlebtn', html: ICON.arrowFwd, onclick: () => openSearch(), 'aria-label': 'Ask your archive' })),
     filters(),
     archive()));
 
