@@ -160,7 +160,7 @@ function finCard(c) {
   const src = S.cutoutSrc(c);
   return h('button', { class: 'arch fin', onclick: () => openCard(c.id) },
     h('div', { class: 'obj' }, src ? img(src, c.title) : null),
-    h('div', { class: 'body' },
+    h('div', { class: 'info' },
       h('div', { class: 't' }, titleCase(c.title)),
       archStatusRow(archStatus(c))));
 }
@@ -178,8 +178,8 @@ const IDEA_PHOTOS = ['assets/images for ideas/image creature.png', 'assets/image
 
 function bleedCard(c, photoSrc) {
   return h('button', { class: 'arch bleed', style: { background: c.glow || '#222' }, onclick: () => openCard(c.id) },
-    h('div', { class: 'ph' }, img(photoSrc, c.title)),
-    h('div', { class: 'scrim' }),
+    h('div', { class: 'bgimg' }, img(photoSrc, c.title)),
+    h('div', { class: 'dim' }),
     archStatusRow(archStatus(c)),
     h('div', { class: 't' }, titleCase(c.title)));
 }
