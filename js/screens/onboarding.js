@@ -1,5 +1,5 @@
 /* ONBOARDING + AUTOMATIC GATHERING — value first, permission second, skip always. */
-import { h, toast, fullLayer, sleep, img } from '../ui.js';
+import { h, toast, fullLayer, sleep, img, ICON } from '../ui.js';
 import * as S from '../store.js';
 import * as AI from '../ai.js';
 import { nav } from '../nav.js';
@@ -50,7 +50,7 @@ export function openOnboarding() {
         const paint = () => {
           boards.replaceChildren(...PINTEREST_BOARDS.map(b =>
             h('button', { class: chosen.has(b.id) ? 'on' : '', onclick: () => { chosen.has(b.id) ? chosen.delete(b.id) : chosen.add(b.id); paint(); } },
-              h('div', { class: 'bx' }, chosen.has(b.id) ? '✓' : ''),
+              h('div', { class: 'bx', html: chosen.has(b.id) ? ICON.check : '' }),
               h('div', { class: 'bn' }, b.name),
               h('div', { class: 'bc' }, b.n))));
         };
