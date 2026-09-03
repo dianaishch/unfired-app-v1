@@ -204,8 +204,13 @@ img{display:block;max-width:100%}
 .arch.bleed{width:181px;flex:none;justify-content:space-between;color:#f6f4ec}
 .arch.bleed .ph{position:absolute;inset:0}
 .arch.bleed .ph img{width:100%;height:100%;object-fit:cover}
+/* Figma's literal gradient (transparent 0.44% -> black 123.29%) leaves the
+   status row at ~6% darkening -- fine for its own pale example photo, not
+   enough contrast for our busier stock photos. Dual-sided instead: dark at
+   both top (status row) and bottom (title), clear through the middle. */
 .arch.bleed .scrim{position:absolute;inset:0;
-  background:linear-gradient(180deg,rgba(0,0,0,0) 0.44%,#000 123.29%)}
+  background:linear-gradient(180deg,rgba(0,0,0,.55) 0%,rgba(0,0,0,0) 30%,
+    rgba(0,0,0,0) 55%,rgba(0,0,0,.85) 100%)}
 .arch.bleed .st,.arch.bleed .t{position:relative}
 
 /* idea, no photo -- full-width gradient spotlight */
