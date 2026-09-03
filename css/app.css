@@ -116,7 +116,7 @@ img{display:block;max-width:100%}
 /* ready to post */
 .rtp-row{display:flex;gap:8px;padding:0 20px;overflow-x:auto;scrollbar-width:none}
 .rtp-row::-webkit-scrollbar{display:none}
-.rtp-card{width:350px;flex:none;background:#f6f4ec;border-radius:48px;padding:16px;
+.rtp-card{width:350px;flex:none;background:#f6f4ec;border-radius:40px;padding:16px;
   display:flex;gap:8px;align-items:center}
 .rtp-card .thumb{width:122px;height:92px;flex:none;overflow:hidden}
 .rtp-card .thumb img{width:100%;height:100%;object-fit:cover}
@@ -131,8 +131,23 @@ img{display:block;max-width:100%}
   text-transform:uppercase;color:#040404}
 
 /* ready to post -- "see all" page */
+.rtp-statusbar{display:flex;justify-content:space-between;align-items:center;
+  padding:calc(var(--safe-t) + 6px) 20px 0;color:#fff;font-size:15px;font-weight:600}
+.rtp-statusbar .icons{display:flex;align-items:center;gap:5px}
+.rtp-statusbar .bars{display:flex;align-items:flex-end;gap:1.5px;height:10px}
+.rtp-statusbar .bars i{display:block;width:3px;background:#fff;border-radius:1px}
+.rtp-statusbar .bars i:nth-child(1){height:4px}
+.rtp-statusbar .bars i:nth-child(2){height:6px}
+.rtp-statusbar .bars i:nth-child(3){height:8px}
+.rtp-statusbar .bars i:nth-child(4){height:10px}
+.rtp-statusbar .wifi{width:15px;height:11px;border:1.5px solid #fff;border-top:0;
+  border-radius:0 0 8px 8px}
+.rtp-statusbar .batt{width:24px;height:11px;border:1.3px solid #fff;border-radius:3px;
+  display:flex;align-items:center;padding:1.5px}
+.rtp-statusbar .batt i{display:block;flex:1;height:100%;background:#fff;border-radius:1px}
+
 .rtp-page-head{display:flex;flex-direction:column;align-items:center;gap:8px;
-  padding:calc(var(--safe-t) + 8px) 12px 20px}
+  padding:8px 12px 20px}
 .rtp-page-head .navrow{display:flex;justify-content:space-between;width:100%}
 .rtp-page-head .navbtn{width:40px;height:40px;border-radius:50%;background:#0B0B0B;
   border:1px solid var(--line-2);display:grid;place-items:center;flex:none}
@@ -140,26 +155,18 @@ img{display:block;max-width:100%}
 .rtp-page-head .t{font-size:20px;font-weight:700;letter-spacing:-.55px;
   text-transform:uppercase;color:#f6f4ec;margin:0}
 .rtp-page-head .sub{font-size:16px;color:#f6f4ec;margin:0}
-.rtp-stack{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;
+
+/* actual Figma card exports (assets/posts) -- not rebuilt from primitives */
+.rtp-stack{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x proximity;
   padding:0 12px 24px;scrollbar-width:none}
 .rtp-stack::-webkit-scrollbar{display:none}
-.rtp-post{scroll-snap-align:center;flex:none;width:268px;background:#fff;
-  border-radius:16px;overflow:hidden}
-.rtp-post .photo{position:relative;height:260px;display:flex;align-items:center;
-  justify-content:center;overflow:hidden}
-.rtp-post .photo img{width:180px;height:180px;object-fit:contain}
-.rtp-post .tag{position:absolute;font-size:10px;letter-spacing:.04em;color:#8c8c8c;
-  text-transform:uppercase}
-.rtp-post .tag.tl{top:10px;left:10px}
-.rtp-post .tag.tr{top:10px;right:10px;text-transform:capitalize}
-.rtp-post .tag.bl{bottom:10px;left:10px;text-transform:capitalize}
-.rtp-post .foot{padding:12px}
-.rtp-post .foot .t{font-size:16px;font-weight:700;color:#040404;margin:0 0 10px;
-  text-transform:uppercase}
-.rtp-post .foot .acts{display:flex;gap:8px}
-.rtp-post .foot .acts button{flex:1;height:40px;border-radius:100px;background:#f6f4ec;
-  border:1px solid var(--line-2);font-size:13px;font-weight:700;text-transform:uppercase;
-  color:#040404}
+.rtp-stack img{width:260px;height:auto;flex:none;scroll-snap-align:center;display:block}
+
+.rtp-bottombar{display:flex;gap:8px;justify-content:center;
+  padding:8px 12px calc(20px + var(--safe-b))}
+.rtp-bottombar button{height:58px;padding:4px 24px 0;border-radius:29px;background:#0B0B0B;
+  border:1px solid var(--line-2);font-size:16px;font-weight:700;text-transform:uppercase;
+  color:#f6f4ec}
 
 /* filters */
 .filters{display:flex;gap:20px;padding:0 20px 16px;overflow-x:auto;scrollbar-width:none}

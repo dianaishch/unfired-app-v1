@@ -107,7 +107,7 @@ function rtpCard(c) {
       h('div', { class: 'acts' },
         h('button', { onclick: () => openShare(c.id) }, 'Post'),
         h('button', { onclick: () => openCard(c.id) }, 'Edit'))));
-  squircle(el, 48);
+  squircle(el, 40);
   return el;
 }
 
@@ -247,36 +247,31 @@ export function openSearch(prefill) {
 }
 
 /* ══════════════ READY TO POST (all) ══════════════
-   Figma's node also mocks a full Instagram post (avatar, username, studio
-   name, like/comment/repost/save counts, "Liked by X and 220 others") on
-   each card. None of that has any real data or behavior behind it in this
-   app -- no social graph, no engagement numbers -- so it's left out here
-   rather than faked. Kept: the real per-card content (photo, title,
-   technique) plus working Post/Edit actions on every card. Figma also
-   showed the deck as a scaled stack (centered card large, neighbors
-   peeking smaller); implemented instead as a plain scroll-snap row, which
-   satisfies "cards are scrollable" with far less complexity. */
-function rtpPostCard(c) {
-  const src = cutoutFor(c);
-  const technique = c.plan?.params?.find(p => p.key === 'technique')?.val || '';
-  const tint = `color-mix(in srgb, ${c.glow || '#8C8A84'} 35%, white)`;
-  return h('div', { class: 'rtp-post' },
-    h('div', { class: 'photo', style: { background: `linear-gradient(180deg, #f6f4ec 41.334%, ${tint} 100%)` } },
-      h('div', { class: 'tag tl' }, 'Ceramics'),
-      technique ? h('div', { class: 'tag tr' }, technique) : null,
-      src ? img(src, c.title) : null,
-      h('div', { class: 'tag bl' }, titleCase(c.title))),
-    h('div', { class: 'foot' },
-      h('div', { class: 't' }, titleCase(c.title)),
-      h('div', { class: 'acts' },
-        h('button', { onclick: () => openShare(c.id) }, 'Post'),
-        h('button', { onclick: () => openCard(c.id) }, 'Edit'))));
+   Per your instructions: the post-preview cards are exact Figma exports
+   (assets/posts/Post.png, Post-1.png, Post-2.png) shown as plain scrollable
+   images, not rebuilt from primitives, and not clickable. They're static
+   art, not tied to S.readyToShare() -- there's no live mapping from these
+   3 fixed images to whichever cards happen to be ready at the time.
+   Post/Edit at the bottom stay functional; with no per-card selection
+   any more, they default to the first ready-to-share card. Flagging that
+   assumption -- tell me if you want them to do something else. */
+const RTP_IMAGES = ['assets/posts/Post.png', 'assets/posts/Post-1.png', 'assets/posts/Post-2.png'];
+
+function statusBar() {
+  return h('div', { class: 'rtp-statusbar' },
+    h('span', {}, '9:41'),
+    h('div', { class: 'icons' },
+      h('div', { class: 'bars' }, h('i'), h('i'), h('i'), h('i')),
+      h('div', { class: 'wifi' }),
+      h('div', { class: 'batt' }, h('i'))));
 }
 
 export function openReadyToPost() {
   page((p, close) => {
     const rts = S.readyToShare();
+    const primary = rts[0];
     p.append(
+      statusBar(),
       h('div', { class: 'rtp-page-head' },
         h('div', { class: 'navrow' },
           h('button', { class: 'navbtn', onclick: close, html: ICON.back, 'aria-label': 'Back' }),
@@ -285,6 +280,9 @@ export function openReadyToPost() {
           h('button', { class: 'navbtn', html: ICON.plus, 'aria-label': 'Add' })),
         h('div', { class: 't' }, 'Ready to post'),
         h('div', { class: 'sub' }, 'Prepared while you were away')),
-      h('div', { class: 'rtp-stack' }, ...rts.map(rtpPostCard)));
+      h('div', { class: 'rtp-stack' }, ...RTP_IMAGES.map(src => img(src, ''))),
+      primary ? h('div', { class: 'rtp-bottombar' },
+        h('button', { onclick: () => openShare(primary.id) }, 'Post'),
+        h('button', { onclick: () => openCard(primary.id) }, 'Edit')) : null);
   });
 }
