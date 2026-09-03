@@ -74,8 +74,11 @@ function heroCard(c, render) {
     class: 'cardhero2 ' + c.state,
     style: { background: `linear-gradient(180deg, #f6f4ec ${stop}, ${tint} 100%)` },
   },
-    heroStatus(c),
-    title,
+    /* Grouped so justify-content:space-between (which pins the tabs to
+       the card's bottom edge at the 210px min-height) distributes its
+       extra space around this group, not between status and title --
+       otherwise the two stretch apart on any card without a photo. */
+    h('div', { class: 'ch-head' }, heroStatus(c), title),
     hero ? h('div', { class: 'ch-img' }, img(hero, c.title)) : null,
     statepick);
   /* Same corner-smoothing treatment as the Items-screen hero card

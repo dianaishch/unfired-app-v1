@@ -263,7 +263,12 @@ img{display:block;max-width:100%}
   flex-direction:column;align-items:center;gap:8px;text-align:center;overflow:hidden;
   min-height:210px;justify-content:space-between}
 /* status row and title: same shape/type params as .mkcard .status/.t (Make Next
-   card on the Items screen) -- reused verbatim per your instruction. */
+   card on the Items screen) -- reused verbatim per your instruction. Grouped in
+   .ch-head with a fixed 8px gap so the card's own justify-content:space-between
+   (which pins the tabs to the bottom at 210px) distributes its extra space
+   around the .ch-head/statepick pair instead of stretching status from title
+   on a card with no photo. */
+.cardhero2 .ch-head{display:flex;flex-direction:column;align-items:center;gap:8px}
 .cardhero2 .ch-status{display:flex;align-items:center;gap:4px;font-size:12px;
   text-transform:uppercase;color:#040404}
 .cardhero2 .ch-status .ic svg{width:6.96px;height:6.96px;flex:none}
