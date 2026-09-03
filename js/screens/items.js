@@ -184,15 +184,41 @@ function bleedCard(c, photoSrc) {
     h('div', { class: 't' }, titleCase(c.title)));
 }
 
+const gradTint = (c) => `linear-gradient(180deg, ${c.glow || '#8C8A84'} 0%, #f4f2ec 100%)`;
+
 function spotCard(c) {
-  const tint = `linear-gradient(180deg, ${c.glow || '#8C8A84'} 0%, #f4f2ec 100%)`;
-  return h('button', { class: 'arch spot', style: { background: tint }, onclick: () => openCard(c.id) },
+  return h('button', { class: 'arch spot', style: { background: gradTint(c) }, onclick: () => openCard(c.id) },
     archStatusRow(archStatus(c)),
     h('div', {},
       h('div', { class: 't' }, titleCase(c.title)),
       h('div', { class: 'd' }, (c.desc || '').slice(0, 74) + ((c.desc || '').length > 74 ? '…' : ''))));
 }
 
+/* Half-width gradient card (Figma node 477:64406) -- same content/style as
+   spotCard, sized to pair with a photo card instead of always full-width.
+   Unlike spotCard's fixed character slice, this clamps by line count since
+   that's what was actually asked for: title max 2 lines, description max
+   3, CSS ellipsis past that -- so it gets the untruncated text and lets
+   -webkit-line-clamp do the cutting at whatever length actually wraps. */
+function smallSpotCard(c) {
+  return h('button', { class: 'arch spot small', style: { background: gradTint(c) }, onclick: () => openCard(c.id) },
+    archStatusRow(archStatus(c)),
+    h('div', {},
+      h('div', { class: 't clamp2' }, titleCase(c.title)),
+      h('div', { class: 'd clamp3' }, c.desc || '')));
+}
+
+/* Archive layout: a fixed repeating 3-row rhythm -- pair (2 half-width),
+   wide (1 full-width, gradient-only), single (1 half-width, alternating
+   left/right each time) -- rather than the previous content-driven
+   packing. Cards are split into two recency-ordered pools: "photo" (has a
+   real photo -- finished/making cutouts, idea-with-photo) and "gradient"
+   (idea, no photo). Wide rows must pull from the gradient pool only; if
+   it's empty when a wide row comes up, that row is skipped and the cycle
+   keeps going (confirmed) rather than forcing a photo card into it. Pair/
+   single rows pull whichever pool's next card is more recent, mixing
+   both types freely (confirmed) -- gradient cards that don't make it into
+   a wide row show up here as the small variant instead. */
 function archive() {
   let list = S.cards();
   if (filter !== 'all') list = list.filter(c => c.state === filter);
@@ -203,24 +229,44 @@ function archive() {
       h('div', { class: 'h-big' }, 'NOTHING HERE YET'),
       h('div', { class: 'meta' }, 'Press LOG and say what you are making.'));
 
-  const wrap = h('div', { class: 'archive' });
-  let buf = [];
+  const used = new Set();
+  const isGradient = (c) => c.state === 'idea' && !S.cutoutSrc(c);
+  const nextAny = () => list.find(c => !used.has(c.id)) || null;
+  const nextGradient = () => list.find(c => !used.has(c.id) && isGradient(c)) || null;
+  const take = (c) => { used.add(c.id); return c; };
+
   let ideaPhotoIdx = 0;
-  const flush = () => { if (buf.length) { wrap.append(h('div', { class: 'arch-row' }, ...buf)); buf = []; } };
-  list.forEach((c) => {
-    const src = S.cutoutSrc(c);
-    if (c.state === 'idea' && !src) {
-      flush();
-      wrap.append(spotCard(c));
-    } else if (c.state === 'idea') {
-      buf.push(bleedCard(c, IDEA_PHOTOS[ideaPhotoIdx++ % IDEA_PHOTOS.length]));
-      if (buf.length === 2) flush();
-    } else {
-      buf.push(finCard(c));
-      if (buf.length === 2) flush();
+  const halfCard = (c) => isGradient(c)
+    ? smallSpotCard(c)
+    : (c.state === 'idea' ? bleedCard(c, IDEA_PHOTOS[ideaPhotoIdx++ % IDEA_PHOTOS.length]) : finCard(c));
+
+  const wrap = h('div', { class: 'archive' });
+  const CYCLE = ['pair', 'wide', 'single'];
+  let step = 0, singleCount = 0;
+  while (nextAny()) {
+    const kind = CYCLE[step % 3];
+    step++;
+    if (kind === 'wide') {
+      const g = nextGradient();
+      if (g) wrap.append(spotCard(take(g)));
+      continue;
     }
-  });
-  flush();
+    if (kind === 'single') {
+      const c = nextAny();
+      if (!c) break;
+      take(c);
+      wrap.append(h('div', { class: 'arch-row' + (singleCount % 2 ? ' right' : '') }, halfCard(c)));
+      singleCount++;
+      continue;
+    }
+    /* pair */
+    const a = nextAny();
+    if (!a) break;
+    take(a);
+    const b = nextAny();
+    if (b) take(b);
+    wrap.append(h('div', { class: 'arch-row' }, halfCard(a), b ? halfCard(b) : null));
+  }
   return wrap;
 }
 
