@@ -199,6 +199,9 @@ img{display:block;max-width:100%}
 /* finished/making with a photo -- floating cutout, no card background */
 .arch.fin{width:calc((100% - 8px)/2);flex:none;justify-content:flex-end;gap:8px;color:#f6f4ec}
 .arch.fin .obj{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.arch.fin .obj .noimg{width:100%;height:100%;border-radius:18px;
+  background:linear-gradient(140deg,#151515,#0B0B0B);border:1px dashed var(--line-2);
+  display:grid;place-items:center}
 .arch.fin .obj img{width:100%;height:100%;object-fit:contain}
 .arch.fin .info{display:flex;flex-direction:column;gap:8px}
 
@@ -619,7 +622,7 @@ img{display:block;max-width:100%}
   color:var(--ink-dim);padding-top:4px}
 .boards{display:flex;flex-direction:column;gap:2px;margin-top:26px}
 .boards button{display:flex;align-items:center;gap:14px;padding:16px 0;text-align:left}
-.boards .bx{width:24px;height:24px;border-radius:7px;border:1.5px solid #f6f4ec;flex:none;
+.boards .bx{width:24px;height:24px;border-radius:7px;border:1px solid #292929;flex:none;
   display:grid;place-items:center}
 .boards .bx svg{width:16px;height:16px}
 .boards .on .bx{background:var(--acid);border:1px solid var(--acid);color:#040404}

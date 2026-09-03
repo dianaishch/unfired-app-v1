@@ -159,7 +159,8 @@ function archStatusRow(st) {
 function finCard(c) {
   const src = S.hiRes(S.cutoutSrc(c));
   return h('button', { class: 'arch fin', onclick: () => openCard(c.id) },
-    h('div', { class: 'obj' }, src ? img(src, c.title) : null),
+    h('div', { class: 'obj' },
+      src ? img(src, c.title) : h('div', { class: 'noimg' }, h('div', { class: 'label' }, 'No photo'))),
     h('div', { class: 'info' },
       h('div', { class: 't' }, titleCase(c.title)),
       archStatusRow(archStatus(c))));
@@ -219,21 +220,36 @@ function smallSpotCard(c) {
    single rows pull whichever pool's next card is more recent, mixing
    both types freely (confirmed) -- gradient cards that don't make it into
    a wide row show up here as the small variant instead. */
+/* Shuffle (Fisher-Yates) instead of sorting by date -- ideas mix randomly
+   rather than clustering by when they were made, so a pair row is much
+   more likely to land one photo card + one gradient/bleed idea card
+   together instead of two of the same type in a row. */
+function shuffled(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 function archive() {
   let list = S.cards();
   if (filter !== 'all') list = list.filter(c => c.state === filter);
-  list = list.slice().sort((a, b) => (b.updated || 0) - (a.updated || 0));
 
   if (!list.length)
     return h('div', { class: 'empty' },
       h('div', { class: 'h-big' }, 'NOTHING HERE YET'),
       h('div', { class: 'meta' }, 'Press LOG and say what you are making.'));
 
-  const used = new Set();
   const isGradient = (c) => c.state === 'idea' && !S.cutoutSrc(c);
-  const nextAny = () => list.find(c => !used.has(c.id)) || null;
-  const nextGradient = () => list.find(c => !used.has(c.id) && isGradient(c)) || null;
-  const take = (c) => { used.add(c.id); return c; };
+  const photoPool = shuffled(list.filter(c => !isGradient(c)));
+  const gradPool = shuffled(list.filter(isGradient));
+  let pi = 0, gi = 0;
+  const nextPhoto = () => pi < photoPool.length ? photoPool[pi++] : null;
+  const nextGrad = () => gi < gradPool.length ? gradPool[gi++] : null;
+  const nextAny = () => nextPhoto() || nextGrad();
+  const remaining = () => (photoPool.length - pi) + (gradPool.length - gi);
 
   let ideaPhotoIdx = 0;
   const halfCard = (c) => isGradient(c)
@@ -243,28 +259,32 @@ function archive() {
   const wrap = h('div', { class: 'archive' });
   const CYCLE = ['pair', 'wide', 'single'];
   let step = 0, singleCount = 0;
-  while (nextAny()) {
+  while (remaining() > 0) {
     const kind = CYCLE[step % 3];
     step++;
     if (kind === 'wide') {
-      const g = nextGradient();
-      if (g) wrap.append(spotCard(take(g)));
+      const g = nextGrad();
+      if (g) wrap.append(spotCard(g));
       continue;
     }
     if (kind === 'single') {
       const c = nextAny();
       if (!c) break;
-      take(c);
       wrap.append(h('div', { class: 'arch-row' + (singleCount % 2 ? ' right' : '') }, halfCard(c)));
       singleCount++;
       continue;
     }
-    /* pair */
-    const a = nextAny();
-    if (!a) break;
-    take(a);
-    const b = nextAny();
-    if (b) take(b);
+    /* pair -- prefer one photo card + one gradient/bleed idea card together
+       whenever both pools still have cards; drain whichever pool remains
+       once the other runs out. */
+    let a, b;
+    if (pi < photoPool.length && gi < gradPool.length) {
+      a = nextPhoto(); b = nextGrad();
+    } else {
+      a = nextAny();
+      if (!a) break;
+      b = nextAny();
+    }
     wrap.append(h('div', { class: 'arch-row' }, halfCard(a), b ? halfCard(b) : null));
   }
   return wrap;
