@@ -194,8 +194,8 @@ img{display:block;max-width:100%}
 .arch.fin .obj{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .arch.fin .obj .noimg{width:100%;height:100%;border-radius:29px;background:#0B0B0B;
   border:1px solid var(--line-2);display:grid;place-items:center}
-.arch.fin .obj .noimg .ic{width:24px;height:24px}
-.arch.fin .obj .noimg .ic svg{width:100%;height:100%}
+.arch.fin .obj .noimg .noimg-t{color:var(--ink-faint);font-family:"Helvetica Neue";
+  font-size:16px;font-weight:400;line-height:15.95px;letter-spacing:.22px}
 .arch.fin .obj img{width:100%;height:100%;object-fit:contain}
 .arch.fin .info{display:flex;flex-direction:column;gap:8px}
 
