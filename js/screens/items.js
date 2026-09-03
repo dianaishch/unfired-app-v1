@@ -3,7 +3,7 @@ import { h, ICON, img, ago, page, toast } from '../ui.js';
 import * as S from '../store.js';
 import * as AI from '../ai.js';
 import { nav } from '../nav.js';
-import { openCard } from './card.js';
+import { openCard, openChat, startMaking } from './card.js';
 import { openShare } from './share.js';
 
 let filter = 'all';
@@ -16,20 +16,17 @@ export function renderItems(root) {
   if (mk.length) {
     const c = mk[0];
     const done = (c.photos || []).filter(p => p.kind === 'process').length;
-    const total = Math.max(4, (c.plan?.steps || []).length);
     scroll.append(h('div', { class: 'hero-now' },
       h('div', { class: 'kicker' },
-        h('div', { class: 'sec-t' }, 'Making now'),
-        h('button', { class: 'circlebtn', html: ICON.arrowFwd, onclick: () => nav.openLock(c.id), 'aria-label': 'Studio mode' })),
-      nowCard(c, `${done} process photo${done === 1 ? '' : 's'} · started ${ago(c.startedMaking || c.created)}`,
-        Math.min(.92, .18 + done * .22))));
+        h('div', { class: 'sec-t' }, 'Making now')),
+      nowCard(c, `${done} photo${done === 1 ? '' : 's'}, started ${ago(c.startedMaking || c.created)}`, 'making')));
   } else if (ids.length) {
     const c = ids[0];
     scroll.append(h('div', { class: 'hero-now' },
       h('div', { class: 'kicker' },
         h('div', { class: 'sec-t' }, 'Make next'),
         h('button', { class: 'circlebtn', html: ICON.arrowFwd, onclick: () => nav.openDiscover(), 'aria-label': 'Discover' })),
-      nowCard(c, 'Plan already prepared · ' + (c.plan?.assumptions?.[0] || ''), null)));
+      nowCard(c, c.desc || '', 'idea')));
   } else {
     scroll.append(h('div', { class: 'hero-now' },
       h('div', { class: 'label' }, 'NOTHING ON THE BENCH'),
@@ -66,18 +63,31 @@ export function renderItems(root) {
   root.replaceChildren(scroll);
 }
 
-function nowCard(c, sub, prog) {
+/* Figma's hero-card titles are set in title case; app data stores titles ALL CAPS
+   (see seed.js). Transforming here only, scoped to this card — every other place
+   c.title renders (archive, card detail, etc.) keeps its existing ALL-CAPS look. */
+const titleCase = (s) => (s || '').toLowerCase().replace(/\b\w/g, (m) => m.toUpperCase());
+
+function nowCard(c, sub, mode) {
   const src = S.heroSrc(c);
-  return h('button', { class: 'nowcard', style: { width: '100%' }, onclick: () => openCard(c.id) },
-    src ? h('div', { class: 'art' }, img(src, c.title)) : null,
-    h('div', { class: 'veil' }),
-    h('div', { class: 'cap' },
-      h('div', { class: 'state ' + c.state, style: { marginBottom: '10px' } }, c.state),
-      h('div', { class: 'h-big' }, c.title),
-      h('div', { class: 'meta' }, sub),
-      prog !== null && prog !== undefined
-        ? h('div', { class: 'progressline' }, h('i', { style: { width: (prog * 100) + '%' } }))
-        : null));
+  const act = (fn) => (e) => { e.stopPropagation(); fn(); };
+  return h('div', { class: 'mkcard ' + mode, onclick: () => openCard(c.id) },
+    h('div', { class: 'status' },
+      mode === 'making' ? h('span', { class: 'dot' }) : h('span', { html: ICON.ideaStar }),
+      h('span', {}, mode === 'making' ? 'making' : 'Idea, ' + ago(c.created))),
+    h('div', { class: 't' }, titleCase(c.title)),
+    h('div', { class: 'sub' }, sub),
+    mode === 'making' && src ? h('div', { class: 'img' }, img(src, c.title)) : null,
+    h('div', { class: 'acts' },
+      h('button', { onclick: act(() => openChat(c.id)) }, 'New chat'),
+      mode === 'making'
+        ? h('button', { onclick: act(() => nav.openLock(c.id)) }, 'Studio mode')
+        : h('button', { onclick: act(() => {
+            const snap = S.setState(c.id, 'making');
+            toast({ html: '<b>making</b> · set by you', undo: () => { S.restore(snap); nav.refresh(); } });
+            startMaking(c.id);
+            nav.refresh();
+          }) }, 'Start making')));
 }
 
 function filters() {
