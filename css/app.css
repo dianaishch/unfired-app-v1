@@ -122,8 +122,8 @@ img{display:block;max-width:100%}
 .rtp-card .thumb img{width:100%;height:100%;object-fit:cover}
 .rtp-card .head{display:flex;flex-direction:column;min-width:0}
 .rtp-card .head .t{font-family:"Helvetica Neue";font-size:32px;font-weight:500;
-  line-height:30px;letter-spacing:-1.05px;color:#040404;white-space:nowrap;
-  overflow:hidden;text-overflow:ellipsis}
+  line-height:30px;letter-spacing:-1.05px;color:#040404;display:-webkit-box;
+  -webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
 
 /* ready to post -- "see all" page */
 .rtp-statusbar{display:flex;justify-content:space-between;align-items:center;
