@@ -134,7 +134,7 @@ export const CARDS = [
 {
   id:'red-pink-pitcher', state:'finished', title:'PINK PITCHER',
   created:D('2026-05-08'), updated:D('2026-06-02'), finishedAt:D('2026-06-02'),
-  origin:{ type:'voice', label:'Voice note' }, glow:'#D8465C', outcome:'success',
+  origin:{ type:'voice', label:'Voice note' }, glow:'#D8465C', outcome:'success', readyToShare:true,
   desc:'Coiled and paddled, pulled handle. The glaze broke pink over the rim and pooled darker in the throwing marks. Best handle I have made.',
   tags:['coil','paddle','pulled handle','stoneware','cone 6','pink glaze','pitcher'],
   hero:{ src:P('11-red-pink-pitcher') },
@@ -172,7 +172,7 @@ export const CARDS = [
 {
   id:'blue-striped-mug', state:'finished', title:'BLUE LINE MUG',
   created:D('2026-03-02'), updated:D('2026-04-04'), finishedAt:D('2026-04-04'),
-  origin:{ type:'voice', label:'Voice note' }, glow:'#5B8FC9', outcome:'partial',
+  origin:{ type:'voice', label:'Voice note' }, glow:'#5B8FC9', outcome:'partial', readyToShare:true,
   desc:'Cream mug with blue engobe drawn straight down the wall in one pass. The first handle cracked after bisque and I made a second one.',
   tags:['hand built','engobe','turquoise engobe','handle','crack','mug','stoneware','cone 6'],
   hero:{ src:P('08-blue-striped-mug') },

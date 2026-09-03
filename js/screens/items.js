@@ -38,8 +38,9 @@ export function renderItems(root) {
   /* ── 2. READY TO SHARE ───────────────────────────────── */
   if (rts.length) {
     scroll.append(h('div', { class: 'blk' },
-      h('div', { class: 'blk-head' }, h('div', { class: 'sec-t' }, 'Ready to post')),
-      h('div', { class: 'meta', style: { padding: '0 20px 12px' } }, 'done while you were away'),
+      h('div', { class: 'blk-head act' },
+        h('div', { class: 'sec-t' }, 'Ready to post'),
+        h('button', { class: 'circlebtn', html: ICON.arrowFwd, onclick: () => openReadyToPost(), 'aria-label': 'See all' })),
       h('div', { class: 'rtp-row' }, ...rts.map(rtpCard))));
   }
 
@@ -106,7 +107,7 @@ function rtpCard(c) {
       h('div', { class: 'acts' },
         h('button', { onclick: () => openShare(c.id) }, 'Post'),
         h('button', { onclick: () => openCard(c.id) }, 'Edit'))));
-  squircle(el, 32);
+  squircle(el, 48);
   return el;
 }
 
@@ -242,5 +243,48 @@ export function openSearch(prefill) {
 
     if (prefill) run(prefill); else showSuggests();
     setTimeout(() => input.focus(), 400);
+  });
+}
+
+/* ══════════════ READY TO POST (all) ══════════════
+   Figma's node also mocks a full Instagram post (avatar, username, studio
+   name, like/comment/repost/save counts, "Liked by X and 220 others") on
+   each card. None of that has any real data or behavior behind it in this
+   app -- no social graph, no engagement numbers -- so it's left out here
+   rather than faked. Kept: the real per-card content (photo, title,
+   technique) plus working Post/Edit actions on every card. Figma also
+   showed the deck as a scaled stack (centered card large, neighbors
+   peeking smaller); implemented instead as a plain scroll-snap row, which
+   satisfies "cards are scrollable" with far less complexity. */
+function rtpPostCard(c) {
+  const src = cutoutFor(c);
+  const technique = c.plan?.params?.find(p => p.key === 'technique')?.val || '';
+  const tint = `color-mix(in srgb, ${c.glow || '#8C8A84'} 35%, white)`;
+  return h('div', { class: 'rtp-post' },
+    h('div', { class: 'photo', style: { background: `linear-gradient(180deg, #f6f4ec 41.334%, ${tint} 100%)` } },
+      h('div', { class: 'tag tl' }, 'Ceramics'),
+      technique ? h('div', { class: 'tag tr' }, technique) : null,
+      src ? img(src, c.title) : null,
+      h('div', { class: 'tag bl' }, titleCase(c.title))),
+    h('div', { class: 'foot' },
+      h('div', { class: 't' }, titleCase(c.title)),
+      h('div', { class: 'acts' },
+        h('button', { onclick: () => openShare(c.id) }, 'Post'),
+        h('button', { onclick: () => openCard(c.id) }, 'Edit'))));
+}
+
+export function openReadyToPost() {
+  page((p, close) => {
+    const rts = S.readyToShare();
+    p.append(
+      h('div', { class: 'rtp-page-head' },
+        h('div', { class: 'navrow' },
+          h('button', { class: 'navbtn', onclick: close, html: ICON.back, 'aria-label': 'Back' }),
+          /* Figma shows a "+" here with no stated action -- rendered for visual
+             fidelity, left inert rather than guessing at behavior. */
+          h('button', { class: 'navbtn', html: ICON.plus, 'aria-label': 'Add' })),
+        h('div', { class: 't' }, 'Ready to post'),
+        h('div', { class: 'sub' }, 'Prepared while you were away')),
+      h('div', { class: 'rtp-stack' }, ...rts.map(rtpPostCard)));
   });
 }
