@@ -22,6 +22,33 @@ export function h(tag, attrs = {}, ...kids) {
 export const frag = (...k) => { const f = document.createDocumentFragment(); k.flat().forEach(x => x && f.append(x)); return f; };
 export const $ = (s, r = document) => r.querySelector(s);
 
+/* Figma's "corner smoothing" is a continuous superellipse curve, not the plain
+   circular arc CSS border-radius draws — there's no native CSS property for it.
+   Approximates it with a mask built from a sampled superellipse polygon, sized to
+   the element's actual rendered box (measured post-layout, so it's exact for any
+   card height/width rather than a stretched generic shape). n=4 ≈ Figma's max
+   (100%) smoothing; border-radius stays as a plain-rect fallback if masks aren't
+   supported. Call again after anything that changes the element's size. */
+export function squircle(el, radius = 48, n = 4) {
+  requestAnimationFrame(() => {
+    const w = el.offsetWidth, h = el.offsetHeight;
+    if (!w || !h) return;
+    const r = Math.max(0, Math.min(radius, w / 2, h / 2));
+    const p = 2 / n, steps = 14;
+    const pts = [];
+    const walk = (fx, fy) => { for (let i = 0; i <= steps; i++) { const t = (Math.PI / 2) * i / steps; pts.push(`${fx(t).toFixed(2)},${fy(t).toFixed(2)}`); } };
+    walk(t => w - r + r * Math.sin(t) ** p, t => r - r * Math.cos(t) ** p);      // top-right
+    walk(t => w - r + r * Math.cos(t) ** p, t => h - r + r * Math.sin(t) ** p);  // bottom-right
+    walk(t => r - r * Math.sin(t) ** p, t => h - r + r * Math.cos(t) ** p);      // bottom-left
+    walk(t => r - r * Math.cos(t) ** p, t => r - r * Math.sin(t) ** p);          // top-left
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><polygon points="${pts.join(' ')}"/></svg>`;
+    const url = `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+    el.style.webkitMaskImage = url; el.style.maskImage = url;
+    el.style.webkitMaskSize = el.style.maskSize = '100% 100%';
+    el.style.webkitMaskRepeat = el.style.maskRepeat = 'no-repeat';
+  });
+}
+
 /* ---------- icons ---------- */
 const ic = (d, extra = '') => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${d}${extra}</svg>`;
 export const ICON = {

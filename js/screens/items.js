@@ -1,5 +1,5 @@
 /* ITEMS — what am I making now, what's ready to share, and the archive. */
-import { h, ICON, img, ago, page, toast } from '../ui.js';
+import { h, ICON, img, ago, page, toast, squircle } from '../ui.js';
 import * as S from '../store.js';
 import * as AI from '../ai.js';
 import { nav } from '../nav.js';
@@ -82,7 +82,7 @@ const cutoutFor = (c) => {
 function nowCard(c, sub, mode) {
   const src = cutoutFor(c);
   const act = (fn) => (e) => { e.stopPropagation(); fn(); };
-  return h('div', { class: 'mkcard ' + mode, onclick: () => openCard(c.id) },
+  const el = h('div', { class: 'mkcard ' + mode, onclick: () => openCard(c.id) },
     h('div', { class: 'status' },
       mode === 'making' ? h('span', { class: 'dot' }) : h('span', { html: ICON.ideaStar }),
       h('span', {}, mode === 'making' ? 'making' : 'Idea, ' + ago(c.created))),
@@ -99,6 +99,8 @@ function nowCard(c, sub, mode) {
             startMaking(c.id);
             nav.refresh();
           }) }, 'Start making')));
+  squircle(el, 48);
+  return el;
 }
 
 function filters() {
