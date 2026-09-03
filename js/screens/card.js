@@ -155,65 +155,63 @@ function descBox(c) {
     desc);
 }
 
-/* ---------- PLAN (interleaved narrative + collapse, Figma) ----------
-   Figma's example interleaves specific warnings between the exact steps
-   they narratively relate to (a handle-crack warning right after the
-   shape step) and breaks out per-step params (clay weight, wall
-   thickness) as sub-lines under each numbered step. Neither association
-   exists in the real plan data model (risks and params aren't linked to
-   a specific step index), so rather than guess a pairing that might be
-   wrong, this keeps every real field -- tools, steps, risks, archive
-   refs -- in one merged numbered list, risks appended after all the
-   steps instead of interleaved mid-sequence. Flagging that as the one
-   place this isn't literally what the reference shows. */
+/* ---------- PLAN (single editable text, matching Description, Figma) ----------
+   Per your instruction, the plan is now one freeform contenteditable block --
+   same container/typography as the description -- not a composed list of
+   separate step/tool/risk elements. c.plan.text holds this verbatim when a
+   card has it (the literal "AI recommendation" wording you gave for Blue
+   Engobe Jug, matching your Figma mock exactly); cards without one fall back
+   to planFallbackText(), a plain-text composition of the real steps/tools/
+   risks/refs fields -- there's no real copy generator in this app to write
+   that wording for the other 27 cards, so the fallback stays literal rather
+   than inventing per-step titles like "BUILD"/"SHAPE" that aren't in the
+   data. Two behavior losses from this change, flagged since neither was
+   explicitly discussed: archive refs are plain text now, not individually
+   clickable to open that card; and the separate ASSUMING/YOURS editing
+   affordance is gone -- editing this field edits the whole plan at once. */
+function planFallbackText(c) {
+  const plan = c.plan;
+  const lines = [planSummary(c)];
+  if (plan.tools?.length) lines.push('', 'TOOLS', plan.tools.join(' · '));
+  plan.steps.forEach((s, i) => lines.push('', String(i + 1).padStart(2, '0') + ' · ' + s));
+  (plan.risks || []).forEach(r => lines.push('', '⚠ ' + r.k.toUpperCase(), r.t));
+  if (plan.refs?.length) {
+    lines.push('', 'FROM YOUR ARCHIVE');
+    plan.refs.forEach(r => {
+      const rc = S.byId(r.cardId);
+      if (rc) lines.push(rc.title + ' — ' + r.note);
+    });
+  }
+  return lines.join('\n');
+}
+
 function planCard(c, render) {
   const plan = c.plan;
   if (!plan) return h('div');
 
-  const summaryText = () => planSummary(c);
-  const summary = h('p', { contenteditable: 'true', spellcheck: 'false' }, summaryText());
-  summary.addEventListener('blur', () => {
-    const v = summary.textContent.trim();
-    if (!v || v === summaryText()) return;
-    S.updateCard(c.id, cc => ({ plan: { ...cc.plan, summary: v, assumeEdited: true } }));
-    toast({ html: 'Assumptions — <b>yours now</b>' });
-    render();
+  const currentText = () => plan.text || planFallbackText(c);
+  const text = h('div', {
+    class: 'desc2 plan-text', contenteditable: 'true', spellcheck: 'false',
+    'data-ph': 'Type in or use voice via microphone button…',
+  }, currentText());
+  text.addEventListener('blur', () => {
+    const v = text.textContent.trim();
+    if (v !== currentText()) { S.updateCard(c.id, cc => ({ plan: { ...cc.plan, text: v } })); toast({ text: 'Saved' }); }
   });
 
-  const list = h('div', { class: 'plan-list' },
-    h('div', { class: 'plan-item' }, h('div', { class: 'plan-n' }, plan.assumeEdited ? 'YOURS' : 'ASSUMING'), summary),
-    plan.tools?.length
-      ? h('div', { class: 'plan-item' }, h('div', { class: 'plan-n' }, 'TOOLS'), h('div', {}, plan.tools.join(' · ')))
-      : null,
-    ...plan.steps.map((s, i) => h('div', { class: 'plan-item' },
-      h('div', { class: 'plan-n' }, String(i + 1).padStart(2, '0')), h('div', {}, s))),
-    ...(plan.risks || []).map(r => h('div', { class: 'plan-item warn' },
-      h('div', { class: 'plan-n' }, '⚠'), h('div', {}, h('b', {}, r.k), ' — ', r.t))));
-
-  if (plan.refs?.length) {
-    const refs = h('div', { class: 'plan-refs' }, h('div', { class: 'plan-refs-t' }, 'From your archive'));
-    plan.refs.forEach(r => {
-      const rc = S.byId(r.cardId);
-      if (!rc) return;
-      refs.append(h('button', { class: 'plan-ref', onclick: () => openCard(rc.id) },
-        h('b', {}, rc.title), ' — ', r.note));
-    });
-    list.append(refs);
-  }
-
   let expanded = c.state !== 'finished';
-  list.classList.toggle('collapsed', !expanded);
+  text.classList.toggle('collapsed', !expanded);
   const toggle = h('button', { class: 'plan-toggle' }, expanded ? 'HIDE' : 'SHOW');
   toggle.onclick = () => {
     expanded = !expanded;
     toggle.textContent = expanded ? 'HIDE' : 'SHOW';
-    list.classList.toggle('collapsed', !expanded);
+    text.classList.toggle('collapsed', !expanded);
   };
 
   return h('div', { class: 'sect2' },
     h('div', { class: 'sh2' }, h('div', { class: 'h-mid' }, 'Plan'), toggle),
     h('div', { class: 'meta', style: { margin: '2px 0 10px' } }, 'Estimated from your archive'),
-    list);
+    text);
 }
 
 /* ---------- ATTACHMENTS ---------- */

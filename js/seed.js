@@ -934,7 +934,23 @@ export const CARDS = [
     refs:[
       { cardId:'blue-striped-mug', note:'Three coats of the blue engobe, not two.' },
       { cardId:'red-pink-pitcher', note:'Pulled spout and the handle method that held.' }
-    ]
+    ],
+    /* Literal plan text per your Figma mock -- the Plan field is now a single
+       freeform block (see js/screens/card.js's planCard()), not composed from
+       the structured fields above. Kept here as an explicit example of that
+       "AI recommendation" wording; other cards fall back to a plain
+       composition of their own steps/tools/risks/refs (planFallbackText). */
+    text:'01 · BUILD\n1.3 kg cream stoneware\nCoil + paddle · 7 mm walls\n\n'
+      + '02 · SHAPE\nPull spout from rim\nAttach handle · Soft leather-hard\n\n'
+      + '⚠ HANDLE CRACK\nCompress the join well\nWrap and dry slowly\n\n'
+      + '03 · ENGOBE\nBlue engobe · 3 coats\nLeather-hard · Wide brush\n\n'
+      + '⚠ ENGOBE FLAKING\nApply before bone dry\nLet each coat lose its shine\n\n'
+      + '04 · DRY\nWrap loosely · Slow dry\n~3 days\n\n'
+      + '05 · BISQUE\nCone 04\n\n'
+      + '06 · GLAZE + FIRE\nClear gloss · Cone 6\n\n'
+      + 'FROM YOUR ARCHIVE\n'
+      + 'Blue Line Mug — 3 coats worked better than 2\n'
+      + 'Pink Pitcher — pulled spout + handle method worked'
   },
   photos:[], notes:[], threads:[]
 }

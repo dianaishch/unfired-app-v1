@@ -307,30 +307,21 @@ img{display:block;max-width:100%}
 .arr{width:28px;height:28px;color:var(--ink-dim);flex:none}
 .arr svg{width:100%;height:100%}
 
-/* min-height instead of Figma's fixed height:180px -- a contenteditable
-   box should grow for longer text rather than clip it. */
-.desc2{margin-top:16px;background:#f6f4ec;color:#040404;border-radius:24px;padding:16px;
-  font-family:"Helvetica Neue";font-size:16px;font-weight:400;line-height:18px;
+/* .desc2 and .plan-text (the Plan section's text) share one rule so they
+   can't drift apart -- per your instruction that Plan must look exactly
+   like Description. min-height instead of Figma's fixed height:180px --
+   a contenteditable box should grow for longer text rather than clip it. */
+.desc2, .plan-text{margin-top:16px;background:#f6f4ec;color:#040404;border-radius:24px;
+  padding:16px;font-family:"Helvetica Neue";font-size:16px;font-weight:400;line-height:18px;
   min-height:180px;outline:none;white-space:pre-wrap}
-.desc2:empty:before{content:attr(data-ph);color:#8C8A84}
-.desc2[contenteditable]:focus{background:#f0eee6}
-
-.plan-list{margin-top:12px;background:#f6f4ec;color:#040404;border-radius:24px;padding:16px;
-  overflow:hidden;max-height:2000px;transition:max-height .3s var(--ease)}
-.plan-list.collapsed{max-height:150px}
-.plan-item{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid rgba(0,0,0,.08);
-  font-size:14px;line-height:1.4}
-.plan-item:last-child{border-bottom:0}
-.plan-item p{margin:0;outline:none}
-.plan-item .plan-n{flex:none;min-width:22px;font-size:11px;font-weight:700;letter-spacing:.08em;
-  color:#8C8A84;padding-top:2px}
-.plan-item.warn{color:#8A4415}
-.plan-item.warn .plan-n{color:#8A4415}
-.plan-refs{margin-top:6px;padding-top:10px;border-top:1px solid rgba(0,0,0,.08)}
-.plan-refs-t{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
-  color:#8C8A84;margin-bottom:6px}
-.plan-ref{display:block;width:100%;text-align:left;font-size:13px;line-height:1.4;
-  padding:4px 0;color:#040404}
+.desc2:empty:before, .plan-text:empty:before{content:attr(data-ph);color:#8C8A84}
+.desc2[contenteditable]:focus, .plan-text[contenteditable]:focus{background:#f0eee6}
+/* Plan-only: the HIDE/SHOW collapse clamp, on top of the shared look above. */
+.plan-text{overflow:hidden;max-height:2000px;transition:max-height .3s var(--ease)}
+/* min-height:0 overrides the shared 180px from .desc2 above -- min-height
+   always wins over max-height in a conflict, so without this the collapsed
+   clamp below could never actually shrink past 180px. */
+.plan-text.collapsed{min-height:0;max-height:150px}
 
 .att-row{display:flex;gap:8px;margin-top:12px;overflow-x:auto;scrollbar-width:none}
 .att-row::-webkit-scrollbar{display:none}
