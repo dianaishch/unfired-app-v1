@@ -65,7 +65,7 @@ function heroCard(c, render) {
 
   const tint = c.glow || '#8C8A84';
   const el = h('div', {
-    class: 'cardhero2',
+    class: 'cardhero2 ' + c.state,
     style: { background: `linear-gradient(180deg, #f6f4ec 23.558%, ${tint} 100%)` },
   },
     heroStatus(c),
@@ -85,11 +85,8 @@ function body(c, render, closePage) {
 
   scroll.append(heroCard(c, render));
 
-  /* Origin/date -- previously sat next to the state picker; the new hero
-     card has no room for it, so it moved here, right above the
-     description it explains. */
-  if (c.origin?.label)
-    scroll.append(h('div', { class: 'meta', style: { padding: '14px 20px 0' } }, c.origin.label, ' · ', ago(c.updated)));
+  /* Origin/date line ("Voice note · 24 Aug · 10 days ago") removed per
+     your instruction -- c.origin is still stored, just not shown here. */
 
   scroll.append(descBox(c));
   scroll.append(planCard(c, render));

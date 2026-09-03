@@ -259,13 +259,17 @@ img{display:block;max-width:100%}
    smoothing comes from squircle() in heroCard(). No description and
    no New Chat/Start Making buttons here, per your instruction --
    the state tags (.statepick) do that job on this page instead. */
-.cardhero2{margin:12px 16px 0;border-radius:48px;padding:20px;display:flex;
-  flex-direction:column;align-items:center;gap:12px;text-align:center;overflow:hidden}
+.cardhero2{margin:12px 20px 0;border-radius:48px;padding:20px;display:flex;
+  flex-direction:column;align-items:center;gap:8px;text-align:center;overflow:hidden;
+  min-height:210px;justify-content:space-between}
+/* status row and title: same shape/type params as .mkcard .status/.t (Make Next
+   card on the Items screen) -- reused verbatim per your instruction. */
 .cardhero2 .ch-status{display:flex;align-items:center;gap:4px;font-size:12px;
   text-transform:uppercase;color:#040404}
-.cardhero2 .ch-status .ic{width:8px;height:8px;flex:none}
-.cardhero2 .ch-status .ic svg{width:100%;height:100%}
-.cardhero2 .ch-status .sq{width:5px;height:5px;background:#040404;flex:none}
+.cardhero2 .ch-status .ic svg{width:6.96px;height:6.96px;flex:none}
+.cardhero2 .ch-status .sq{width:6px;height:6px;border-radius:50%;background:#040404;flex:none}
+.cardhero2.making .ch-status span{color:var(--orange)}
+.cardhero2.making .ch-status .sq{background:var(--orange)}
 .cardhero2 .ch-t{font-family:"Helvetica Neue";font-size:32px;font-weight:500;line-height:30px;
   letter-spacing:-1.05px;color:#040404;outline:none;max-width:100%}
 .cardhero2 .ch-t[contenteditable]:focus{background:rgba(0,0,0,.06);border-radius:8px}
@@ -273,12 +277,20 @@ img{display:block;max-width:100%}
 .cardhero2 .ch-img img{max-width:100%;max-height:220px;width:auto;height:auto;
   object-fit:contain;display:block;margin:0 auto;
   filter:drop-shadow(0 20px 30px rgba(0,0,0,.35))}
-.cardhero2 .statepick{margin-top:2px}
 
-.statepick{display:flex;gap:6px;background:#101010;border-radius:22px;padding:4px}
-.statepick button{padding:7px 13px;border-radius:18px;font-size:10px;font-weight:700;
-  letter-spacing:.13em;text-transform:uppercase;color:var(--ink-faint)}
-.statepick button.on{background:var(--paper);color:#000}
+/* Tabs (state picker) -- exact spec values. #0E0E0E is a named system
+   surface color (not a near-duplicate of --sheet, kept literal per the
+   background-literal precedent); the selected fill and default label
+   color are exact matches to --paper and --ink-faint, so those reuse
+   the tokens instead of restating the same hex. */
+.statepick{display:flex;padding:2px;justify-content:center;align-items:center;
+  align-self:stretch;border-radius:100px;background:#0E0E0E}
+.statepick button{display:flex;padding:2px 24px 0;flex-direction:column;
+  justify-content:center;align-items:center;flex:1 0 0;align-self:stretch;
+  border-radius:100px;font-family:"Helvetica Neue";font-size:14px;font-weight:700;
+  line-height:normal;letter-spacing:-.14px;text-transform:uppercase;text-align:center;
+  color:var(--ink-faint)}
+.statepick button.on{height:40px;background:var(--paper);color:#040404}
 
 /* new section shell (paper-card content, replacing the old dark
    divider-line .sect/.sh, now unused anywhere) */
@@ -290,8 +302,11 @@ img{display:block;max-width:100%}
 .arr{width:28px;height:28px;color:var(--ink-dim);flex:none}
 .arr svg{width:100%;height:100%}
 
-.desc2{margin-top:12px;background:#f6f4ec;color:#040404;border-radius:24px;padding:16px;
-  font-size:15px;line-height:1.5;min-height:56px;outline:none;white-space:pre-wrap}
+/* min-height instead of Figma's fixed height:180px -- a contenteditable
+   box should grow for longer text rather than clip it. */
+.desc2{margin-top:16px;background:#f6f4ec;color:#040404;border-radius:24px;padding:16px;
+  font-family:"Helvetica Neue";font-size:16px;font-weight:400;line-height:18px;
+  min-height:180px;outline:none;white-space:pre-wrap}
 .desc2:empty:before{content:attr(data-ph);color:#8C8A84}
 .desc2[contenteditable]:focus{background:#f0eee6}
 
