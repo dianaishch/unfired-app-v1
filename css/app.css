@@ -193,7 +193,7 @@ img{display:block;max-width:100%}
 .arch .st .sq{width:5px;height:5px;background:currentColor;flex:none}
 .arch .st .ic{width:8px;height:8px;flex:none;display:flex;align-items:center;justify-content:center}
 .arch .st .ic svg{width:100%;height:100%;display:block}
-.arch .t{font-family:"Helvetica Neue";font-size:20px;font-weight:500;line-height:normal;
+.arch .t{font-family:"Helvetica Neue";font-size:20px;font-weight:500;line-height:20px;
   letter-spacing:-.4px}
 
 /* finished/making with a photo -- floating cutout, no card background */
