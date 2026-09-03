@@ -21,8 +21,8 @@ img{display:block;max-width:100%}
 #device{position:fixed;inset:0;background:var(--bg);overflow:hidden;
   display:flex;flex-direction:column}
 @media (min-width:760px){
-  body{display:flex;align-items:center;justify-content:center;background:#131313;
-    background-image:radial-gradient(circle at 50% 0%,#242424 0%,#0b0b0b 70%)}
+  body{display:flex;align-items:center;justify-content:center;background:#3C3A36;
+    background-image:radial-gradient(circle at 50% 0%,#4A4844 0%,#221F1C 70%)}
   #device{position:relative;inset:auto;width:402px;height:min(874px,96vh);
     border-radius:44px;box-shadow:0 40px 120px rgba(0,0,0,.8),0 0 0 1px #262626;
     --safe-t:14px;--safe-b:18px}
@@ -45,7 +45,7 @@ img{display:block;max-width:100%}
 
 /* ---------- screen scaffold ---------- */
 .screen{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--bg)}
-.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;
+.scroll{flex:1;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;
   padding-bottom:calc(132px + var(--safe-b))}
 .scroll::-webkit-scrollbar{width:0}
 .pad{padding-left:20px;padding-right:20px}
@@ -182,7 +182,7 @@ img{display:block;max-width:100%}
 .filters button.on .count{color:var(--orange)}
 
 /* archive -- card grid per Figma node 468:63620 */
-.archive{display:flex;flex-direction:column;gap:8px;padding:0 12px}
+.archive{display:flex;flex-direction:column;gap:8px;padding:0 16px}
 .arch-row{display:flex;gap:8px}
 .arch-row.right{justify-content:flex-end}
 .arch{position:relative;overflow:hidden;border-radius:32px;height:210px;padding:16px;
@@ -197,7 +197,7 @@ img{display:block;max-width:100%}
   letter-spacing:-.4px}
 
 /* finished/making with a photo -- floating cutout, no card background */
-.arch.fin{width:181px;flex:none;justify-content:flex-end;gap:8px;color:#f6f4ec}
+.arch.fin{width:calc((100% - 8px)/2);flex:none;justify-content:flex-end;gap:8px;color:#f6f4ec}
 .arch.fin .obj{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .arch.fin .obj img{width:100%;height:100%;object-fit:contain}
 .arch.fin .info{display:flex;flex-direction:column;gap:8px}
@@ -211,7 +211,7 @@ img{display:block;max-width:100%}
    the browser honored the old width instead of stretching full-bleed --
    that's what produced the 132px-wide strip with the card's solid color
    showing through the rest. */
-.arch.bleed{width:181px;flex:none;justify-content:space-between;color:#f6f4ec}
+.arch.bleed{width:calc((100% - 8px)/2);flex:none;justify-content:space-between;color:#f6f4ec}
 .arch.bleed .bgimg{position:absolute;inset:0}
 .arch.bleed .bgimg img{width:100%;height:100%;object-fit:cover}
 /* Figma's literal gradient (transparent 0.44% -> black 123.29%) leaves the
@@ -226,7 +226,7 @@ img{display:block;max-width:100%}
 /* idea, no photo -- full-width gradient spotlight (small: same card, half-
    width, paired with a photo card -- Figma node 477:64406) */
 .arch.spot{width:100%;justify-content:space-between;color:#040404}
-.arch.spot.small{width:181px;flex:none}
+.arch.spot.small{width:calc((100% - 8px)/2);flex:none}
 .arch.spot .t{margin-bottom:8px}
 .arch.spot .d{font-size:16px;line-height:16px}
 .arch.spot .clamp2{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
