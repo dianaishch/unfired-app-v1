@@ -210,7 +210,10 @@ function planCard(c, render) {
 
   return h('div', { class: 'sect2' },
     h('div', { class: 'sh2' }, h('div', { class: 'h-mid' }, 'Plan'), toggle),
-    h('div', { class: 'meta', style: { margin: '2px 0 10px' } }, 'Estimated from your archive'),
+    /* Own class, not .meta -- .meta is shared by discover/insights/items/
+       studio/card's own chat-count badge with its own sizing; restyling it
+       here per spec would've changed all of those too. */
+    h('div', { class: 'plan-sub' }, 'Estimated from your archive'),
     text);
 }
 
