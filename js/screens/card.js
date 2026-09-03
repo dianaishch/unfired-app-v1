@@ -43,7 +43,10 @@ function heroStatus(c) {
 function heroCard(c, render) {
   const hero = S.hiRes(S.heroSrc(c));
 
-  const title = h('div', { class: 'ch-t', contenteditable: 'true', spellcheck: 'false' }, c.title);
+  /* Title Case for display, matching .mkcard's titleCase(c.title) treatment --
+     c.title itself stays stored/compared as ALL CAPS, same as every other
+     screen that reads it (archive, items list). */
+  const title = h('div', { class: 'ch-t', contenteditable: 'true', spellcheck: 'false' }, titleCase(c.title));
   title.addEventListener('blur', () => {
     const v = title.textContent.trim().toUpperCase();
     if (v && v !== c.title) { S.updateCard(c.id, { title: v }); toast({ text: 'Title updated' }); nav.refresh(); }
@@ -64,9 +67,12 @@ function heroCard(c, render) {
   );
 
   const tint = c.glow || '#8C8A84';
+  /* Gradient stop matches .mkcard's per-mode value exactly (23.558% for
+     making, 23.32% otherwise) instead of a single hardcoded number. */
+  const stop = c.state === 'making' ? '23.558%' : '23.32%';
   const el = h('div', {
     class: 'cardhero2 ' + c.state,
-    style: { background: `linear-gradient(180deg, #f6f4ec 23.558%, ${tint} 100%)` },
+    style: { background: `linear-gradient(180deg, #f6f4ec ${stop}, ${tint} 100%)` },
   },
     heroStatus(c),
     title,
