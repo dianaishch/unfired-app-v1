@@ -128,7 +128,71 @@ function filters() {
   return row;
 }
 
-/* Spatial archive: cutouts float, text ideas become type, occasional accent surface */
+/* Archive, card-based per Figma node 468:63620. Three card types:
+   - fin: finished/making, has a photo -> floating cutout, no background
+   - bleed: idea with a photo -> photo bleeds full-card, dark scrim, title overlaid
+   - spot: idea, no photo -> full-width gradient spotlight card, title + description
+   fin/bleed pack two-per-row (half width); spot is always full-width, alone.
+   Figma's own arrangement is a one-off hand-placed sequence for ~10 example
+   cards, not a formula -- this is a designed repeating rule that produces a
+   similar rhythm (paired half-cards, occasional lone half, full-width
+   spotlights breaking up the pairs) for any real, changing card list:
+   walk the sorted list, buffer fin/bleed cards two at a time into a row;
+   hitting a spot card flushes whatever's buffered (even just one, giving
+   the occasional lone half-width card Figma also shows) before placing
+   the spotlight as its own full-width row. */
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const shortDate = (ts) => { const d = new Date(ts); return `${d.getDate()} ${MONTHS[d.getMonth()]}`; };
+
+function archStatus(c) {
+  if (c.state === 'idea') return { sq: false, text: 'Idea, ' + shortDate(c.created) };
+  if (c.state === 'making') return { sq: true, text: 'Making, ' + shortDate(c.startedMaking || c.created) };
+  return { sq: true, text: (c.outcome === 'partial' ? 'Partial, ' : 'Finished, ') + shortDate(c.finishedAt || c.updated) };
+}
+
+function archStatusRow(st) {
+  return h('div', { class: 'st' },
+    st.sq ? h('i', { class: 'sq' }) : h('span', { class: 'ic', html: ICON.ideaStar }),
+    h('span', {}, st.text));
+}
+
+function finCard(c) {
+  const src = S.cutoutSrc(c);
+  return h('button', { class: 'arch fin', onclick: () => openCard(c.id) },
+    h('div', { class: 'obj' }, src ? img(src, c.title) : null),
+    h('div', { class: 'body' },
+      h('div', { class: 't' }, titleCase(c.title)),
+      archStatusRow(archStatus(c))));
+}
+
+/* Idea photos here are your real cards' product cutouts (assets/pieces) --
+   mostly-transparent, which broke badly under object-fit:cover (it zooms
+   into the empty margin, so the card's solid color shows through almost
+   everywhere except a small floating object). "assets/images for ideas"
+   holds proper opaque bleed-ready photos instead -- only 2 exist and their
+   content (a creature figure, a paint-texture close-up) doesn't match any
+   real card's actual subject, so this is a stock pool, cycled positionally
+   across however many idea-with-photo cards render -- same pattern as the
+   ready-to-post carousel images, not a per-card content match. */
+const IDEA_PHOTOS = ['assets/images for ideas/image creature.png', 'assets/images for ideas/image paint.png'];
+
+function bleedCard(c, photoSrc) {
+  return h('button', { class: 'arch bleed', style: { background: c.glow || '#222' }, onclick: () => openCard(c.id) },
+    h('div', { class: 'ph' }, img(photoSrc, c.title)),
+    h('div', { class: 'scrim' }),
+    archStatusRow(archStatus(c)),
+    h('div', { class: 't' }, titleCase(c.title)));
+}
+
+function spotCard(c) {
+  const tint = `linear-gradient(180deg, ${c.glow || '#8C8A84'} 0%, #f4f2ec 100%)`;
+  return h('button', { class: 'arch spot', style: { background: tint }, onclick: () => openCard(c.id) },
+    archStatusRow(archStatus(c)),
+    h('div', {},
+      h('div', { class: 't' }, titleCase(c.title)),
+      h('div', { class: 'd' }, (c.desc || '').slice(0, 74) + ((c.desc || '').length > 74 ? '…' : ''))));
+}
+
 function archive() {
   let list = S.cards();
   if (filter !== 'all') list = list.filter(c => c.state === filter);
@@ -140,38 +204,25 @@ function archive() {
       h('div', { class: 'meta' }, 'Press LOG and say what you are making.'));
 
   const wrap = h('div', { class: 'archive' });
-  let accents = 0;
-  list.forEach((c, i) => {
+  let buf = [];
+  let ideaPhotoIdx = 0;
+  const flush = () => { if (buf.length) { wrap.append(h('div', { class: 'arch-row' }, ...buf)); buf = []; } };
+  list.forEach((c) => {
     const src = S.cutoutSrc(c);
-    if (src) {
-      const tall = i % 3 !== 1;
-      wrap.append(h('button', { class: 'arch ' + (tall ? 'tall' : 'short'), onclick: () => openCard(c.id) },
-        h('div', { class: 'state ' + c.state + ' badge' }, ''),
-        h('div', { class: 'obj' }, img(src, c.title)),
-        h('div', { class: 'nm' }, c.title),
-        h('div', { class: 'sub' }, subFor(c))));
+    if (c.state === 'idea' && !src) {
+      flush();
+      wrap.append(spotCard(c));
+    } else if (c.state === 'idea') {
+      buf.push(bleedCard(c, IDEA_PHOTOS[ideaPhotoIdx++ % IDEA_PHOTOS.length]));
+      if (buf.length === 2) flush();
     } else {
-      const accent = accents < 2 && c.state === 'idea' && (i % 4 === 1);
-      if (accent) accents++;
-      wrap.append(h('button', {
-        class: 'arch text' + (accent ? (accents === 1 ? ' accent' : ' blue') : ''),
-        onclick: () => openCard(c.id)
-      },
-        h('div', { class: 'q' }, c.title),
-        h('div', {},
-          h('div', { class: 'sub', style: { marginBottom: '6px' } }, subFor(c)),
-          h('div', { style: { fontSize: '11px', lineHeight: '1.35', opacity: .62 } },
-            (c.desc || '').slice(0, 74) + ((c.desc || '').length > 74 ? '…' : '')))));
+      buf.push(finCard(c));
+      if (buf.length === 2) flush();
     }
   });
+  flush();
   return wrap;
 }
-
-const subFor = (c) => {
-  if (c.state === 'finished') return (c.outcome === 'partial' ? 'PARTIAL · ' : '') + ago(c.finishedAt || c.updated);
-  if (c.state === 'making') return 'ON THE BENCH';
-  return (c.origin?.type || 'idea').toUpperCase();
-};
 
 /* ══════════════ SEMANTIC SEARCH ══════════════ */
 export function openSearch(prefill) {

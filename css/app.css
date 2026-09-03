@@ -180,29 +180,37 @@ img{display:block;max-width:100%}
 .filters .count{font-size:16px;color:var(--ink-faint);margin-left:4px}
 .filters button.on .count{color:var(--orange)}
 
-/* archive — spatial composition, not a uniform grid */
-.archive{padding:4px 12px 0;column-count:2;column-gap:6px}
-.arch{break-inside:avoid;margin-bottom:22px;position:relative;display:block;width:100%;
-  text-align:left;transition:transform .3s var(--ease)}
+/* archive -- card grid per Figma node 468:63620 */
+.archive{display:flex;flex-direction:column;gap:8px;padding:0 12px}
+.arch-row{display:flex;gap:8px}
+.arch{position:relative;overflow:hidden;border-radius:32px;height:210px;padding:16px;
+  display:flex;flex-direction:column;text-align:left;transition:transform .3s var(--ease)}
 .arch:active{transform:scale(.965)}
-.arch .obj{width:100%;display:grid;place-items:center;padding:6px}
-.arch .obj img{width:100%;height:auto;object-fit:contain;
-  filter:drop-shadow(0 16px 22px rgba(0,0,0,.6))}
-.arch.tall .obj{min-height:230px}
-.arch.short .obj{min-height:150px}
-.arch .nm{margin-top:9px;font-size:12px;font-weight:700;letter-spacing:.01em;
-  text-transform:uppercase;line-height:1.15}
-.arch .sub{font-size:10px;letter-spacing:.13em;text-transform:uppercase;margin-top:4px;
-  color:var(--ink-faint)}
-.arch.text{background:#0F0F0F;border-radius:22px;padding:18px 16px 20px;min-height:172px;
-  display:flex;flex-direction:column;justify-content:space-between}
-.arch.text .q{font-size:17px;line-height:1.14;letter-spacing:-.025em;font-weight:700;
-  text-transform:uppercase}
-.arch.text.accent{background:var(--acid);color:#000}
-.arch.text.accent .sub{color:rgba(0,0,0,.5)}
-.arch.text.blue{background:var(--blue);color:#fff}
-.arch.text.blue .sub{color:rgba(255,255,255,.55)}
-.arch .badge{position:absolute;top:4px;left:6px;z-index:2}
+.arch .st{display:flex;align-items:center;gap:4px;font-size:12px;text-transform:uppercase}
+.arch .st .sq{width:5px;height:5px;background:currentColor;flex:none}
+.arch .st .ic{width:8px;height:8px;flex:none}
+.arch .st .ic svg{width:100%;height:100%}
+.arch .t{font-size:20px;font-weight:500;letter-spacing:-.4px}
+
+/* finished/making with a photo -- floating cutout, no card background */
+.arch.fin{width:181px;flex:none;justify-content:flex-end;gap:8px;color:#f6f4ec}
+.arch.fin .obj{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.arch.fin .obj img{width:100%;height:100%;object-fit:contain}
+.arch.fin .body{display:flex;flex-direction:column;gap:8px}
+.arch.fin .t{font-size:24px;line-height:22px}
+
+/* idea with a photo -- photo bleeds full-card, scrim, title overlaid */
+.arch.bleed{width:181px;flex:none;justify-content:space-between;color:#f6f4ec}
+.arch.bleed .ph{position:absolute;inset:0}
+.arch.bleed .ph img{width:100%;height:100%;object-fit:cover}
+.arch.bleed .scrim{position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(0,0,0,0) 45%,#000 100%)}
+.arch.bleed .st,.arch.bleed .t{position:relative}
+
+/* idea, no photo -- full-width gradient spotlight */
+.arch.spot{width:100%;justify-content:space-between;color:#040404}
+.arch.spot .t{margin-bottom:8px}
+.arch.spot .d{font-size:16px;line-height:1.3}
 
 /* ---------- sheets / layers ---------- */
 #layers{position:absolute;inset:0;pointer-events:none;z-index:60}
