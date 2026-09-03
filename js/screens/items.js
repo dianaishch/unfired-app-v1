@@ -233,6 +233,13 @@ function shuffled(arr) {
   return a;
 }
 
+/* Pinned per filter tab: the shuffle only reshuffles when the actual set
+   of card ids under that filter changes (a card added/removed/moved in
+   or out), not on every re-render -- otherwise the whole grid would
+   visibly reshuffle after every toggle/refresh, which reads as broken
+   rather than "randomly mixed once". */
+const archiveShuffleCache = new Map();
+
 function archive() {
   let list = S.cards();
   if (filter !== 'all') list = list.filter(c => c.state === filter);
@@ -243,8 +250,20 @@ function archive() {
       h('div', { class: 'meta' }, 'Press LOG and say what you are making.'));
 
   const isGradient = (c) => c.state === 'idea' && !S.cutoutSrc(c);
-  const photoPool = shuffled(list.filter(c => !isGradient(c)));
-  const gradPool = shuffled(list.filter(isGradient));
+  const idKey = list.map(c => c.id).sort().join(',');
+  const cached = archiveShuffleCache.get(filter);
+  let photoPool, gradPool;
+  if (cached && cached.idKey === idKey) {
+    const byId = new Map(list.map(c => [c.id, c]));
+    photoPool = cached.photoIds.map(id => byId.get(id));
+    gradPool = cached.gradIds.map(id => byId.get(id));
+  } else {
+    photoPool = shuffled(list.filter(c => !isGradient(c)));
+    gradPool = shuffled(list.filter(isGradient));
+    archiveShuffleCache.set(filter, {
+      idKey, photoIds: photoPool.map(c => c.id), gradIds: gradPool.map(c => c.id),
+    });
+  }
   let pi = 0, gi = 0;
   const nextPhoto = () => pi < photoPool.length ? photoPool[pi++] : null;
   const nextGrad = () => gi < gradPool.length ? gradPool[gi++] : null;
