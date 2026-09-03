@@ -1,5 +1,5 @@
 /* CARD DETAIL — hero, description, how to make it, photos, notes & chats. */
-import { h, frag, ICON, page, sheet, toast, fmtShort, ago, img, sleep } from '../ui.js';
+import { h, frag, ICON, page, sheet, toast, fmtShort, ago, img, sleep, squircle } from '../ui.js';
 import * as S from '../store.js';
 import * as AI from '../ai.js';
 import { nav } from '../nav.js';
@@ -64,7 +64,7 @@ function heroCard(c, render) {
   );
 
   const tint = c.glow || '#8C8A84';
-  return h('div', {
+  const el = h('div', {
     class: 'cardhero2',
     style: { background: `linear-gradient(180deg, #f6f4ec 23.558%, ${tint} 100%)` },
   },
@@ -72,6 +72,12 @@ function heroCard(c, render) {
     title,
     hero ? h('div', { class: 'ch-img' }, img(hero, c.title)) : null,
     statepick);
+  /* Same corner-smoothing treatment as the Items-screen hero card
+     (.mkcard) -- per your instruction to match its look, minus the
+     description and New Chat/Start Making buttons (this page keeps the
+     state tags instead). */
+  squircle(el, 48);
+  return el;
 }
 
 function body(c, render, closePage) {
