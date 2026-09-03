@@ -186,10 +186,11 @@ img{display:block;max-width:100%}
 .arch{position:relative;overflow:hidden;border-radius:32px;height:210px;padding:16px;
   display:flex;flex-direction:column;text-align:left;transition:transform .3s var(--ease)}
 .arch:active{transform:scale(.965)}
-.arch .st{display:flex;align-items:center;gap:4px;font-size:12px;text-transform:uppercase}
+.arch .st{display:flex;align-items:center;gap:4px;font-size:12px;line-height:1;
+  text-transform:uppercase}
 .arch .st .sq{width:5px;height:5px;background:currentColor;flex:none}
-.arch .st .ic{width:8px;height:8px;flex:none}
-.arch .st .ic svg{width:100%;height:100%}
+.arch .st .ic{width:8px;height:8px;flex:none;display:flex;align-items:center;justify-content:center}
+.arch .st .ic svg{width:100%;height:100%;display:block}
 .arch .t{font-size:20px;font-weight:500;letter-spacing:-.4px}
 
 /* finished/making with a photo -- floating cutout, no card background */
@@ -204,7 +205,7 @@ img{display:block;max-width:100%}
 .arch.bleed .ph{position:absolute;inset:0}
 .arch.bleed .ph img{width:100%;height:100%;object-fit:cover}
 .arch.bleed .scrim{position:absolute;inset:0;
-  background:linear-gradient(180deg,rgba(0,0,0,0) 45%,#000 100%)}
+  background:linear-gradient(180deg,rgba(0,0,0,0) 0.44%,#000 123.29%)}
 .arch.bleed .st,.arch.bleed .t{position:relative}
 
 /* idea, no photo -- full-width gradient spotlight */
