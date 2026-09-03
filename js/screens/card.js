@@ -26,23 +26,24 @@ export function openCard(id) {
   });
 }
 
-function body(c, render, closePage) {
-  const scroll = h('div', { class: 'scroll' });
+/* Small status row shared by the hero card -- same visual language as the
+   Items-screen archive (square for making/finished, star for idea). */
+function heroStatus(c) {
+  const icon = c.state === 'idea' ? h('span', { class: 'ic', html: ICON.ideaStar }) : h('span', { class: 'sq' });
+  const label = c.state === 'idea' ? 'Idea, ' + ago(c.created)
+    : c.state === 'making' ? 'Making, ' + ago(c.startedMaking || c.created)
+    : (c.outcome === 'partial' ? 'Partial, ' : 'Finished, ') + ago(c.finishedAt || c.updated);
+  return h('div', { class: 'ch-status' }, icon, h('span', {}, label));
+}
+
+/* Hero, title, and the state segmented control unified into one gradient
+   card (Figma node 467:57910 / 467:57986) -- previously three separate
+   stacked elements. Tint comes from c.glow, same field/formula already
+   used for the Items-screen hero card. */
+function heroCard(c, render) {
   const hero = S.hiRes(S.heroSrc(c));
 
-  /* A. HERO */
-  scroll.append(
-    h('div', { class: 'cardhero', style: { '--glow': c.glow || '#222' } },
-      h('div', { class: 'bgglow' }),
-      hero
-        ? img(hero, c.title)
-        : h('div', { class: 'noimg' },
-            h('div', { class: 'label' }, c.state === 'idea' ? 'TEXT ONLY — NO IMAGE YET' : 'NO PHOTO'))
-    )
-  );
-
-  /* title + state */
-  const title = h('h1', { class: 'h-mega', contenteditable: 'true', spellcheck: 'false' }, c.title);
+  const title = h('div', { class: 'ch-t', contenteditable: 'true', spellcheck: 'false' }, c.title);
   title.addEventListener('blur', () => {
     const v = title.textContent.trim().toUpperCase();
     if (v && v !== c.title) { S.updateCard(c.id, { title: v }); toast({ text: 'Title updated' }); nav.refresh(); }
@@ -62,43 +63,35 @@ function body(c, render, closePage) {
     }, s))
   );
 
-  scroll.append(
-    h('div', { class: 'titlewrap' },
-      title,
-      h('div', { class: 'staterow' },
-        statepick,
-        h('div', { class: 'meta' }, c.origin?.label || '', ' · ', ago(c.updated))
-      )
-    )
-  );
+  const tint = c.glow || '#8C8A84';
+  return h('div', {
+    class: 'cardhero2',
+    style: { background: `linear-gradient(180deg, #f6f4ec 23.558%, ${tint} 100%)` },
+  },
+    heroStatus(c),
+    title,
+    hero ? h('div', { class: 'ch-img' }, img(hero, c.title)) : null,
+    statepick);
+}
 
-  /* B. ORIGINAL DESCRIPTION */
-  const desc = h('div', { class: 'desc', contenteditable: 'true', spellcheck: 'false' }, c.desc || '');
-  desc.addEventListener('blur', () => {
-    const v = desc.textContent.trim();
-    if (v !== c.desc) { S.updateCard(c.id, { desc: v }); toast({ text: 'Saved' }); }
-  });
-  scroll.append(
-    h('div', { class: 'sect' },
-      h('div', { class: 'sh' }, h('div', { class: 'label' }, c.origin?.type === 'voice' ? 'WHAT YOU SAID' : 'WHAT YOU LOGGED')),
-      desc)
-  );
+function body(c, render, closePage) {
+  const scroll = h('div', { class: 'scroll' });
 
-  /* C. HOW TO MAKE IT (collapsible) */
-  scroll.append(howTo(c, render));
+  scroll.append(heroCard(c, render));
 
-  /* D. PHOTOS */
-  scroll.append(photos(c, render));
+  /* Origin/date -- previously sat next to the state picker; the new hero
+     card has no room for it, so it moved here, right above the
+     description it explains. */
+  if (c.origin?.label)
+    scroll.append(h('div', { class: 'meta', style: { padding: '14px 20px 0' } }, c.origin.label, ' · ', ago(c.updated)));
 
-  /* E. NOTES & CHATS */
-  scroll.append(notesAndChats(c, render));
-
-  /* actions */
-  scroll.append(h('button', { class: 'bigact ghost', onclick: () => openChat(c.id, null, render) },
-    'NEW CHAT'));
+  scroll.append(descBox(c));
+  scroll.append(planCard(c, render));
+  scroll.append(attachmentsRow(c, render));
+  scroll.append(chatsSection(c, render));
 
   if (c.state === 'idea')
-    scroll.append(h('button', { class: 'bigact', onclick: () => {
+    scroll.append(h('button', { class: 'bigact', style: { margin: '28px 20px 0', width: 'calc(100% - 40px)' }, onclick: () => {
       const snap = S.setState(c.id, 'making');
       startMaking(c.id);
       toast({ html: '<b>MAKING</b> · live activity started', undo: () => { S.restore(snap); render(); nav.refresh(); } });
@@ -107,8 +100,8 @@ function body(c, render, closePage) {
 
   if (c.state === 'making')
     scroll.append(
-      h('button', { class: 'bigact paper', onclick: () => nav.openLock(c.id) }, 'OPEN STUDIO MODE'),
-      h('button', { class: 'bigact ghost', onclick: () => {
+      h('button', { class: 'bigact paper', style: { margin: '28px 20px 0', width: 'calc(100% - 40px)' }, onclick: () => nav.openLock(c.id) }, 'OPEN STUDIO MODE'),
+      h('button', { class: 'bigact ghost', style: { margin: '10px 20px 0', width: 'calc(100% - 40px)' }, onclick: () => {
         const snap = S.setState(c.id, 'finished');
         S.updateCard(c.id, { readyToShare: true });
         toast({ html: 'Looks finished. <b>FINISHED</b>', undo: () => { S.restore(snap); render(); nav.refresh(); } });
@@ -116,63 +109,13 @@ function body(c, render, closePage) {
       } }, 'MARK FINISHED'));
 
   if (c.state === 'finished')
-    scroll.append(h('button', { class: 'bigact paper', onclick: () => openShare(c.id) }, 'PREPARE TO SHARE'));
+    scroll.append(h('button', { class: 'bigact paper', style: { margin: '28px 20px 0', width: 'calc(100% - 40px)' }, onclick: () => openShare(c.id) }, 'PREPARE TO SHARE'));
 
-  scroll.append(h('div', { style: { height: '40px' } }));
-  return scroll;
+  scroll.append(h('div', { style: { height: '16px' } }));
+  return frag(scroll, composeBar(c, render));
 }
 
 /* ---------- HOW TO MAKE IT ---------- */
-function howTo(c, render) {
-  const plan = c.plan;
-  if (!plan) return h('div');
-  let open = c.state !== 'finished';
-  const inner = h('div');
-  const chev = h('div', { class: 'chev' + (open ? ' open' : ''), html: '▾' });
-
-  const build = () => {
-    inner.replaceChildren();
-    if (!open) return;
-    inner.classList.add('fadein');
-
-    /* one editable assumption block — tap it to correct anything */
-    inner.append(assumeBlock(c, render));
-
-    if (plan.tools?.length)
-      inner.append(h('div', { class: 'srcline' }, h('div', { class: 'label' }, 'TOOLS'),
-        ...plan.tools.map(t => h('div', { class: 'src' }, t))));
-
-    /* steps */
-    inner.append(h('div', { class: 'label', style: { marginTop: '22px' } }, 'ACTION PLAN'));
-    inner.append(h('ol', { class: 'steps' }, ...plan.steps.map(s => h('li', {}, s))));
-
-    /* risks */
-    if (plan.risks?.length) {
-      inner.append(h('div', { class: 'label', style: { marginTop: '22px' } }, 'WHERE IT GOES WRONG'));
-      inner.append(h('div', { class: 'risks' },
-        ...plan.risks.map(r => h('div', { class: 'risk' }, h('b', {}, r.k), h('span', {}, r.t)))));
-    }
-
-    /* archive memory */
-    if (plan.refs?.length) {
-      inner.append(h('div', { class: 'srcline' }, h('div', { class: 'src archive' }, 'YOUR ARCHIVE')));
-      plan.refs.forEach(r => {
-        const rc = S.byId(r.cardId);
-        if (!rc) return;
-        inner.append(h('button', { class: 'memo', style: { textAlign: 'left', display: 'block', width: '100%' },
-          onclick: () => openCard(rc.id) },
-          h('b', {}, rc.title), ' — ', r.note));
-      });
-    }
-  };
-  build();
-
-  const head = h('button', { class: 'sh', onclick: () => { open = !open; chev.classList.toggle('open', open); build(); } },
-    h('div', { class: 'h-mid' }, 'HOW TO MAKE IT'), chev);
-
-  return h('div', { class: 'sect' }, head, inner);
-}
-
 /* The single editable statement of what UNFIRED is assuming. */
 export function planSummary(c) {
   const plan = c.plan;
@@ -185,66 +128,143 @@ export function planSummary(c) {
   return line.charAt(0).toUpperCase() + line.slice(1);
 }
 
-function assumeBlock(c, render) {
-  const plan = c.plan;
-  const anyLogged = (plan.params || []).some(p => p.src === 'user');
-  const text = h('p', { contenteditable: 'true', spellcheck: 'false' }, planSummary(c));
+/* ---------- DESCRIPTION (paper card, Figma) ---------- */
+function descBox(c) {
+  const desc = h('div', {
+    class: 'desc2', contenteditable: 'true', spellcheck: 'false',
+    'data-ph': 'Type in or use voice via microphone button…',
+  }, c.desc || '');
+  desc.addEventListener('blur', () => {
+    const v = desc.textContent.trim();
+    if (v !== c.desc) { S.updateCard(c.id, { desc: v }); toast({ text: 'Saved' }); }
+  });
+  return h('div', { class: 'sect2' },
+    h('div', { class: 'sh2' }, h('div', { class: 'h-mid' }, 'Description')),
+    desc);
+}
 
-  text.addEventListener('blur', () => {
-    const v = text.textContent.trim();
-    if (!v || v === planSummary(c)) return;
+/* ---------- PLAN (interleaved narrative + collapse, Figma) ----------
+   Figma's example interleaves specific warnings between the exact steps
+   they narratively relate to (a handle-crack warning right after the
+   shape step) and breaks out per-step params (clay weight, wall
+   thickness) as sub-lines under each numbered step. Neither association
+   exists in the real plan data model (risks and params aren't linked to
+   a specific step index), so rather than guess a pairing that might be
+   wrong, this keeps every real field -- tools, steps, risks, archive
+   refs -- in one merged numbered list, risks appended after all the
+   steps instead of interleaved mid-sequence. Flagging that as the one
+   place this isn't literally what the reference shows. */
+function planCard(c, render) {
+  const plan = c.plan;
+  if (!plan) return h('div');
+
+  const summaryText = () => planSummary(c);
+  const summary = h('p', { contenteditable: 'true', spellcheck: 'false' }, summaryText());
+  summary.addEventListener('blur', () => {
+    const v = summary.textContent.trim();
+    if (!v || v === summaryText()) return;
     S.updateCard(c.id, cc => ({ plan: { ...cc.plan, summary: v, assumeEdited: true } }));
     toast({ html: 'Assumptions — <b>yours now</b>' });
     render();
   });
 
-  return h('div', { class: 'assume' },
-    h('div', { class: 'label' }, plan.assumeEdited ? 'YOURS' : 'ASSUMING'),
-    text,
-    h('div', { class: 'meta', style: { marginTop: '10px', fontSize: '11px' } },
-      plan.assumeEdited ? 'Edited by you. Tap to change it again.'
-        : (anyLogged ? 'Some of this you logged, the rest is estimated from your archive. Tap to correct it.'
-                     : 'Estimated from your archive. Tap to correct it.')));
+  const list = h('div', { class: 'plan-list' },
+    h('div', { class: 'plan-item' }, h('div', { class: 'plan-n' }, plan.assumeEdited ? 'YOURS' : 'ASSUMING'), summary),
+    plan.tools?.length
+      ? h('div', { class: 'plan-item' }, h('div', { class: 'plan-n' }, 'TOOLS'), h('div', {}, plan.tools.join(' · ')))
+      : null,
+    ...plan.steps.map((s, i) => h('div', { class: 'plan-item' },
+      h('div', { class: 'plan-n' }, String(i + 1).padStart(2, '0')), h('div', {}, s))),
+    ...(plan.risks || []).map(r => h('div', { class: 'plan-item warn' },
+      h('div', { class: 'plan-n' }, '⚠'), h('div', {}, h('b', {}, r.k), ' — ', r.t))));
+
+  if (plan.refs?.length) {
+    const refs = h('div', { class: 'plan-refs' }, h('div', { class: 'plan-refs-t' }, 'From your archive'));
+    plan.refs.forEach(r => {
+      const rc = S.byId(r.cardId);
+      if (!rc) return;
+      refs.append(h('button', { class: 'plan-ref', onclick: () => openCard(rc.id) },
+        h('b', {}, rc.title), ' — ', r.note));
+    });
+    list.append(refs);
+  }
+
+  let expanded = c.state !== 'finished';
+  list.classList.toggle('collapsed', !expanded);
+  const toggle = h('button', { class: 'plan-toggle' }, expanded ? 'HIDE' : 'SHOW');
+  toggle.onclick = () => {
+    expanded = !expanded;
+    toggle.textContent = expanded ? 'HIDE' : 'SHOW';
+    list.classList.toggle('collapsed', !expanded);
+  };
+
+  return h('div', { class: 'sect2' },
+    h('div', { class: 'sh2' }, h('div', { class: 'h-mid' }, 'Plan'), toggle),
+    h('div', { class: 'meta', style: { margin: '2px 0 10px' } }, 'Estimated from your archive'),
+    list);
 }
 
-/* ---------- PHOTOS ---------- */
-function photos(c, render) {
-  const row = h('div', { class: 'photorow' });
-  (c.photos || []).forEach(p => {
-    row.append(h('div', { class: 'ph' },
-      img(p.src, p.cap || ''),
-      h('div', { class: 'k' }, p.kind),
-      h('button', { class: 'x', html: '×', onclick: () => {
-        const snap = S.removePhoto(c.id, p.id);
-        toast({ text: 'Photo removed', undo: () => { S.restore(snap); render(); } });
-        render();
-      } }),
-      p.cap ? h('div', { class: 'cp' }, p.cap) : null
-    ));
-  });
-
+/* ---------- ATTACHMENTS ---------- */
+function addPhotoFlow(c, render) {
   const input = h('input', { type: 'file', accept: 'image/*', style: { display: 'none' } });
   input.addEventListener('change', () => {
     const f = input.files[0]; if (!f) return;
-    const url = URL.createObjectURL(f);
-    addProcessPhoto(c.id, url, render);
+    addProcessPhoto(c.id, URL.createObjectURL(f), render);
   });
+  sheet({ build: (b, done) => {
+    b.append(h('div', { class: 'label' }, 'ADD A PHOTO'),
+      h('div', { class: 'h-big', style: { margin: '10px 0 20px' } }, 'FROM WHERE?'),
+      h('button', { class: 'bigact ghost', style: { margin: '0 0 10px', width: '100%' },
+        onclick: () => { done(); input.click(); } }, 'UPLOAD FROM THIS DEVICE'),
+      h('button', { class: 'bigact ghost', style: { margin: '0 0 10px', width: '100%' },
+        onclick: () => { done(); pickFromLibrary(c.id, render); } }, 'SIMULATED PHOTO LIBRARY'));
+  } });
+}
 
-  row.append(h('button', { class: 'ph add', onclick: () => {
-    sheet({ build: (b, done) => {
-      b.append(h('div', { class: 'label' }, 'ADD A PHOTO'),
-        h('div', { class: 'h-big', style: { margin: '10px 0 20px' } }, 'FROM WHERE?'),
-        h('button', { class: 'bigact ghost', style: { margin: '0 0 10px', width: '100%' },
-          onclick: () => { done(); input.click(); } }, 'UPLOAD FROM THIS DEVICE'),
-        h('button', { class: 'bigact ghost', style: { margin: '0 0 10px', width: '100%' },
-          onclick: () => { done(); pickFromLibrary(c.id, render); } }, 'SIMULATED PHOTO LIBRARY'));
-    } });
-  } }, '+ PHOTO'));
+/* Compact row on the card page -- add button first, then plain thumbnails,
+   per Figma. Per-photo kind/caption/delete moved to the "see all" page
+   (no dedicated attachments page existed before; built per your
+   confirmation). */
+function attachmentsRow(c, render) {
+  const list = (c.photos || []);
+  const thumbs = list.slice(0, 4).map(p =>
+    h('button', { class: 'att', onclick: () => openAttachments(c.id, render) }, img(p.src, p.cap || '')));
+  return h('div', { class: 'sect2' },
+    h('div', { class: 'sh2' },
+      h('div', { class: 'h-mid' }, 'Attachments'),
+      h('button', { class: 'arr', onclick: () => openAttachments(c.id, render), html: ICON.arrowFwd, 'aria-label': 'See all' })),
+    h('div', { class: 'att-row' },
+      h('button', { class: 'att add', onclick: () => addPhotoFlow(c, render), html: ICON.plus }),
+      ...thumbs));
+}
 
-  return h('div', { class: 'sect' },
-    h('div', { class: 'sh' }, h('div', { class: 'h-mid' }, 'PHOTOS'),
-      h('div', { class: 'meta' }, (c.photos || []).length || 'none')),
-    row);
+function openAttachments(cardId, parentRender) {
+  page((p, close) => {
+    const render = () => {
+      const c = S.byId(cardId);
+      p.replaceChildren();
+      if (!c) return;
+      const grid = h('div', { class: 'att-grid' });
+      (c.photos || []).forEach(ph => {
+        grid.append(h('div', { class: 'att-cell' },
+          img(ph.src, ph.cap || ''),
+          h('div', { class: 'k' }, ph.kind),
+          h('button', { class: 'x', html: '×', onclick: () => {
+            const snap = S.removePhoto(c.id, ph.id);
+            toast({ text: 'Photo removed', undo: () => { S.restore(snap); render(); parentRender(); } });
+            render(); parentRender();
+          } }),
+          ph.cap ? h('div', { class: 'cp' }, ph.cap) : null));
+      });
+      grid.append(h('button', { class: 'att-cell add', onclick: () => addPhotoFlow(c, () => { render(); parentRender(); }), html: ICON.plus }));
+      p.append(
+        h('div', { class: 'page-top' },
+          h('button', { class: 'iconbtn', onclick: close, html: ICON.back }),
+          h('div', { class: 'label', style: { flex: '1' } }, 'Attachments')),
+        h('div', { class: 'scroll' }, grid));
+    };
+    render();
+  });
 }
 
 function pickFromLibrary(cardId, render) {
@@ -279,10 +299,24 @@ function addProcessPhoto(cardId, src, render, kind) {
 }
 
 /* ---------- NOTES & CHATS ---------- */
-function notesAndChats(c, render) {
-  const wrap = h('div', { class: 'sect' },
-    h('div', { class: 'sh' }, h('div', { class: 'h-mid' }, 'NOTES & CHATS'),
+/* ---------- CHATS ----------
+   Figma's example card has no existing notes/threads either way, so the
+   reference only shows the suggested-prompt card. Per your confirmation,
+   history keeps rendering exactly as before, with the suggestion card
+   added above it as an entry point -- nothing is lost. The suggested
+   text itself is generic ("Ask UNFIRED about this piece"), not a
+   per-card AI-generated question like Figma's "Visualize this idea with
+   different painted patterns" -- there's no generator in this app that
+   produces a tailored suggestion from a card's content, and inventing
+   one felt like fabricating intelligence the prototype doesn't have. */
+function chatsSection(c, render) {
+  const wrap = h('div', { class: 'sect2' },
+    h('div', { class: 'sh2' }, h('div', { class: 'h-mid' }, 'Chats'),
       h('div', { class: 'meta' }, ((c.notes || []).length + (c.threads || []).length) || 'none')));
+
+  wrap.append(h('div', { class: 'suggest-card' },
+    h('div', {}, 'Ask UNFIRED about this piece'),
+    h('button', { class: 'suggest-btn', onclick: () => openChat(c.id, null, render) }, 'START CHAT')));
 
   const bubbles = h('div', { class: 'bubbles' });
 
@@ -301,13 +335,34 @@ function notesAndChats(c, render) {
       h('div', { class: 'w' }, t.msgs.length + ' messages · ' + fmtShort(t.at))));
   });
 
-  if (!bubbles.children.length)
-    bubbles.append(h('div', { class: 'meta', style: { padding: '14px 0' } },
-      'Nothing logged against this card yet. Anything you say near it lands here.'));
-
-  wrap.append(bubbles);
+  if (bubbles.children.length) wrap.append(bubbles);
   return wrap;
 }
+
+/* ---------- COMPOSE BAR ----------
+   New: nothing like this exists in the app today. Per your confirmation,
+   sending text here opens a new AI chat with that text -- the same
+   openChat(...) flow already used by "ASK ABOUT THIS" and the suggested-
+   prompt card, just from an always-visible bar. The mic button has no
+   real speech-to-text behind it (this is a prototype); left visually
+   present but inert rather than faked, same treatment given to other
+   buttons with unclear/unbuildable behavior earlier in this project. */
+function composeBar(c, render) {
+  const input = h('input', { placeholder: `Ask about ${titleCase(c.title)}…` });
+  const send = () => {
+    const v = input.value.trim();
+    if (!v) return;
+    input.value = '';
+    openChat(c.id, null, render, v);
+  };
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
+  return h('div', { class: 'composebar' },
+    h('button', { class: 'cb-ic', html: ICON.plus, onclick: () => addPhotoFlow(c, render), 'aria-label': 'Add photo' }),
+    input,
+    h('button', { class: 'cb-ic', html: ICON.mic, 'aria-label': 'Voice (not implemented in this prototype)' }));
+}
+
+const titleCase = (s) => (s || '').toLowerCase().replace(/\b\w/g, (m) => m.toUpperCase());
 
 const noteTitle = (n) => {
   const t = n.text;

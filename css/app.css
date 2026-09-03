@@ -251,28 +251,93 @@ img{display:block;max-width:100%}
   flex:none;position:relative;z-index:6}
 
 /* ---------- card detail ---------- */
-.cardhero{position:relative;min-height:300px;display:grid;place-items:center;padding:8px 20px 0}
-.cardhero .bgglow{position:absolute;inset:0;opacity:.5;
-  background:radial-gradient(60% 46% at 50% 42%,var(--glow,#222),transparent 70%)}
-.cardhero img{position:relative;max-height:290px;width:auto;
-  filter:drop-shadow(0 30px 46px rgba(0,0,0,.75))}
-.cardhero .noimg{position:relative;width:100%;height:210px;border-radius:26px;
-  background:linear-gradient(140deg,#151515,#0B0B0B);border:1px dashed var(--line-2);
-  display:grid;place-items:center}
-.titlewrap{padding:22px 20px 0}
-.titlewrap .h-mega{outline:none}
-.titlewrap .h-mega[contenteditable]:focus{background:#141414;border-radius:8px}
-.staterow{display:flex;align-items:center;gap:14px;margin-top:14px;flex-wrap:wrap}
+/* Hero, title, and state picker unified into one gradient card
+   (Figma node 467:57910 / 467:57986) -- previously three separate
+   stacked elements (.cardhero/.titlewrap/.staterow, now removed). */
+.cardhero2{margin:12px 16px 0;border-radius:32px;padding:16px;display:flex;
+  flex-direction:column;align-items:center;gap:12px;text-align:center}
+.cardhero2 .ch-status{display:flex;align-items:center;gap:4px;font-size:12px;
+  text-transform:uppercase;color:#040404}
+.cardhero2 .ch-status .ic{width:8px;height:8px;flex:none}
+.cardhero2 .ch-status .ic svg{width:100%;height:100%}
+.cardhero2 .ch-status .sq{width:5px;height:5px;background:#040404;flex:none}
+.cardhero2 .ch-t{font-family:"Helvetica Neue";font-size:32px;font-weight:500;line-height:30px;
+  letter-spacing:-1.05px;color:#040404;outline:none;max-width:100%}
+.cardhero2 .ch-t[contenteditable]:focus{background:rgba(0,0,0,.06);border-radius:8px}
+.cardhero2 .ch-img{max-width:100%}
+.cardhero2 .ch-img img{max-width:100%;max-height:220px;width:auto;height:auto;
+  object-fit:contain;display:block;margin:0 auto;
+  filter:drop-shadow(0 20px 30px rgba(0,0,0,.35))}
+.cardhero2 .statepick{margin-top:2px}
+
 .statepick{display:flex;gap:6px;background:#101010;border-radius:22px;padding:4px}
 .statepick button{padding:7px 13px;border-radius:18px;font-size:10px;font-weight:700;
   letter-spacing:.13em;text-transform:uppercase;color:var(--ink-faint)}
 .statepick button.on{background:var(--paper);color:#000}
 
-.sect{border-top:1px solid var(--line);margin-top:28px;padding:20px 20px 0}
-.sect > .sh{display:flex;align-items:center;justify-content:space-between;width:100%}
-.sect .sh .h-mid{letter-spacing:-.02em}
-.chev{transition:transform .3s var(--ease);color:var(--ink-dim);font-size:13px}
-.chev.open{transform:rotate(180deg)}
+/* new section shell (paper-card content, replacing the old dark
+   divider-line .sect/.sh, now unused anywhere) */
+.sect2{margin-top:28px;padding:0 20px}
+.sh2{display:flex;align-items:baseline;justify-content:space-between}
+.sh2 .h-mid{letter-spacing:-.02em}
+.plan-toggle{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-dim)}
+.arr{width:28px;height:28px;color:var(--ink-dim);flex:none}
+.arr svg{width:100%;height:100%}
+
+.desc2{margin-top:12px;background:#f6f4ec;color:#040404;border-radius:24px;padding:16px;
+  font-size:15px;line-height:1.5;min-height:56px;outline:none;white-space:pre-wrap}
+.desc2:empty:before{content:attr(data-ph);color:#8C8A84}
+.desc2[contenteditable]:focus{background:#f0eee6}
+
+.plan-list{margin-top:12px;background:#f6f4ec;color:#040404;border-radius:24px;padding:16px;
+  overflow:hidden;max-height:2000px;transition:max-height .3s var(--ease)}
+.plan-list.collapsed{max-height:150px}
+.plan-item{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid rgba(0,0,0,.08);
+  font-size:14px;line-height:1.4}
+.plan-item:last-child{border-bottom:0}
+.plan-item p{margin:0;outline:none}
+.plan-item .plan-n{flex:none;min-width:22px;font-size:11px;font-weight:700;letter-spacing:.08em;
+  color:#8C8A84;padding-top:2px}
+.plan-item.warn{color:#8A4415}
+.plan-item.warn .plan-n{color:#8A4415}
+.plan-refs{margin-top:6px;padding-top:10px;border-top:1px solid rgba(0,0,0,.08)}
+.plan-refs-t{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:#8C8A84;margin-bottom:6px}
+.plan-ref{display:block;width:100%;text-align:left;font-size:13px;line-height:1.4;
+  padding:4px 0;color:#040404}
+
+.att-row{display:flex;gap:8px;margin-top:12px;overflow-x:auto;scrollbar-width:none}
+.att-row::-webkit-scrollbar{display:none}
+.att,.att-cell{width:106px;height:106px;flex:none;border-radius:29px;overflow:hidden;
+  position:relative;background:#0B0B0B;border:1px solid var(--line-2)}
+.att img,.att-cell img{width:100%;height:100%;object-fit:cover}
+.att.add,.att-cell.add{display:grid;place-items:center}
+.att.add svg,.att-cell.add svg{width:24px;height:24px;color:var(--ink)}
+.att-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:16px}
+.att-cell{width:auto;height:auto;aspect-ratio:1}
+.att-cell .k{position:absolute;top:6px;left:6px;font-size:8px;letter-spacing:.14em;
+  font-weight:700;text-transform:uppercase;background:rgba(0,0,0,.62);padding:4px 7px;
+  border-radius:9px}
+.att-cell .cp{position:absolute;left:0;right:0;bottom:0;font-size:9px;line-height:1.3;
+  padding:6px 7px;color:var(--ink-dim);background:linear-gradient(rgba(0,0,0,0),rgba(0,0,0,.75))}
+.att-cell .x{position:absolute;top:6px;right:6px;width:20px;height:20px;border-radius:50%;
+  background:rgba(0,0,0,.66);display:grid;place-items:center;font-size:11px}
+
+.suggest-card{margin-top:12px;background:#f6f4ec;color:#040404;border-radius:24px;padding:16px;
+  font-size:15px;line-height:1.4}
+.suggest-btn{margin-top:10px;padding:9px 16px;border-radius:18px;border:1px solid #040404;
+  color:#040404;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+
+.composebar{display:flex;align-items:center;gap:8px;flex:none;
+  padding:10px 16px calc(14px + var(--safe-b));background:#000;border-top:1px solid var(--line)}
+.composebar input{flex:1;background:#141414;border-radius:24px;padding:12px 16px;
+  font-size:14px;color:var(--ink)}
+.composebar input::placeholder{color:var(--ink-faint)}
+.cb-ic{width:40px;height:40px;border-radius:50%;background:#0B0B0B;border:1px solid var(--line-2);
+  display:grid;place-items:center;flex:none;color:var(--ink)}
+.cb-ic svg{width:18px;height:18px}
+
 .desc{font-size:16px;line-height:1.45;letter-spacing:-.012em;margin-top:12px;white-space:pre-wrap}
 .desc[contenteditable]:focus{background:#121212;border-radius:10px;outline:none}
 
@@ -307,27 +372,12 @@ img{display:block;max-width:100%}
   line-height:1.4;color:var(--ink)}
 .risk b{color:var(--orange);font-weight:700;flex:none;font-size:11px;letter-spacing:.1em;
   text-transform:uppercase;padding-top:2px}
-.srcline{display:flex;align-items:center;gap:8px;margin-top:16px;flex-wrap:wrap}
+/* .src / .src.archive: still used by discover.js and items.js's answer-card
+   "from your archive" tags -- kept. .srcline/.memo (card.js's old howTo()
+   TOOLS line and memo block) are dead now, deleted. */
 .src{font-size:9px;letter-spacing:.14em;text-transform:uppercase;border:1px solid var(--line-2);
   border-radius:12px;padding:5px 9px;color:var(--ink-dim)}
 .src.archive{border-color:rgba(0,226,255,.4);color:var(--cyan)}
-.memo{margin-top:14px;border-left:2px solid var(--cyan);padding:2px 0 2px 13px;font-size:14px;
-  line-height:1.45}
-.memo b{font-weight:700}
-
-/* photos */
-.photorow{display:flex;gap:10px;overflow-x:auto;padding:14px 20px 4px;margin:0 -20px;
-  scrollbar-width:none}
-.photorow::-webkit-scrollbar{display:none}
-.ph{width:132px;flex:none;border-radius:18px;overflow:hidden;background:#111;position:relative}
-.ph img{width:100%;height:132px;object-fit:cover}
-.ph .k{position:absolute;top:8px;left:8px;font-size:8px;letter-spacing:.14em;font-weight:700;
-  text-transform:uppercase;background:rgba(0,0,0,.62);padding:4px 7px;border-radius:9px}
-.ph .cp{font-size:10px;line-height:1.3;padding:7px 8px;color:var(--ink-dim)}
-.ph .x{position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;
-  background:rgba(0,0,0,.66);display:grid;place-items:center;font-size:12px}
-.ph.add{border:1px dashed var(--line-2);display:grid;place-items:center;height:132px;
-  color:var(--ink-faint);font-size:11px;letter-spacing:.12em;text-transform:uppercase}
 
 /* chats */
 .bubbles{margin-top:14px;display:flex;flex-direction:column;gap:8px}
