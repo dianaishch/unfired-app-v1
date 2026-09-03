@@ -68,8 +68,19 @@ export function renderItems(root) {
    c.title renders (archive, card detail, etc.) keeps its existing ALL-CAPS look. */
 const titleCase = (s) => (s || '').toLowerCase().replace(/\b\w/g, (m) => m.toUpperCase());
 
+/* Figma's card art is an isolated cutout (no background). c.hero/c.photos here are
+   process/bench photos (assets/process/*.webp) — the matching background-removed
+   piece lives under assets/pieces (and, at higher res, "assets/pieces without bg"),
+   keyed by the same filename. Derive that key from whatever src the card already
+   has and look up the cutout instead of rendering the bench photo directly. */
+const cutoutFor = (c) => {
+  const src = (c.hero && c.hero.src) || S.heroSrc(c) || '';
+  const m = src.match(/([^/]+)\.webp$/);
+  return m ? `assets/pieces without bg/${m[1]} 1.png` : null;
+};
+
 function nowCard(c, sub, mode) {
-  const src = S.heroSrc(c);
+  const src = cutoutFor(c);
   const act = (fn) => (e) => { e.stopPropagation(); fn(); };
   return h('div', { class: 'mkcard ' + mode, onclick: () => openCard(c.id) },
     h('div', { class: 'status' },
