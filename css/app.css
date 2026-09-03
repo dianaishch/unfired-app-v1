@@ -156,17 +156,20 @@ img{display:block;max-width:100%}
   text-transform:uppercase;color:#f6f4ec;margin:0}
 .rtp-page-head .sub{font-size:16px;color:#f6f4ec;margin:0}
 
-/* actual Figma card exports (assets/posts) -- not rebuilt from primitives */
-.rtp-stack{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x proximity;
-  padding:0 12px 24px;scrollbar-width:none}
-.rtp-stack::-webkit-scrollbar{display:none}
-.rtp-stack img{width:260px;height:auto;flex:none;scroll-snap-align:center;display:block}
+/* actual Figma card exports (assets/posts) -- not rebuilt from primitives.
+   Swipeable peek carousel: cards scale/fade by distance from center as you
+   scroll (JS-driven, see rtpDeckScroll in items.js), snapping to center. */
+.rtp-deck{display:flex;align-items:center;gap:16px;overflow-x:auto;
+  scroll-snap-type:x mandatory;padding:20px calc(50% - 110px) 24px;scrollbar-width:none}
+.rtp-deck::-webkit-scrollbar{display:none}
+.rtp-deck img{width:220px;height:auto;flex:none;scroll-snap-align:center;display:block;
+  transition:transform .12s linear,opacity .12s linear;will-change:transform}
 
 .rtp-bottombar{display:flex;gap:8px;justify-content:center;
   padding:8px 12px calc(20px + var(--safe-b))}
-.rtp-bottombar button{height:58px;padding:4px 24px 0;border-radius:29px;background:#0B0B0B;
+.rtp-bottombar button{height:58px;padding:4px 24px 0;border-radius:29px;
   border:1px solid var(--line-2);font-size:16px;font-weight:700;text-transform:uppercase;
-  color:#f6f4ec}
+  color:#f6f4ec;transition:background-color .3s var(--ease)}
 
 /* filters */
 .filters{display:flex;gap:20px;padding:0 20px 16px;overflow-x:auto;scrollbar-width:none}

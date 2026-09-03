@@ -247,14 +247,18 @@ export function openSearch(prefill) {
 }
 
 /* ══════════════ READY TO POST (all) ══════════════
-   Per your instructions: the post-preview cards are exact Figma exports
-   (assets/posts/Post.png, Post-1.png, Post-2.png) shown as plain scrollable
-   images, not rebuilt from primitives, and not clickable. They're static
-   art, not tied to S.readyToShare() -- there's no live mapping from these
-   3 fixed images to whichever cards happen to be ready at the time.
-   Post/Edit at the bottom stay functional; with no per-card selection
-   any more, they default to the first ready-to-share card. Flagging that
-   assumption -- tell me if you want them to do something else. */
+   Post-preview cards are exact Figma exports (assets/posts/Post*.png), not
+   rebuilt from primitives, and still not individually clickable -- per
+   your direction, they're images you swipe past, not buttons.
+   Animation modeled on https://pin.it/3HbQi36yD: a swipeable peek carousel
+   -- the centered card sits at full scale, neighbors shrink/fade toward
+   the edges as you scroll, continuously (not stepped), and the bottom
+   action bar's color eases to match whichever card is centered.
+   The images themselves aren't tied to card data (still just art), but the
+   color-sync and the Post/Edit targets use the real ready-to-share list
+   positionally (image i <-> rts[i]) -- reusing c.glow, the same accent
+   field the hero card already draws on. Fewer real cards than images just
+   means the tail images center with no color/target change. */
 const RTP_IMAGES = ['assets/posts/Post.png', 'assets/posts/Post-1.png', 'assets/posts/Post-2.png'];
 
 function statusBar() {
@@ -269,7 +273,44 @@ function statusBar() {
 export function openReadyToPost() {
   page((p, close) => {
     const rts = S.readyToShare();
-    const primary = rts[0];
+    const cardEls = RTP_IMAGES.map(src => img(src, ''));
+    const deck = h('div', { class: 'rtp-deck' }, ...cardEls);
+    const postBtn = h('button', {}, 'Post');
+    const editBtn = h('button', {}, 'Edit');
+    let currentIdx = -1;
+
+    const setActive = (i) => {
+      if (i === currentIdx) return;
+      currentIdx = i;
+      const c = rts[i];
+      const tint = c ? `color-mix(in srgb, ${c.glow || '#8C8A84'} 55%, #0B0B0B)` : '#0B0B0B';
+      postBtn.style.backgroundColor = tint;
+      editBtn.style.backgroundColor = tint;
+      postBtn.onclick = c ? () => openShare(c.id) : null;
+      editBtn.onclick = c ? () => openCard(c.id) : null;
+    };
+
+    const layout = () => {
+      const rect = deck.getBoundingClientRect();
+      const mid = rect.left + rect.width / 2;
+      let bestI = 0, bestDist = Infinity;
+      cardEls.forEach((el, i) => {
+        const r = el.getBoundingClientRect();
+        const dist = Math.abs((r.left + r.width / 2) - mid);
+        const norm = Math.min(1, dist / (rect.width * 0.55));
+        el.style.transform = `scale(${(1 - norm * 0.18).toFixed(3)})`;
+        el.style.opacity = (1 - norm * 0.35).toFixed(3);
+        if (dist < bestDist) { bestDist = dist; bestI = i; }
+      });
+      setActive(bestI);
+    };
+    let ticking = false;
+    deck.addEventListener('scroll', () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => { layout(); ticking = false; });
+    }, { passive: true });
+
     p.append(
       statusBar(),
       h('div', { class: 'rtp-page-head' },
@@ -280,9 +321,9 @@ export function openReadyToPost() {
           h('button', { class: 'navbtn', html: ICON.plus, 'aria-label': 'Add' })),
         h('div', { class: 't' }, 'Ready to post'),
         h('div', { class: 'sub' }, 'Prepared while you were away')),
-      h('div', { class: 'rtp-stack' }, ...RTP_IMAGES.map(src => img(src, ''))),
-      primary ? h('div', { class: 'rtp-bottombar' },
-        h('button', { onclick: () => openShare(primary.id) }, 'Post'),
-        h('button', { onclick: () => openCard(primary.id) }, 'Edit')) : null);
+      deck,
+      h('div', { class: 'rtp-bottombar' }, postBtn, editBtn));
+
+    requestAnimationFrame(layout);
   });
 }
