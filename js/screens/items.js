@@ -96,17 +96,16 @@ function nowCard(c, sub, mode) {
 }
 
 function rtpCard(c) {
-  const n = (c.photos || []).length;
   const src = cutoutFor(c);
-  const el = h('div', { class: 'rtp-card' },
+  /* Description and buttons removed per your latest spec -- without them
+     the card had no way to open the piece at all, so it's now clickable
+     as a whole (opens the card), matching every other preview card in
+     the app (hero, archive). Flagging that addition since it wasn't
+     explicitly requested. */
+  const el = h('div', { class: 'rtp-card', onclick: () => openCard(c.id) },
     h('div', { class: 'thumb' }, src ? img(src, c.title) : null),
-    h('div', { class: 'body' },
-      h('div', { class: 'head' },
-        h('div', { class: 't' }, titleCase(c.title)),
-        h('div', { class: 'sub' }, `${n} photo${n === 1 ? '' : 's'} cleaned up`)),
-      h('div', { class: 'acts' },
-        h('button', { onclick: () => openShare(c.id) }, 'Post'),
-        h('button', { onclick: () => openCard(c.id) }, 'Edit'))));
+    h('div', { class: 'head' },
+      h('div', { class: 't' }, titleCase(c.title))));
   squircle(el, 40);
   return el;
 }

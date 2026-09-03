@@ -116,20 +116,14 @@ img{display:block;max-width:100%}
 /* ready to post */
 .rtp-row{display:flex;gap:8px;padding:0 20px;overflow-x:auto;scrollbar-width:none}
 .rtp-row::-webkit-scrollbar{display:none}
-.rtp-card{width:350px;flex:none;background:#f6f4ec;border-radius:40px;padding:16px;
-  display:flex;gap:8px;align-items:center}
+.rtp-card{width:350px;flex:none;background:#f6f4ec;border-radius:40px;padding:12px;
+  display:flex;gap:8px;align-items:center;justify-content:center}
 .rtp-card .thumb{width:122px;height:92px;flex:none;overflow:hidden}
 .rtp-card .thumb img{width:100%;height:100%;object-fit:cover}
-.rtp-card .body{flex:1;min-width:0;display:flex;flex-direction:column;gap:12px}
-.rtp-card .head{display:flex;flex-direction:column;gap:4px;width:100%}
-.rtp-card .head .t{font-family:"Helvetica Neue";font-size:20px;font-weight:500;
-  line-height:20px;letter-spacing:-.4px;color:#040404;white-space:nowrap;
+.rtp-card .head{display:flex;flex-direction:column;min-width:0}
+.rtp-card .head .t{font-family:"Helvetica Neue";font-size:32px;font-weight:500;
+  line-height:30px;letter-spacing:-1.05px;color:#040404;white-space:nowrap;
   overflow:hidden;text-overflow:ellipsis}
-.rtp-card .head .sub{font-size:16px;line-height:16px;color:#040404;margin:0}
-.rtp-card .acts{display:flex;gap:8px;width:100%}
-.rtp-card .acts button{flex:1;height:40px;padding:2px 16px 0;border-radius:100px;
-  background:#f6f4ec;border:1px solid var(--line-2);font-size:14px;font-weight:700;
-  text-transform:uppercase;color:#040404}
 
 /* ready to post -- "see all" page */
 .rtp-statusbar{display:flex;justify-content:space-between;align-items:center;
