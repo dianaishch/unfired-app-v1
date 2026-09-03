@@ -167,9 +167,9 @@ img{display:block;max-width:100%}
 
 .rtp-bottombar{display:flex;gap:8px;justify-content:center;
   padding:8px 12px calc(20px + var(--safe-b))}
-.rtp-bottombar button{height:58px;padding:4px 24px 0;border-radius:29px;
+.rtp-bottombar button{height:58px;padding:4px 24px 0;border-radius:29px;background:#0B0B0B;
   border:1px solid var(--line-2);font-size:16px;font-weight:700;text-transform:uppercase;
-  color:#f6f4ec;transition:background-color .3s var(--ease)}
+  color:#f6f4ec}
 
 /* filters */
 .filters{display:flex;gap:20px;padding:0 20px 16px;overflow-x:auto;scrollbar-width:none}

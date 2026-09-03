@@ -250,15 +250,13 @@ export function openSearch(prefill) {
    Post-preview cards are exact Figma exports (assets/posts/Post*.png), not
    rebuilt from primitives, and still not individually clickable -- per
    your direction, they're images you swipe past, not buttons.
-   Animation modeled on https://pin.it/3HbQi36yD: a swipeable peek carousel
-   -- the centered card sits at full scale, neighbors shrink/fade toward
-   the edges as you scroll, continuously (not stepped), and the bottom
-   action bar's color eases to match whichever card is centered.
-   The images themselves aren't tied to card data (still just art), but the
-   color-sync and the Post/Edit targets use the real ready-to-share list
-   positionally (image i <-> rts[i]) -- reusing c.glow, the same accent
-   field the hero card already draws on. Fewer real cards than images just
-   means the tail images center with no color/target change. */
+   Carousel animation modeled on https://pin.it/3HbQi36yD: the centered
+   card sits at full scale, neighbors shrink/fade toward the edges as you
+   scroll, continuously (not stepped). Post/Edit buttons are the static
+   #0B0B0B chip from Figma node 467:60895 -- no color animation on them;
+   only their onclick target follows the centered card, positionally
+   (image i <-> rts[i], same as before). Fewer real cards than images
+   just means the tail images center with no click target. */
 const RTP_IMAGES = ['assets/posts/Post.png', 'assets/posts/Post-1.png', 'assets/posts/Post-2.png'];
 
 function statusBar() {
@@ -279,13 +277,12 @@ export function openReadyToPost() {
     const editBtn = h('button', {}, 'Edit');
     let currentIdx = -1;
 
+    /* Buttons stay Figma's static #0B0B0B chip (node 467:60895) -- no color
+       animation. Only their onclick target follows the centered card. */
     const setActive = (i) => {
       if (i === currentIdx) return;
       currentIdx = i;
       const c = rts[i];
-      const tint = c ? `color-mix(in srgb, ${c.glow || '#8C8A84'} 55%, #0B0B0B)` : '#0B0B0B';
-      postBtn.style.backgroundColor = tint;
-      editBtn.style.backgroundColor = tint;
       postBtn.onclick = c ? () => openShare(c.id) : null;
       editBtn.onclick = c ? () => openCard(c.id) : null;
     };
