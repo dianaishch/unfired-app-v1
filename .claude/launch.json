@@ -1,6 +1,6 @@
 {
   "version": "0.0.1",
   "configurations": [
-    { "name": "unfired", "runtimeExecutable": "python3", "runtimeArgs": ["-m","http.server","4321"], "port": 4321 }
+    { "name": "unfired", "runtimeExecutable": "python3", "runtimeArgs": ["-c", "import http.server as s; H=type('H',(s.SimpleHTTPRequestHandler,),{'end_headers':lambda self:(self.send_header('Cache-Control','no-store'),s.SimpleHTTPRequestHandler.end_headers(self))}); s.test(HandlerClass=H, port=4321)"], "port": 4321 }
   ]
 }
