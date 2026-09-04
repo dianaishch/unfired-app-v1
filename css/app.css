@@ -351,10 +351,11 @@ img{display:block;max-width:100%}
    past this container's 446px max-height. */
 .cardhero2:not(.photo) .ch-head + .statepick{margin-top:84px}
 .cardhero2:not(.photo) .ch-img + .statepick{margin-top:16px}
-/* Translucent over a photo instead of the solid #0E0E0E track -- selected
-   pill stays var(--paper)/#040404 in both (already set on .statepick
-   button.on below), so it's still legible against the darker track. */
-.cardhero2.photo .statepick{background:rgba(0,0,0,.35)}
+/* Pins the tabs to the card's bottom edge (min-height:480px on .photo
+   gives it room to push into) without touching the spacing above --
+   status bar/buttons/title keep their normal compact top position.
+   Same solid #0E0E0E track as every other card; no translucent variant. */
+.cardhero2.photo .statepick{margin-top:auto}
 
 /* Tabs (state picker) -- exact spec values. #0E0E0E is a named system
    surface color (not a near-duplicate of --sheet, kept literal per the
