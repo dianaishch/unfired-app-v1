@@ -281,11 +281,13 @@ img{display:block;max-width:100%}
 
 .cardhero2 .ch-photo{position:absolute;inset:0}
 .cardhero2 .ch-photo img{width:100%;height:100%;object-fit:cover}
-/* Figma's literal value. .arch.bleed (archive cards, above) already notes
-   this reads light on a busy photo and uses a dual-sided gradient instead
-   -- same caveat applies here; shipping the spec value first as asked. */
+/* Mirrored from Figma's literal value (was rgba(0,0,0,0) 0.44%, #000
+   123.29% -- transparent at top, black past the bottom edge) per your
+   instruction: black starts at the top of the card (for status-bar
+   legibility) and fades out by the bottom, where the tabs are. Same
+   two stop positions reflected around the gradient line. */
 .cardhero2 .ch-dim{position:absolute;inset:0;
-  background:linear-gradient(179deg,rgba(0,0,0,0) 0.44%,#000 123.29%)}
+  background:linear-gradient(179deg,#000 -23.29%,rgba(0,0,0,0) 99.56%)}
 
 /* Reuses items.js's statusBar() glyph shapes, but on currentColor instead
    of hardcoded #fff (that version stays #fff -- it's the "ready to post"
