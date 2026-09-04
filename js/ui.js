@@ -28,19 +28,29 @@ export const $ = (s, r = document) => r.querySelector(s);
    the element's actual rendered box (measured post-layout, so it's exact for any
    card height/width rather than a stretched generic shape). n=4 ≈ Figma's max
    (100%) smoothing; border-radius stays as a plain-rect fallback if masks aren't
-   supported. Call again after anything that changes the element's size. */
+   supported. Call again after anything that changes the element's size.
+   `radius` is either one number (all four corners, the original behavior) or
+   `{tl,tr,br,bl}` for independent per-corner radii -- e.g. a full-bleed hero
+   that's square at the top and rounded only at the bottom:
+   squircle(el, {tl:0, tr:0, br:48, bl:48}). A 0 radius degenerates that
+   corner's arc to its plain corner point, i.e. a real square corner. */
 export function squircle(el, radius = 48, n = 4) {
   requestAnimationFrame(() => {
     const w = el.offsetWidth, h = el.offsetHeight;
     if (!w || !h) return;
-    const r = Math.max(0, Math.min(radius, w / 2, h / 2));
+    const corners = typeof radius === 'object' ? radius : { tl: radius, tr: radius, br: radius, bl: radius };
+    const clamp = (r) => Math.max(0, Math.min(r || 0, w / 2, h / 2));
+    const tl = clamp(corners.tl), tr = clamp(corners.tr), br = clamp(corners.br), bl = clamp(corners.bl);
     const p = 2 / n, steps = 14;
     const pts = [];
-    const walk = (fx, fy) => { for (let i = 0; i <= steps; i++) { const t = (Math.PI / 2) * i / steps; pts.push(`${fx(t).toFixed(2)},${fy(t).toFixed(2)}`); } };
-    walk(t => w - r + r * Math.sin(t) ** p, t => r - r * Math.cos(t) ** p);      // top-right
-    walk(t => w - r + r * Math.cos(t) ** p, t => h - r + r * Math.sin(t) ** p);  // bottom-right
-    walk(t => r - r * Math.sin(t) ** p, t => h - r + r * Math.cos(t) ** p);      // bottom-left
-    walk(t => r - r * Math.cos(t) ** p, t => r - r * Math.sin(t) ** p);          // top-left
+    const walk = (fx, fy, r) => {
+      if (r <= 0) { pts.push(`${fx(0).toFixed(2)},${fy(0).toFixed(2)}`); return; }
+      for (let i = 0; i <= steps; i++) { const t = (Math.PI / 2) * i / steps; pts.push(`${fx(t).toFixed(2)},${fy(t).toFixed(2)}`); }
+    };
+    walk(t => w - tr + tr * Math.sin(t) ** p, t => tr - tr * Math.cos(t) ** p, tr);      // top-right
+    walk(t => w - br + br * Math.cos(t) ** p, t => h - br + br * Math.sin(t) ** p, br);  // bottom-right
+    walk(t => bl - bl * Math.sin(t) ** p, t => h - bl + bl * Math.cos(t) ** p, bl);      // bottom-left
+    walk(t => tl - tl * Math.cos(t) ** p, t => tl - tl * Math.sin(t) ** p, tl);          // top-left
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><polygon points="${pts.join(' ')}"/></svg>`;
     const url = `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
     el.style.webkitMaskImage = url; el.style.maskImage = url;

@@ -12,22 +12,27 @@ export function openCard(id) {
     const render = () => {
       const c = S.byId(id);
       p.replaceChildren();
-      if (!c) { p.append(h('div', { class: 'empty' }, h('div', { class: 'h-big' }, 'CARD GONE'))); return; }
-      p.append(
-        h('div', { class: 'page-top' },
-          h('button', { class: 'iconbtn', onclick: close, html: ICON.back }),
-          h('div', { style: { flex: '1' } }),
-          h('button', { class: 'iconbtn', html: ICON.spark, onclick: () => openChat(c.id, null, render) })
-        ),
-        body(c, render, close)
-      );
+      /* Card-gone is the one place this page still needs a plain .page-top --
+         there's no hero to carry the back button once the card itself is
+         missing. */
+      if (!c) {
+        p.append(
+          h('div', { class: 'page-top' }, h('button', { class: 'iconbtn', onclick: close, html: ICON.back })),
+          h('div', { class: 'empty' }, h('div', { class: 'h-big' }, 'CARD GONE')));
+        return;
+      }
+      /* Back + New Chat buttons move onto the hero itself (full-bleed, runs
+         behind the status bar) -- no separate .page-top for this screen. */
+      p.append(body(c, render, close));
     };
     render();
   });
 }
 
 /* Small status row shared by the hero card -- same visual language as the
-   Items-screen archive (square for making/finished, star for idea). */
+   Items-screen archive (square for making/finished, star for idea). Color
+   comes from the hero's own `color` (dark in treatment A, white in B via
+   .cardhero2.photo) -- no hardcoded color here so it follows that. */
 function heroStatus(c) {
   const icon = c.state === 'idea' ? h('span', { class: 'ic', html: ICON.ideaStar }) : h('span', { class: 'sq' });
   const label = c.state === 'idea' ? 'Idea, ' + ago(c.created)
@@ -36,12 +41,38 @@ function heroStatus(c) {
   return h('div', { class: 'ch-status' }, icon, h('span', {}, label));
 }
 
-/* Hero, title, and the state segmented control unified into one gradient
-   card (Figma node 467:57910 / 467:57986) -- previously three separate
-   stacked elements. Tint comes from c.glow, same field/formula already
-   used for the Items-screen hero card. */
-function heroCard(c, render) {
+/* Reused for the hero's own on-glass status bar (Figma nodes 478:65918 /
+   478:66013 / 478:66106) -- same glyph shapes as items.js's statusBar(),
+   but built on currentColor instead of hardcoded #fff (that version, and
+   its CSS, is unique to the "ready to post" black bar and stays that way)
+   so it can flip white-on-photo vs dark-on-gradient with the hero's own
+   color, like everything else in the hero. */
+function heroStatusBar() {
+  return h('div', { class: 'ch-statusbar' },
+    h('span', {}, '9:41'),
+    h('div', { class: 'icons' },
+      h('div', { class: 'bars' }, h('i'), h('i'), h('i'), h('i')),
+      h('div', { class: 'wifi' }),
+      h('div', { class: 'batt' }, h('i'))));
+}
+
+/* assets/pieces/... (and its hi-res assets/pieces without bg/... form) is a
+   background-removed cutout, not a photo -- full-bleed cover-cropping one
+   would clip the isolated object against its own transparent edge and look
+   broken. Treatment B (full-bleed photo) is reserved for anything else
+   (assets/process/...); a cutout still gets treatment A, centered in flow,
+   same as before this task. This is the "confirm with design" decision the
+   task flagged -- documenting it here rather than leaving it silent. */
+const isCutout = (src) => /^assets\/pieces\b/.test(src || '');
+
+/* Hero, title, and the state segmented control unified into one full-bleed
+   card (Figma nodes 478:65918 "no photo" / 478:66013, 478:66106 "with
+   photo") -- runs edge-to-edge and behind the status bar / back+chat
+   buttons, which now live inside it. Tint comes from c.glow, same field/
+   formula already used for the Items-screen hero card. */
+function heroCard(c, render, closePage) {
   const hero = S.hiRes(S.heroSrc(c));
+  const hasPhoto = !!hero && !isCutout(hero);
 
   /* Title Case for display, matching .mkcard's titleCase(c.title) treatment --
      c.title itself stays stored/compared as ALL CAPS, same as every other
@@ -66,33 +97,47 @@ function heroCard(c, render) {
     }, s))
   );
 
-  const tint = c.glow || '#8C8A84';
-  /* Gradient stop matches .mkcard's per-mode value exactly (23.558% for
-     making, 23.32% otherwise) instead of a single hardcoded number. */
-  const stop = c.state === 'making' ? '23.558%' : '23.32%';
-  const el = h('div', {
-    class: 'cardhero2 ' + c.state,
-    style: { background: `linear-gradient(180deg, #f6f4ec ${stop}, ${tint} 100%)` },
-  },
-    /* Grouped so justify-content:space-between (which pins the tabs to
-       the card's bottom edge at the 210px min-height) distributes its
-       extra space around this group, not between status and title --
-       otherwise the two stretch apart on any card without a photo. */
+  const btnRow = h('div', { class: 'ch-btnrow' },
+    h('button', { class: 'ch-circle', onclick: closePage, html: ICON.back, 'aria-label': 'Back' }),
+    /* Figma's mock reads as a "cards/deck" glyph here rather than the spark
+       used elsewhere for New Chat -- keeping ICON.spark and the New Chat
+       action per the task's own "default to current behavior" fallback,
+       since there's no ICON.cards in this codebase to confirm the swap
+       against. */
+    h('button', { class: 'ch-circle', onclick: () => openChat(c.id, null, render), html: ICON.spark, 'aria-label': 'New chat' }));
+
+  const el = h('div', { class: 'cardhero2 ' + c.state + (hasPhoto ? ' photo' : '') },
+    hasPhoto ? h('div', { class: 'ch-photo' }, img(hero, c.title)) : null,
+    hasPhoto ? h('div', { class: 'ch-dim' }) : null,
+    heroStatusBar(),
+    btnRow,
+    /* Grouped so justify-content:space-between (treatment B, which pins the
+       tabs to the hero's bottom edge) distributes its extra space around
+       this group, not inside it -- otherwise status and title stretch
+       apart on any card without enough content to fill the height. */
     h('div', { class: 'ch-head' }, heroStatus(c), title),
-    hero ? h('div', { class: 'ch-img' }, img(hero, c.title)) : null,
+    !hasPhoto && hero ? h('div', { class: 'ch-img' }, img(hero, c.title)) : null,
     statepick);
-  /* Same corner-smoothing treatment as the Items-screen hero card
-     (.mkcard) -- per your instruction to match its look, minus the
-     description and New Chat/Start Making buttons (this page keeps the
-     state tags instead). */
-  squircle(el, 48);
+
+  if (!hasPhoto) {
+    const tint = c.glow || '#8C8A84';
+    /* Gradient stop matches .mkcard's per-mode value exactly (23.558% for
+       making, 23.32% otherwise) instead of a single hardcoded number. */
+    const stop = c.state === 'making' ? '23.558%' : '23.32%';
+    el.style.background = `linear-gradient(180deg, #f6f4ec ${stop}, ${tint} 100%)`;
+  }
+
+  /* Full-bleed: square at the top (flush with the screen edge), smoothed
+     only at the bottom (48px superellipse) -- squircle() now takes a
+     per-corner radius object for exactly this case. */
+  squircle(el, { tl: 0, tr: 0, br: 48, bl: 48 });
   return el;
 }
 
 function body(c, render, closePage) {
   const scroll = h('div', { class: 'scroll' });
 
-  scroll.append(heroCard(c, render));
+  scroll.append(heroCard(c, render, closePage));
 
   /* Origin/date line ("Voice note · 24 Aug · 10 days ago") removed per
      your instruction -- c.origin is still stored, just not shown here. */

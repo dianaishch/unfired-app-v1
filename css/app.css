@@ -251,37 +251,91 @@ img{display:block;max-width:100%}
   flex:none;position:relative;z-index:6}
 
 /* ---------- card detail ---------- */
-/* Hero, title, and state picker unified into one gradient card
-   (Figma node 467:57910 / 467:57986) -- previously three separate
-   stacked elements (.cardhero/.titlewrap/.staterow, now removed).
-   Same shape/spacing as the Items-screen hero card (.mkcard) --
-   border-radius here is a plain-rect fallback, the real corner
-   smoothing comes from squircle() in heroCard(). No description and
-   no New Chat/Start Making buttons here, per your instruction --
-   the state tags (.statepick) do that job on this page instead. */
-.cardhero2{margin:12px 20px 0;border-radius:48px;padding:20px;display:flex;
-  flex-direction:column;align-items:center;gap:8px;text-align:center;overflow:hidden;
-  min-height:210px;justify-content:space-between}
+/* Full-bleed hero, title, and state picker (Figma nodes 478:65918 "no
+   photo" / 478:66013 + 478:66106 "with photo") -- fills the device width
+   edge-to-edge, starts at y=0, and runs behind the status bar and back/
+   chat buttons (both now live inside it -- see .ch-statusbar/.ch-btnrow).
+   Only the bottom corners are rounded, via squircle()'s per-corner radius
+   in heroCard(); border-radius here is the plain-rect fallback. Two
+   treatments, toggled by the .photo modifier (added only for a real,
+   non-cutout hero photo -- see isCutout() in card.js for why):
+   A (default) -- gradient bg, dark #040404 text/icons, compact (tabs sit
+   directly under the title, no forced min-height).
+   B (.photo) -- the photo fills the hero behind a dark overlay
+   (.ch-dim), text/icons flip white, and min-height + space-between pin
+   the tabs to the bottom edge, mirroring the old .mkcard.idea. 480px
+   min-height is this project's own choice for "fills the hero" -- the
+   task didn't give an exact number. */
+.cardhero2{position:relative;display:flex;width:100%;padding-bottom:20px;
+  flex-direction:column;align-items:center;border-radius:0 0 48px 48px;
+  overflow:hidden;text-align:center;color:#040404}
+.cardhero2.photo{color:#F4F2EC;min-height:480px;justify-content:space-between}
+
+.cardhero2 .ch-photo{position:absolute;inset:0}
+.cardhero2 .ch-photo img{width:100%;height:100%;object-fit:cover}
+/* Figma's literal value. .arch.bleed (archive cards, above) already notes
+   this reads light on a busy photo and uses a dual-sided gradient instead
+   -- same caveat applies here; shipping the spec value first as asked. */
+.cardhero2 .ch-dim{position:absolute;inset:0;
+  background:linear-gradient(179deg,rgba(0,0,0,0) 0.44%,#000 123.29%)}
+
+/* Reuses items.js's statusBar() glyph shapes, but on currentColor instead
+   of hardcoded #fff (that version stays #fff -- it's the "ready to post"
+   black bar's own thing) so it can flip with the hero's own color. */
+.cardhero2 .ch-statusbar{position:relative;width:100%;display:flex;
+  justify-content:space-between;align-items:center;
+  padding:calc(var(--safe-t) + 6px) 20px 0;font-size:15px;font-weight:600;color:inherit}
+.cardhero2 .ch-statusbar .icons{display:flex;align-items:center;gap:5px}
+.cardhero2 .ch-statusbar .bars{display:flex;align-items:flex-end;gap:1.5px;height:10px}
+.cardhero2 .ch-statusbar .bars i{display:block;width:3px;background:currentColor;border-radius:1px}
+.cardhero2 .ch-statusbar .bars i:nth-child(1){height:4px}
+.cardhero2 .ch-statusbar .bars i:nth-child(2){height:6px}
+.cardhero2 .ch-statusbar .bars i:nth-child(3){height:8px}
+.cardhero2 .ch-statusbar .bars i:nth-child(4){height:10px}
+.cardhero2 .ch-statusbar .wifi{width:15px;height:11px;border:1.5px solid currentColor;
+  border-top:0;border-radius:0 0 8px 8px}
+.cardhero2 .ch-statusbar .batt{width:24px;height:11px;border:1.3px solid currentColor;
+  border-radius:3px;display:flex;align-items:center;padding:1.5px}
+.cardhero2 .ch-statusbar .batt i{display:block;flex:1;height:100%;background:currentColor;
+  border-radius:1px}
+
+.cardhero2 .ch-btnrow{position:relative;width:100%;display:flex;
+  justify-content:space-between;padding:8px 20px 0}
+/* Always solid paper/dark, in both treatments -- per the photo mock, not
+   affected by the hero's own dark/white color flip. */
+.ch-circle{width:36px;height:36px;border-radius:50%;background:var(--paper);
+  color:#040404;display:grid;place-items:center;flex:none}
+.ch-circle svg{width:18px;height:18px}
+
 /* status row and title: same shape/type params as .mkcard .status/.t (Make Next
    card on the Items screen) -- reused verbatim per your instruction. Grouped in
-   .ch-head with a fixed 8px gap so the card's own justify-content:space-between
-   (which pins the tabs to the bottom at 210px) distributes its extra space
-   around the .ch-head/statepick pair instead of stretching status from title
-   on a card with no photo. */
-.cardhero2 .ch-head{display:flex;flex-direction:column;align-items:center;gap:8px}
+   .ch-head with a fixed 8px gap so the hero's own justify-content:space-between
+   (treatment B) distributes its extra space around this group, not inside it
+   -- otherwise status and title stretch apart on a card with little content. */
+.cardhero2 .ch-head{position:relative;display:flex;flex-direction:column;
+  align-items:center;gap:8px;margin-top:16px;padding:0 20px}
 .cardhero2 .ch-status{display:flex;align-items:center;gap:4px;font-size:12px;
-  text-transform:uppercase;color:#040404}
+  text-transform:uppercase;color:inherit}
 .cardhero2 .ch-status .ic svg{width:6.96px;height:6.96px;flex:none}
-.cardhero2 .ch-status .sq{width:6px;height:6px;border-radius:50%;background:#040404;flex:none}
-.cardhero2.making .ch-status span{color:var(--orange)}
-.cardhero2.making .ch-status .sq{background:var(--orange)}
+.cardhero2 .ch-status .sq{width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
+/* making's orange accent stays treatment-A-only (task #4) -- on a photo
+   it'd fight the white-for-legibility rule, so B keeps everything white. */
+.cardhero2.making:not(.photo) .ch-status{color:var(--orange)}
+.cardhero2.making:not(.photo) .ch-status .sq{background:var(--orange)}
 .cardhero2 .ch-t{font-family:"Helvetica Neue";font-size:32px;font-weight:500;line-height:30px;
-  letter-spacing:-1.05px;color:#040404;outline:none;max-width:100%}
+  letter-spacing:-1.05px;color:inherit;outline:none;max-width:100%}
 .cardhero2 .ch-t[contenteditable]:focus{background:rgba(0,0,0,.06);border-radius:8px}
-.cardhero2 .ch-img{max-width:100%}
+.cardhero2.photo .ch-t[contenteditable]:focus{background:rgba(255,255,255,.14)}
+.cardhero2 .ch-img{position:relative;max-width:100%;margin-top:16px}
 .cardhero2 .ch-img img{max-width:100%;max-height:220px;width:auto;height:auto;
   object-fit:contain;display:block;margin:0 auto;
   filter:drop-shadow(0 20px 30px rgba(0,0,0,.35))}
+
+.cardhero2 .statepick{position:relative;margin:16px 16px 0}
+/* Translucent over a photo instead of the solid #0E0E0E track -- selected
+   pill stays var(--paper)/#040404 in both (already set on .statepick
+   button.on below), so it's still legible against the darker track. */
+.cardhero2.photo .statepick{background:rgba(0,0,0,.35)}
 
 /* Tabs (state picker) -- exact spec values. #0E0E0E is a named system
    surface color (not a near-duplicate of --sheet, kept literal per the
