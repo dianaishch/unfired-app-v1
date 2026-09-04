@@ -80,7 +80,16 @@ const isCutout = (src) => /^assets\/pieces\b/.test(src || '');
    buttons, which now live inside it. Tint comes from c.glow, same field/
    formula already used for the Items-screen hero card. */
 function heroCard(c, render, closePage) {
-  const hero = S.hiRes(S.heroSrc(c));
+  /* S.cutoutSrc(), not S.heroSrc() -- same "prefer the isolated cutout
+     when the card has one" rule the Items-screen mkcard (cutoutFor())
+     and the archive already use. A card like Lavender Teapot №2 has
+     both a raw process/bench photo (c.hero.src) and a proper cutout
+     among its photos; heroSrc() picked the former, showing a dark,
+     dim-photo hero here while mkcard showed a bright cutout on a
+     gradient for the exact same card -- inconsistent. cutoutSrc()
+     falls back to heroSrc() when no cutout exists, so a genuine-photo
+     idea (no assets/pieces/ photo at all) is unaffected. */
+  const hero = S.hiRes(S.cutoutSrc(c));
   const hasPhoto = !!hero && !isCutout(hero);
 
   /* Title Case for display, matching .mkcard's titleCase(c.title) treatment --
