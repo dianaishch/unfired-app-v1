@@ -302,10 +302,15 @@ img{display:block;max-width:100%}
 .cardhero2 .ch-btnrow{position:relative;width:100%;display:flex;
   justify-content:space-between;padding:8px 20px 0}
 /* Always solid paper/dark, in both treatments -- per the photo mock, not
-   affected by the hero's own dark/white color flip. */
-.ch-circle{width:36px;height:36px;border-radius:50%;background:var(--paper);
-  color:#040404;display:grid;place-items:center;flex:none}
-.ch-circle svg{width:18px;height:18px}
+   affected by the hero's own dark/white color flip. Border #292929 is
+   close but not exact to --line-2 (#2B2B2B) -- kept as the existing
+   token per the established near-duplicate policy rather than adding a
+   one-off literal. Background is the paper-card literal already used
+   elsewhere on this page (#F6F4EC), not the --paper token (#F4F2EC). */
+.ch-circle{display:flex;width:40px;height:40px;flex-direction:column;
+  justify-content:center;align-items:center;flex-shrink:0;border-radius:29px;
+  border:1px solid var(--line-2);background:#F6F4EC;color:#040404}
+.ch-circle svg{width:20px;height:20px}
 
 /* status row and title: same shape/type params as .mkcard .status/.t (Make Next
    card on the Items screen) -- reused verbatim per your instruction. Grouped in
