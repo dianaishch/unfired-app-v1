@@ -47,12 +47,21 @@ function heroStatus(c) {
    its CSS, is unique to the "ready to post" black bar and stays that way)
    so it can flip white-on-photo vs dark-on-gradient with the hero's own
    color, like everything else in the hero. */
+/* The border-hack wifi glyph (a bottom-rounded box with no top border,
+   copied from items.js's .rtp-statusbar) read as a stray bracket rather
+   than a wifi icon at this size -- a real SVG glyph instead. */
+const WIFI_SVG = '<svg viewBox="0 0 16 12" fill="none">' +
+  '<path d="M1 4.5C4.8 0.8 11.2 0.8 15 4.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>' +
+  '<path d="M3.3 7C5.9 4.5 10.1 4.5 12.7 7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>' +
+  '<path d="M5.8 9.3C6.9 8.2 9.1 8.2 10.2 9.3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>' +
+  '<circle cx="8" cy="11.3" r="0.9" fill="currentColor"/></svg>';
+
 function heroStatusBar() {
   return h('div', { class: 'ch-statusbar' },
     h('span', {}, '9:41'),
     h('div', { class: 'icons' },
       h('div', { class: 'bars' }, h('i'), h('i'), h('i'), h('i')),
-      h('div', { class: 'wifi' }),
+      h('span', { class: 'wifi', html: WIFI_SVG }),
       h('div', { class: 'batt' }, h('i'))));
 }
 
@@ -286,13 +295,13 @@ function addPhotoFlow(c, render) {
 function attachmentsRow(c, render) {
   const list = (c.photos || []);
   const thumbs = list.slice(0, 4).map(p =>
-    h('button', { class: 'att', onclick: () => openAttachments(c.id, render) }, img(p.src, p.cap || '')));
+    h('button', { class: 'att-thumb', onclick: () => openAttachments(c.id, render) }, img(p.src, p.cap || '')));
   return h('div', { class: 'sect2' },
     h('div', { class: 'sh2' },
       h('div', { class: 'h-mid' }, 'Attachments'),
-      h('button', { class: 'arr', onclick: () => openAttachments(c.id, render), html: ICON.arrowFwd, 'aria-label': 'See all' })),
+      h('button', { class: 'circlebtn', onclick: () => openAttachments(c.id, render), html: ICON.arrowFwd, 'aria-label': 'See all' })),
     h('div', { class: 'att-row' },
-      h('button', { class: 'att add', onclick: () => addPhotoFlow(c, render), html: ICON.plus }),
+      h('button', { class: 'att-thumb add', onclick: () => addPhotoFlow(c, render), html: ICON.plus }),
       ...thumbs));
 }
 
@@ -369,8 +378,7 @@ function addProcessPhoto(cardId, src, render, kind) {
    one felt like fabricating intelligence the prototype doesn't have. */
 function chatsSection(c, render) {
   const wrap = h('div', { class: 'sect2' },
-    h('div', { class: 'sh2' }, h('div', { class: 'h-mid' }, 'Chats'),
-      h('div', { class: 'meta' }, ((c.notes || []).length + (c.threads || []).length) || 'none')));
+    h('div', { class: 'sh2' }, h('div', { class: 'h-mid' }, 'Chats')));
 
   wrap.append(h('div', { class: 'suggest-card' },
     h('div', {}, 'Ask UNFIRED about this piece'),
