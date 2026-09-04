@@ -332,6 +332,9 @@ img{display:block;max-width:100%}
   filter:drop-shadow(0 20px 30px rgba(0,0,0,.35))}
 
 .cardhero2 .statepick{position:relative;margin:16px 16px 0}
+/* Treatment A only -- B's tabs are pinned to the bottom via
+   justify-content:space-between instead, not a fixed margin. */
+.cardhero2:not(.photo) .statepick{margin-top:84px}
 /* Translucent over a photo instead of the solid #0E0E0E track -- selected
    pill stays var(--paper)/#040404 in both (already set on .statepick
    button.on below), so it's still legible against the darker track. */
