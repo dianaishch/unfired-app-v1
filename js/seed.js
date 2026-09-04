@@ -620,12 +620,12 @@ export const CARDS = [
 
 /* ══════════════════════════ IDEAS ══════════════════════════ */
 {
-  id:'idea-shell-dish', state:'idea', title:'SCALLOP SHELL DISH',
-  created:D('2026-08-20'), updated:D('2026-08-20'),
-  origin:{ type:'pinterest', label:'Pinterest · Shapes' }, glow:'#D89AA8',
-  desc:'Pink scallop shell, shallow, for rings and earrings. Saved from Pinterest.',
-  tags:['press mould','shell','dish','pink glaze','idea'],
-  hero:{ src:P('16-pink-shell-dish'), ref:true },
+  id:'idea-shell-dish', state:'finished', title:'SCALLOP SHELL DISH',
+  created:D('2026-08-20'), updated:D('2026-08-27'), finishedAt:D('2026-08-27'),
+  origin:{ type:'pinterest', label:'Pinterest · Shapes' }, glow:'#D89AA8', outcome:'success', readyToShare:true,
+  desc:'Pink scallop shell, shallow, for rings and earrings. Saved from Pinterest and made the same week.',
+  tags:['press mould','shell','dish','pink glaze'],
+  hero:{ src:P('16-pink-shell-dish') },
   plan:{
     assumptions:['Stoneware, cone 6','~14 cm across','Press moulded over a real shell'],
     params:[
@@ -650,16 +650,16 @@ export const CARDS = [
     ],
     refs:[{ cardId:'striped-bowl', note:'Press moulding worked well there — same release trick.' }]
   },
-  photos:[{ id:'p1', kind:'inspiration', src:P('16-pink-shell-dish'), cap:'Saved from Pinterest.' }],
+  photos:[{ id:'p1', kind:'final', src:P('16-pink-shell-dish'), cap:'Fired. Two dips of pink gloss.' }],
   notes:[], threads:[]
 },
 {
-  id:'idea-heart-dishes', state:'idea', title:'HEART DISHES, SET OF FOUR',
-  created:D('2026-08-18'), updated:D('2026-08-18'),
-  origin:{ type:'pinterest', label:'Pinterest · Objects' }, glow:'#E0707E',
-  desc:'Four little coral hearts with a daisy in each. Would sell as a set.',
-  tags:['slab','template','heart','dish','coral glaze','set','idea'],
-  hero:{ src:P('20-coral-heart-dish'), ref:true },
+  id:'idea-heart-dishes', state:'finished', title:'HEART DISHES, SET OF FOUR',
+  created:D('2026-08-18'), updated:D('2026-08-25'), finishedAt:D('2026-08-25'),
+  origin:{ type:'pinterest', label:'Pinterest · Objects' }, glow:'#E0707E', outcome:'success', readyToShare:true,
+  desc:'Four little coral hearts with a daisy in each. Sold as a set.',
+  tags:['slab','template','heart','dish','coral glaze','set'],
+  hero:{ src:P('20-coral-heart-dish') },
   plan:{
     assumptions:['Stoneware, cone 6','11 cm each','Slab over a card template'],
     params:[
@@ -681,7 +681,69 @@ export const CARDS = [
     risks:[{ k:'Point cracking', t:'The sharp tip of a heart dries first. Wrap the points for the first day.' }],
     refs:[{ cardId:'starred-plates', note:'Painting freehand on bisque, two coats, worked on the plates.' }]
   },
-  photos:[{ id:'p1', kind:'inspiration', src:P('20-coral-heart-dish'), cap:'Saved from Pinterest.' }],
+  photos:[{ id:'p1', kind:'final', src:P('20-coral-heart-dish'), cap:'All four, fired.' }],
+  notes:[], threads:[]
+},
+{
+  id:'idea-leaf-creature', state:'idea', title:'LEAF SHEEP FIGURE',
+  created:D('2026-08-29'), updated:D('2026-08-29'),
+  origin:{ type:'pinterest', label:'Pinterest · Nature' }, glow:'#8FBF5A',
+  desc:'A tiny frilled creature, all leaf-shaped ruffles with two dark horns and a round white face. Saved from a diving photo.',
+  tags:['modelled','figure','creature','textured','green glaze','idea'],
+  hero:{ src:'assets/images for ideas/image creature.png', ref:true },
+  plan:{
+    assumptions:['Stoneware, cone 6','~10 cm tall','Hand modelled, solid then hollowed'],
+    params:[
+      par('technique','Hand modelled'),
+      par('clay','Cream stoneware'),
+      par('clay amount','~300 g'),
+      par('surface','Green + pink underglaze, layered'),
+      par('firing','Bisque 04 · glaze cone 6'),
+    ],
+    tools:['Modelling tools','Small rounded rib','Fine liner brush','Needle tool for venting'],
+    steps:[
+      'Model the body solid, ruffle the edge with a rounded tool.',
+      'Hollow and vent it before it firms up too much.',
+      'Push in two small horns, support them until leather-hard.',
+      'Bisque 04, green and pink underglaze in layered dabs, clear glaze, cone 6.'
+    ],
+    risks:[{ k:'Explosion', t:'Anything modelled solid can blow up in the bisque. Hollow and vent it — same lesson as the yellow creature dish.' }],
+    refs:[
+      { cardId:'yellow-creature-dish', note:'Hollow and vent anything thicker than about 2 cm.' },
+      { cardId:'speckled-bird', note:'Modelled figure that held its shape well.' }
+    ]
+  },
+  photos:[{ id:'p1', kind:'inspiration', src:'assets/images for ideas/image creature.png', cap:'Saved from Pinterest.' }],
+  notes:[], threads:[]
+},
+{
+  id:'idea-peeling-texture', state:'idea', title:'PEELING PAINT BOWL',
+  created:D('2026-08-30'), updated:D('2026-08-30'),
+  origin:{ type:'pinterest', label:'Pinterest · Textures' }, glow:'#B08A3E',
+  desc:'A wide bowl with a crackled, peeling surface — glaze that lifts and chips at the edges on purpose, like old paint on a wall.',
+  tags:['thrown','textured','crackle glaze','layered','bowl','idea'],
+  hero:{ src:'assets/images for ideas/image paint.png', ref:true },
+  plan:{
+    assumptions:['Stoneware, cone 6','~20 cm across','Thrown, wide and shallow'],
+    params:[
+      par('technique','Thrown'),
+      par('clay','Dark stoneware'),
+      par('clay amount','~900 g'),
+      par('surface','Two glazes, thick over thin, cone 6 crawl'),
+      par('firing','Bisque 04 · glaze cone 6'),
+    ],
+    tools:['Rib','Sponge','Wide flat brush'],
+    steps:[
+      'Throw wide and shallow, leave the rim slightly thick.',
+      'Bisque 04.',
+      'Brush a thin base glaze, let it dry fully.',
+      'Brush a thick second glaze unevenly over the top so it crawls and lifts in the firing.',
+      'Cone 6, slow cool.'
+    ],
+    risks:[{ k:'Full crawl', t:'Too thick a second coat and the glaze can crawl right off, leaving bare patches. Test the thickness on a tile first.' }],
+    refs:[{ cardId:'nerikomi-bowl', note:'Texture doing the work instead of colour worked there too.' }]
+  },
+  photos:[{ id:'p1', kind:'inspiration', src:'assets/images for ideas/image paint.png', cap:'Saved from Pinterest.' }],
   notes:[], threads:[]
 },
 {
