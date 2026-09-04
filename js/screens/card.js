@@ -72,7 +72,7 @@ function heroStatusBar() {
    (assets/process/...); a cutout still gets treatment A, centered in flow,
    same as before this task. This is the "confirm with design" decision the
    task flagged -- documenting it here rather than leaving it silent. */
-const isCutout = (src) => /^assets\/pieces\b/.test(src || '');
+export const isCutout = (src) => /^assets\/pieces\b/.test(src || '');
 
 /* Hero, title, and the state segmented control unified into one full-bleed
    card (Figma nodes 478:65918 "no photo" / 478:66013, 478:66106 "with
