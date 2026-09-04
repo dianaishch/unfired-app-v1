@@ -221,15 +221,9 @@ img{display:block;max-width:100%}
 .arch.bleed .st,.arch.bleed .t{position:relative}
 
 /* idea, no photo -- full-width gradient spotlight (small: same card, half-
-   width, paired with a photo card -- Figma node 477:64406). .has-img
-   (a real cutout-style reference photo -- see ideaImg() in items.js)
-   reuses .arch.fin .obj's centered contain-fit treatment instead of
-   stretching the text block to fill the space alone. */
+   width, paired with a photo card -- Figma node 477:64406) */
 .arch.spot{width:100%;justify-content:space-between;color:#040404}
 .arch.spot.small{width:calc((100% - 8px)/2);flex:none}
-.arch.spot.has-img .obj{flex:1;min-height:0;display:flex;align-items:center;
-  justify-content:center;overflow:hidden}
-.arch.spot.has-img .obj img{width:100%;height:100%;object-fit:contain}
 .arch.spot .t{margin-bottom:8px}
 .arch.spot .d{font-size:16px;line-height:16px}
 .arch.spot .clamp2{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}

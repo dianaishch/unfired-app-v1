@@ -3,7 +3,7 @@ import { h, ICON, img, ago, page, toast, squircle } from '../ui.js';
 import * as S from '../store.js';
 import * as AI from '../ai.js';
 import { nav } from '../nav.js';
-import { openCard, openChat, startMaking, isCutout } from './card.js';
+import { openCard, openChat, startMaking } from './card.js';
 import { openShare } from './share.js';
 
 let filter = 'all';
@@ -175,15 +175,15 @@ function finCard(c) {
       archStatusRow(archStatus(c))));
 }
 
-/* "assets/images for ideas" holds proper opaque bleed-ready stock photos --
-   only 2 exist and their content (a creature figure, a paint-texture
-   close-up) doesn't match any real card's actual subject, so this is a
-   stock pool, cycled positionally across idea cards whose OWN photo isn't
-   suitable for a full-bleed cover crop, same pattern as the ready-to-post
-   carousel images, not a per-card content match. This is now reserved for
-   ideas with no photo at all -- see the isCutout() note on ideaImg()
-   below for why a card with a real (if cutout-style) reference photo no
-   longer routes through here. */
+/* Idea photos here are your real cards' product cutouts (assets/pieces) --
+   mostly-transparent, which broke badly under object-fit:cover (it zooms
+   into the empty margin, so the card's solid color shows through almost
+   everywhere except a small floating object). "assets/images for ideas"
+   holds proper opaque bleed-ready photos instead -- only 2 exist and their
+   content (a creature figure, a paint-texture close-up) doesn't match any
+   real card's actual subject, so this is a stock pool, cycled positionally
+   across however many idea-with-photo cards render -- same pattern as the
+   ready-to-post carousel images, not a per-card content match. */
 const IDEA_PHOTOS = ['assets/images for ideas/image creature.png', 'assets/images for ideas/image paint.png'];
 
 function bleedCard(c, photoSrc) {
@@ -196,31 +196,9 @@ function bleedCard(c, photoSrc) {
 
 const gradTint = (c) => `linear-gradient(180deg, ${c.glow || '#8C8A84'} 0%, #f4f2ec 100%)`;
 
-/* An idea's own photo (Pinterest-saved reference, etc.) is almost always a
-   repurposed piece cutout (assets/pieces/..., near-transparent -- see the
-   IDEA_PHOTOS note above), not a real bleed-ready photo. Previously any
-   idea with SOME photo -- cutout or not -- got routed through bleedCard,
-   which discarded that real image entirely and substituted an unrelated
-   stock photo (a creature figure / paint texture); the archive tile and
-   the card you actually opened showed completely different pictures.
-   Cutout-style photos now render centered on the gradient card instead --
-   the real image, matching what openCard()'s hero shows for the same
-   card (S.isCutout()'s treatment-A rule) -- while a genuine non-cutout
-   photo (none in the current seed data, but the data model allows it)
-   still gets the full-bleed bleedCard treatment. */
-const ideaImg = (c) => {
-  const src = S.cutoutSrc(c);
-  if (!src) return null;
-  const hi = S.hiRes(src);
-  return isCutout(hi) ? hi : null;
-};
-const bleedReady = (c) => { const src = S.cutoutSrc(c); return src && !isCutout(S.hiRes(src)); };
-
 function spotCard(c) {
-  const thumb = ideaImg(c);
-  return h('button', { class: 'arch spot' + (thumb ? ' has-img' : ''), style: { background: gradTint(c) }, onclick: () => openCard(c.id) },
+  return h('button', { class: 'arch spot', style: { background: gradTint(c) }, onclick: () => openCard(c.id) },
     archStatusRow(archStatus(c)),
-    thumb ? h('div', { class: 'obj' }, img(thumb, c.title)) : null,
     h('div', {},
       h('div', { class: 't' }, titleCase(c.title)),
       h('div', { class: 'd' }, (c.desc || '').slice(0, 74) + ((c.desc || '').length > 74 ? '…' : ''))));
@@ -233,10 +211,8 @@ function spotCard(c) {
    3, CSS ellipsis past that -- so it gets the untruncated text and lets
    -webkit-line-clamp do the cutting at whatever length actually wraps. */
 function smallSpotCard(c) {
-  const thumb = ideaImg(c);
-  return h('button', { class: 'arch spot small' + (thumb ? ' has-img' : ''), style: { background: gradTint(c) }, onclick: () => openCard(c.id) },
+  return h('button', { class: 'arch spot small', style: { background: gradTint(c) }, onclick: () => openCard(c.id) },
     archStatusRow(archStatus(c)),
-    thumb ? h('div', { class: 'obj' }, img(thumb, c.title)) : null,
     h('div', {},
       h('div', { class: 't clamp2' }, titleCase(c.title)),
       h('div', { class: 'd clamp3' }, c.desc || '')));
@@ -282,12 +258,7 @@ function archive() {
       h('div', { class: 'h-big' }, 'NOTHING HERE YET'),
       h('div', { class: 'meta' }, 'Press LOG and say what you are making.'));
 
-  /* "gradient pool" now means "not bleed-ready", not just "no photo" --
-     an idea with a cutout-style reference photo isn't suitable for
-     bleedCard's full-bleed cover crop either (see ideaImg()/bleedReady()
-     above), so it renders via spotCard/smallSpotCard too, with its real
-     image centered on the gradient instead of a mismatched stock photo. */
-  const isGradient = (c) => c.state === 'idea' && !bleedReady(c);
+  const isGradient = (c) => c.state === 'idea' && !S.cutoutSrc(c);
   const idKey = list.map(c => c.id).sort().join(',');
   const cached = archiveShuffleCache.get(filter);
   let photoPool, gradPool;
