@@ -269,6 +269,7 @@ img{display:block;max-width:100%}
 .cardhero2{position:relative;display:flex;width:100%;padding-bottom:20px;
   flex-direction:column;align-items:center;border-radius:0 0 48px 48px;
   overflow:hidden;text-align:center;color:#040404}
+.cardhero2:not(.photo){max-height:446px}
 .cardhero2.photo{color:#F4F2EC;min-height:480px;justify-content:space-between}
 
 .cardhero2 .ch-photo{position:absolute;inset:0}
@@ -330,15 +331,19 @@ img{display:block;max-width:100%}
   letter-spacing:-1.05px;color:inherit;outline:none;max-width:100%}
 .cardhero2 .ch-t[contenteditable]:focus{background:rgba(0,0,0,.06);border-radius:8px}
 .cardhero2.photo .ch-t[contenteditable]:focus{background:rgba(255,255,255,.14)}
-.cardhero2 .ch-img{position:relative;max-width:100%;margin-top:16px}
-.cardhero2 .ch-img img{max-width:100%;max-height:220px;width:auto;height:auto;
-  object-fit:contain;display:block;margin:0 auto;
-  filter:drop-shadow(0 20px 30px rgba(0,0,0,.35))}
+.cardhero2 .ch-img{position:relative;max-width:100%;height:190px;margin-top:16px}
+.cardhero2 .ch-img img{width:100%;height:100%;object-fit:contain;display:block;
+  margin:0 auto;filter:drop-shadow(0 20px 30px rgba(0,0,0,.35))}
 
 .cardhero2 .statepick{position:relative;margin:16px 16px 0}
 /* Treatment A only -- B's tabs are pinned to the bottom via
    justify-content:space-between instead, not a fixed margin. */
-.cardhero2:not(.photo) .statepick{margin-top:84px}
+/* 84px only when the tabs sit directly under the title with nothing else
+   between them (truly no image at all) -- a card with a cutout .ch-img
+   uses the normal 16px instead, since 84px there was pushing the tabs
+   past this container's 446px max-height. */
+.cardhero2:not(.photo) .ch-head + .statepick{margin-top:84px}
+.cardhero2:not(.photo) .ch-img + .statepick{margin-top:16px}
 /* Translucent over a photo instead of the solid #0E0E0E track -- selected
    pill stays var(--paper)/#040404 in both (already set on .statepick
    button.on below), so it's still legible against the darker track. */
