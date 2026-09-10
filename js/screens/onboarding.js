@@ -18,17 +18,22 @@ export function openOnboarding() {
     };
 
     const shell = (label, big, para, primary, onPrimary, skipLabel, extra) => {
+      /* .fadein goes on this inner wrapper, not on root -- root is the
+         full-screen opaque black panel, and animating its opacity/transform
+         on every step flashed the app behind it and jumped the whole
+         screen down 9px. A fresh .ocontent element each step restarts the
+         animation on its own, so the manual reflow-retrigger is gone too. */
       root.replaceChildren(
-        h('div', { class: 'obody' },
-          h('div', { class: 'label' }, label),
-          h('h1', { class: 'h-mega', style: { marginTop: '16px' }, html: big.replace(/\n/g, '<br>') }),
-          para ? h('p', {}, para) : null,
-          extra || null),
-        h('div', { class: 'ofoot' },
-          h('button', { class: 'prim', onclick: onPrimary }, primary),
-          h('button', { class: 'skip', onclick: () => step === 3 ? finish() : go(step + 1) }, skipLabel || 'SKIP'))
+        h('div', { class: 'ocontent fadein' },
+          h('div', { class: 'obody' },
+            h('div', { class: 'label' }, label),
+            h('h1', { class: 'h-mega', style: { marginTop: '16px' }, html: big.replace(/\n/g, '<br>') }),
+            para ? h('p', {}, para) : null,
+            extra || null),
+          h('div', { class: 'ofoot' },
+            h('button', { class: 'prim', onclick: onPrimary }, primary),
+            h('button', { class: 'skip', onclick: () => step === 3 ? finish() : go(step + 1) }, skipLabel || 'SKIP')))
       );
-      root.classList.remove('fadein'); void root.offsetWidth; root.classList.add('fadein');
     };
 
     const go = (n) => {
