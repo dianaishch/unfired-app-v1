@@ -403,19 +403,13 @@ function addProcessPhoto(cardId, src, render, kind) {
   }, 380);
 }
 
-/* ---------- NOTES & CHATS ---------- */
-/* ---------- CHATS ----------
-   Figma's example card has no existing notes/threads either way, so the
-   reference only shows the suggested-prompt card. Per your confirmation,
-   history keeps rendering exactly as before, with the suggestion card
-   added above it as an entry point -- nothing is lost. The suggested
-   text itself is generic ("Ask UNFIRED about this piece"), not a
-   per-card AI-generated question like Figma's "Visualize this idea with
-   different painted patterns" -- there's no generator in this app that
-   produces a tailored suggestion from a card's content, and inventing
-   one felt like fabricating intelligence the prototype doesn't have. */
-/* "TYPE, DATE" line under each bubble -- "VOICE, 22 JUL" / "TEXT, 22 JUL"
-   / "SUGGESTION, NOW". Anything logged in the last ~12h reads "now". */
+/* ---------- CHATS (Figma nodes 487:3571 / 487:3575) ----------
+   A flat list of paper bubbles. Each bubble is one 16px summary line
+   plus a "TYPE, DATE" meta line ("VOICE, 22 JUL" / "TEXT, 22 JUL" /
+   "SUGGESTION, NOW"); the whole bubble is the tap target. The suggestion
+   is just the first bubble -- generic text ("Ask UNFIRED about this
+   piece") rather than Figma's per-card "Visualize this idea with
+   different painted patterns", since there's no prompt generator here. */
 const bubType = (src) => ({ voice: 'Voice', type: 'Text', watch: 'Apple Watch', liveactivity: 'Live Activity', import: 'Imported' }[src] || 'Note');
 const bubWhen = (at) => (Date.now() - at < 12 * 36e5 ? 'now' : fmtShort(at));
 
@@ -423,29 +417,28 @@ function chatsSection(c, render) {
   const wrap = h('div', { class: 'sect2' },
     h('div', { class: 'sh2' }, h('div', { class: 'h-mid' }, 'Chats')));
 
-  /* Whole card is the tap target now -- the START CHAT button is gone. */
-  wrap.append(h('button', { class: 'suggest-card', onclick: () => openChat(c.id, null, render) },
-    'Ask UNFIRED about this piece'));
-
   const bubbles = h('div', { class: 'bubbles' });
+  const bub = (summary, meta, onclick) => h('button', { class: 'bub', onclick },
+    h('div', { class: 'sum' }, summary),
+    h('div', { class: 'w' }, meta));
 
-  (c.notes || []).slice().sort((a, b) => b.at - a.at).forEach(n => {
-    bubbles.append(h('button', { class: 'bub', onclick: () => openNote(c.id, n, render) },
-      h('div', { class: 't' }, noteTitle(n)),
-      h('div', { class: 'p' }, n.text),
-      h('div', { class: 'w' }, bubType(n.src) + ', ' + bubWhen(n.at))));
-  });
+  bubbles.append(bub('Ask UNFIRED about this piece', 'Suggestion, now',
+    () => openChat(c.id, null, render)));
 
-  (c.threads || []).slice().sort((a, b) => b.at - a.at).forEach(t => {
-    const last = t.msgs[t.msgs.length - 1];
-    const kind = t.msgs[0]?.role === 'ai' ? 'Suggestion' : 'Chat';
-    bubbles.append(h('button', { class: 'bub', onclick: () => openChat(c.id, t.id, render) },
-      h('div', { class: 't' }, t.title),
-      h('div', { class: 'p' }, last ? last.text : 'Empty'),
-      h('div', { class: 'w' }, kind + ', ' + bubWhen(t.at))));
-  });
+  [
+    ...(c.notes || []).map(n => ({
+      at: n.at, summary: n.text,
+      meta: bubType(n.src) + ', ' + bubWhen(n.at),
+      open: () => openNote(c.id, n, render),
+    })),
+    ...(c.threads || []).map(t => ({
+      at: t.at, summary: t.title,
+      meta: (t.msgs[0]?.role === 'ai' ? 'Suggestion' : 'Chat') + ', ' + bubWhen(t.at),
+      open: () => openChat(c.id, t.id, render),
+    })),
+  ].sort((a, b) => b.at - a.at).forEach(it => bubbles.append(bub(it.summary, it.meta, it.open)));
 
-  if (bubbles.children.length) wrap.append(bubbles);
+  wrap.append(bubbles);
   return wrap;
 }
 
@@ -474,11 +467,6 @@ function composeBar(c, render) {
 
 const titleCase = (s) => (s || '').toLowerCase().replace(/\b\w/g, (m) => m.toUpperCase());
 
-const noteTitle = (n) => {
-  const t = n.text;
-  const words = t.replace(/^(the |a |i )/i, '').split(/\s+/).slice(0, 3).join(' ');
-  return words.replace(/[.,]$/, '').toUpperCase();
-};
 const srcLabel = (s) => ({ watch: 'APPLE WATCH', liveactivity: 'LIVE ACTIVITY', voice: 'VOICE', type: 'TYPED', import: 'IMPORTED' }[s] || 'VOICE');
 
 function openNote(cardId, n, render) {
