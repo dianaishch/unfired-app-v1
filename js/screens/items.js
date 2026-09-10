@@ -402,7 +402,7 @@ export function openSearch(prefill) {
    only their onclick target follows the centered card, positionally
    (image i <-> rts[i], same as before). Fewer real cards than images
    just means the tail images center with no click target. */
-const RTP_IMAGES = ['assets/posts/Post.png', 'assets/posts/Post-1.png', 'assets/posts/Post-2.png'];
+const RTP_IMAGES = ['assets/posts/Post 1.png', 'assets/posts/Post 2.png', 'assets/posts/Post 3.png'];
 
 function statusBar() {
   return h('div', { class: 'rtp-statusbar' },

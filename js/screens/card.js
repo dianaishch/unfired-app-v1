@@ -422,7 +422,7 @@ function chatsSection(c, render) {
     h('div', { class: 'sum' }, summary),
     h('div', { class: 'w' }, meta));
 
-  bubbles.append(bub('Ask UNFIRED about this piece', 'Suggestion, now',
+  bubbles.append(bub('Visualize this idea', 'Suggestion, now',
     () => openChat(c.id, null, render)));
 
   [
