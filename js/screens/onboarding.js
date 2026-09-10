@@ -6,6 +6,12 @@ import { nav } from '../nav.js';
 import { PINTEREST_BOARDS, PHOTO_LIB } from '../seed.js';
 
 export function openOnboarding() {
+  /* Guard: never stack two onboarding layers. A second call (a stray
+     boot re-entry, a double devbar click) was leaving one layer behind
+     when the other finished -- which is how "DONE takes me back to an
+     earlier step" happens. */
+  if (document.querySelector('.onb')) return;
+
   fullLayer((wrap, kill) => {
     const root = h('div', { class: 'onb' });
     wrap.append(root);
@@ -14,7 +20,10 @@ export function openOnboarding() {
 
     const finish = () => {
       S.mutate(s => { s.onboarded = true; });
-      kill(); nav.refresh();
+      kill();
+      /* Belt and braces -- clear any other onboarding layer too. */
+      document.querySelectorAll('.onb').forEach(el => el.closest('.layer')?.remove());
+      nav.refresh();
     };
 
     const shell = (label, big, para, primary, onPrimary, skipLabel, extra) => {

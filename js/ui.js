@@ -169,7 +169,15 @@ export function topbar(title, close, right) {
 }
 
 /* ---------- toasts ---------- */
+/* Notifications are turned OFF for now (they're being redesigned). Every
+   toast() call still runs, it just no-ops and returns the same
+   { kill, el } shape so callers that hold onto the handle (t.kill(),
+   the work-spinner ones) keep working. Flip this back to true to
+   re-enable -- nothing else needs to change. */
+const TOASTS_ENABLED = false;
+
 export function toast({ text, html, undo, ms = 4200, work = false } = {}) {
+  if (!TOASTS_ENABLED) return { kill: () => {}, el: null };
   const host = document.getElementById('toasts');
   const el = h('div', { class: 'toast' + (work ? ' work' : '') });
   if (work) el.append(h('div', { class: 'spin' }));

@@ -385,22 +385,24 @@ img{display:block;max-width:100%}
    the token instead of restating the hex. */
 .plan-sub{font-family:"Helvetica Neue";font-size:16px;font-weight:400;line-height:15.95px;
   letter-spacing:.22px;color:var(--ink-faint);margin:8px 0 16px}
+/* REGENERATE PLAN -- 16px below the plan input, 32px below itself.
+   #292929 border kept as --line-2 per the near-duplicate policy (same as
+   .ch-circle); #0E0E0E is the established surface literal. */
+.regen-plan{display:flex;height:58px;padding:2px 24px 0;justify-content:center;align-items:center;
+  margin:16px 0 32px;border-radius:29px;border:1px solid var(--line-2);background:#0E0E0E;
+  font-family:"Helvetica Neue";font-size:16px;font-weight:700;text-transform:uppercase;
+  letter-spacing:0;color:#F6F4EC}
 
 /* .desc2 and .plan-text (the Plan section's text) share one rule so they
-   can't drift apart -- per your instruction that Plan must look exactly
-   like Description. min-height instead of Figma's fixed height:180px --
-   a contenteditable box should grow for longer text rather than clip it. */
-.desc2, .plan-text{margin-top:16px;background:#f6f4ec;color:#040404;border-radius:24px;
+   can't drift apart. min-height:180px is the default -- both grow with
+   their content past that. */
+.desc2, .plan-text{margin-top:16px;background:#181818;color:#F6F4EC;border-radius:24px;
   padding:16px;font-family:"Helvetica Neue";font-size:16px;font-weight:400;line-height:18px;
   min-height:180px;outline:none;white-space:pre-wrap}
-.desc2:empty:before, .plan-text:empty:before{content:attr(data-ph);color:#8C8A84}
-.desc2[contenteditable]:focus, .plan-text[contenteditable]:focus{background:#f0eee6}
-/* Plan-only: the HIDE/SHOW collapse clamp, on top of the shared look above. */
-.plan-text{overflow:hidden;max-height:2000px;transition:max-height .3s var(--ease)}
-/* min-height:0 overrides the shared 180px from .desc2 above -- min-height
-   always wins over max-height in a conflict, so without this the collapsed
-   clamp below could never actually shrink past 180px. */
-.plan-text.collapsed{min-height:0;max-height:150px}
+.desc2:empty:before, .plan-text:empty:before{content:attr(data-ph);color:#54524E}
+/* HIDE fully removes the input (and, for Plan, its Regenerate button),
+   toggled via the .hidden attribute in card.js. */
+.desc2[hidden], .plan-text[hidden], .regen-plan[hidden]{display:none}
 
 .att-row{display:flex;gap:8px;margin-top:12px;overflow-x:auto;scrollbar-width:none}
 .att-row::-webkit-scrollbar{display:none}
@@ -427,10 +429,11 @@ img{display:block;max-width:100%}
 .att-cell .x{position:absolute;top:6px;right:6px;width:20px;height:20px;border-radius:50%;
   background:rgba(0,0,0,.66);display:grid;place-items:center;font-size:11px}
 
-.suggest-card{margin-top:12px;background:#f6f4ec;color:#040404;border-radius:24px;padding:16px;
-  font-size:15px;line-height:1.4}
-.suggest-btn{margin-top:10px;padding:9px 16px;border-radius:18px;border:1px solid #040404;
-  color:#040404;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+/* Whole card is the click target now -- the START CHAT button is gone. */
+.suggest-card{margin-top:12px;width:100%;text-align:left;background:#f6f4ec;color:#040404;
+  border-radius:24px;padding:16px;font-size:15px;line-height:1.4;
+  transition:transform .15s var(--ease)}
+.suggest-card:active{transform:scale(.98)}
 
 .composebar{display:flex;align-items:center;gap:8px;flex:none;
   padding:10px 16px calc(14px + var(--safe-b));background:#000;border-top:1px solid var(--line)}
@@ -482,16 +485,19 @@ img{display:block;max-width:100%}
   border-radius:12px;padding:5px 9px;color:var(--ink-dim)}
 .src.archive{border-color:rgba(0,226,255,.4);color:var(--cyan)}
 
-/* chats */
+/* chats -- bubbles are paper cards now (#F6F4EC / #040404 text), the whole
+   card is the click target (no inner button). */
 .bubbles{margin-top:14px;display:flex;flex-direction:column;gap:8px}
-.bub{text-align:left;border:1px solid var(--line);border-radius:18px;padding:13px 15px;
-  background:#0B0B0B;transition:background .2s}
-.bub:active{background:#141414}
+.bub{text-align:left;border-radius:18px;padding:14px 16px;background:#F6F4EC;color:#040404;
+  transition:transform .15s var(--ease)}
+.bub:active{transform:scale(.98)}
 .bub .t{font-size:13px;font-weight:700;letter-spacing:-.01em;text-transform:uppercase}
-.bub .p{font-size:12.5px;line-height:1.4;color:var(--ink-dim);margin-top:4px;
+.bub .p{font-size:12.5px;line-height:1.4;color:#54524E;margin-top:4px;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.bub .w{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);
-  margin-top:7px}
+/* type + date line ("VOICE, 22 JUL" / "SUGGESTION, NOW"), 12px below the
+   summary -- exact spec values. */
+.bub .w{font-family:"Helvetica Neue";font-size:12px;font-weight:400;line-height:normal;
+  text-transform:uppercase;text-align:center;color:#040404;margin-top:12px}
 .newchat{margin-top:10px;border:1px dashed var(--line-2);border-radius:18px;padding:14px;
   width:100%;text-align:left;font-size:12px;letter-spacing:.12em;text-transform:uppercase;
   color:var(--ink-dim)}
@@ -760,10 +766,17 @@ img{display:block;max-width:100%}
 /* .fadein target -- see the note in onboarding.js's shell(). Carries the
    flex-column layout that used to live directly on .onb's children. */
 .onb .ocontent{flex:1;min-height:0;display:flex;flex-direction:column}
-.onb .obody{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;padding-top:80px}
+/* overflow-x:hidden -- overflow-y:auto alone makes overflow-x compute to
+   auto too, and the 52px heading is a few px wider than the column, so a
+   stray sideways scroll appeared on the PHOTOS step. */
+.onb .obody{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;display:flex;
+  flex-direction:column;padding-top:80px}
 .onb .label{font-size:14px;font-weight:400;line-height:normal;letter-spacing:0;
   color:var(--ink-faint)}
-.onb .h-mega{font-size:52px;color:#f6f4ec}
+/* 46px (was 52) so the longest line -- "SCREENSHOT." -- actually fits the
+   column on a narrow phone; that overflow is what was forcing the
+   sideways scroll, .obody's overflow-x:hidden is just the backstop. */
+.onb .h-mega{font-size:46px;color:#f6f4ec}
 .onb p{font-size:16px;line-height:20px;color:var(--ink-dim);margin:16px 0 0;max-width:none}
 .onb .ofoot{display:flex;flex-direction:column;gap:10px}
 .onb .prim{height:58px;border-radius:30px;background:#f6f4ec;color:#040404;font-size:16px;

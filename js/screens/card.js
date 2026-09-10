@@ -203,6 +203,26 @@ export function planSummary(c) {
   return line.charAt(0).toUpperCase() + line.slice(1);
 }
 
+/* HIDE/SHOW button for a section -- HIDE fully removes the given element(s)
+   (Plan passes its input + its Regenerate button). */
+function sectionToggle(startHidden, ...els) {
+  els.forEach(el => el && (el.hidden = startHidden));
+  const btn = h('button', { class: 'plan-toggle' }, startHidden ? 'SHOW' : 'HIDE');
+  btn.onclick = () => {
+    const next = !els[0].hidden;
+    els.forEach(el => el && (el.hidden = next));
+    btn.textContent = next ? 'SHOW' : 'HIDE';
+  };
+  return btn;
+}
+
+/* A contenteditable div that has been fully cleared still holds a stray
+   <br>, so :empty never matches and the placeholder stays hidden. Wipe it
+   on blur when the trimmed text is empty. */
+function clearIfEmpty(el) {
+  if (!el.textContent.trim()) el.replaceChildren();
+}
+
 /* ---------- DESCRIPTION (paper card, Figma) ---------- */
 function descBox(c) {
   const desc = h('div', {
@@ -211,10 +231,11 @@ function descBox(c) {
   }, c.desc || '');
   desc.addEventListener('blur', () => {
     const v = desc.textContent.trim();
+    clearIfEmpty(desc);
     if (v !== c.desc) { S.updateCard(c.id, { desc: v }); toast({ text: 'Saved' }); }
   });
   return h('div', { class: 'sect2' },
-    h('div', { class: 'sh2' }, h('div', { class: 'h-mid' }, 'Description')),
+    h('div', { class: 'sh2' }, h('div', { class: 'h-mid' }, 'Description'), sectionToggle(false, desc)),
     desc);
 }
 
@@ -255,21 +276,28 @@ function planCard(c, render) {
   const currentText = () => plan.text || planFallbackText(c);
   const text = h('div', {
     class: 'desc2 plan-text', contenteditable: 'true', spellcheck: 'false',
-    'data-ph': 'Type in or use voice via microphone button…',
+    'data-ph': 'Type in or regenerate plan…',
   }, currentText());
   text.addEventListener('blur', () => {
     const v = text.textContent.trim();
+    clearIfEmpty(text);
     if (v !== currentText()) { S.updateCard(c.id, cc => ({ plan: { ...cc.plan, text: v } })); toast({ text: 'Saved' }); }
   });
 
-  let expanded = c.state !== 'finished';
-  text.classList.toggle('collapsed', !expanded);
-  const toggle = h('button', { class: 'plan-toggle' }, expanded ? 'HIDE' : 'SHOW');
-  toggle.onclick = () => {
-    expanded = !expanded;
-    toggle.textContent = expanded ? 'HIDE' : 'SHOW';
-    text.classList.toggle('collapsed', !expanded);
-  };
+  /* Regenerate: fresh AI plan from the card's title + tags, replacing the
+     structured plan fields and dropping any hand-edited plan.text /
+     summary so the box recomposes from the new plan. */
+  const regen = h('button', { class: 'regen-plan', onclick: () => {
+    const fresh = AI.generatePlan([c.title, ...(c.tags || [])].join(' '));
+    S.updateCard(c.id, cc => {
+      const { text: _t, summary: _s, assumeEdited: _a, ...keep } = cc.plan || {};
+      return { plan: { ...keep, ...fresh } };
+    });
+    toast({ text: 'Plan regenerated' });
+    render();
+  } }, 'Regenerate plan');
+
+  const toggle = sectionToggle(c.state === 'finished', text, regen);
 
   return h('div', { class: 'sect2' },
     h('div', { class: 'sh2' }, h('div', { class: 'h-mid' }, 'Plan'), toggle),
@@ -277,7 +305,8 @@ function planCard(c, render) {
        studio/card's own chat-count badge with its own sizing; restyling it
        here per spec would've changed all of those too. */
     h('div', { class: 'plan-sub' }, 'Estimated from your archive'),
-    text);
+    text,
+    regen);
 }
 
 /* ---------- ATTACHMENTS ---------- */
@@ -385,13 +414,18 @@ function addProcessPhoto(cardId, src, render, kind) {
    different painted patterns" -- there's no generator in this app that
    produces a tailored suggestion from a card's content, and inventing
    one felt like fabricating intelligence the prototype doesn't have. */
+/* "TYPE, DATE" line under each bubble -- "VOICE, 22 JUL" / "TEXT, 22 JUL"
+   / "SUGGESTION, NOW". Anything logged in the last ~12h reads "now". */
+const bubType = (src) => ({ voice: 'Voice', type: 'Text', watch: 'Apple Watch', liveactivity: 'Live Activity', import: 'Imported' }[src] || 'Note');
+const bubWhen = (at) => (Date.now() - at < 12 * 36e5 ? 'now' : fmtShort(at));
+
 function chatsSection(c, render) {
   const wrap = h('div', { class: 'sect2' },
     h('div', { class: 'sh2' }, h('div', { class: 'h-mid' }, 'Chats')));
 
-  wrap.append(h('div', { class: 'suggest-card' },
-    h('div', {}, 'Ask UNFIRED about this piece'),
-    h('button', { class: 'suggest-btn', onclick: () => openChat(c.id, null, render) }, 'START CHAT')));
+  /* Whole card is the tap target now -- the START CHAT button is gone. */
+  wrap.append(h('button', { class: 'suggest-card', onclick: () => openChat(c.id, null, render) },
+    'Ask UNFIRED about this piece'));
 
   const bubbles = h('div', { class: 'bubbles' });
 
@@ -399,15 +433,16 @@ function chatsSection(c, render) {
     bubbles.append(h('button', { class: 'bub', onclick: () => openNote(c.id, n, render) },
       h('div', { class: 't' }, noteTitle(n)),
       h('div', { class: 'p' }, n.text),
-      h('div', { class: 'w' }, srcLabel(n.src), ' · ', fmtShort(n.at))));
+      h('div', { class: 'w' }, bubType(n.src) + ', ' + bubWhen(n.at))));
   });
 
   (c.threads || []).slice().sort((a, b) => b.at - a.at).forEach(t => {
     const last = t.msgs[t.msgs.length - 1];
+    const kind = t.msgs[0]?.role === 'ai' ? 'Suggestion' : 'Chat';
     bubbles.append(h('button', { class: 'bub', onclick: () => openChat(c.id, t.id, render) },
       h('div', { class: 't' }, t.title),
       h('div', { class: 'p' }, last ? last.text : 'Empty'),
-      h('div', { class: 'w' }, t.msgs.length + ' messages · ' + fmtShort(t.at))));
+      h('div', { class: 'w' }, kind + ', ' + bubWhen(t.at))));
   });
 
   if (bubbles.children.length) wrap.append(bubbles);
