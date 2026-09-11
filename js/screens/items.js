@@ -402,7 +402,9 @@ export function openSearch(prefill) {
    only their onclick target follows the centered card, positionally
    (image i <-> rts[i], same as before). Fewer real cards than images
    just means the tail images center with no click target. */
-const RTP_IMAGES = ['assets/posts/Post 1.png', 'assets/posts/Post 2.png', 'assets/posts/Post 3.png'];
+/* ?v= busts the year-long immutable cache on /assets (vercel.json) --
+   bump it whenever the post exports are replaced under the same names. */
+const RTP_IMAGES = ['assets/posts/Post 1.png?v=2', 'assets/posts/Post 2.png?v=2', 'assets/posts/Post 3.png?v=2'];
 
 function statusBar() {
   return h('div', { class: 'rtp-statusbar' },
