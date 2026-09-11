@@ -21,10 +21,18 @@ img{display:block;max-width:100%}
 #device{position:fixed;inset:0;background:var(--bg);overflow:hidden;
   display:flex;flex-direction:column}
 @media (min-width:760px){
-  body{display:flex;align-items:center;justify-content:center;background:#3C3A36;
-    background-image:radial-gradient(circle at 50% 0%,#4A4844 0%,#221F1C 70%)}
+  /* Lightened from #3C3A36/#221F1C -- the old backdrop and the app's own
+     near-black content (#040404/#0A0A0A/#0B0B0B everywhere) read as one
+     continuous surface, no visible frame edge. The device's own hairline
+     border also moves from a near-invisible dark gray (#262626, barely
+     different from the backdrop it sits on) to a translucent white ring,
+     which stays visible against any dark surface regardless of exactly
+     how dark the backdrop is. */
+  body{display:flex;align-items:center;justify-content:center;background:#57534C;
+    background-image:radial-gradient(circle at 50% 0%,#6B6660 0%,#332F2A 70%)}
   #device{position:relative;inset:auto;width:402px;height:min(874px,96vh);
-    border-radius:44px;box-shadow:0 40px 120px rgba(0,0,0,.8),0 0 0 1px #262626;
+    border-radius:44px;
+    box-shadow:0 40px 120px rgba(0,0,0,.8),0 0 0 1px rgba(255,255,255,.14);
     --safe-t:14px;--safe-b:18px}
 }
 .app{position:absolute;inset:0;overflow:hidden}
@@ -275,7 +283,14 @@ img{display:block;max-width:100%}
 .cardhero2{position:relative;display:flex;width:100%;padding-bottom:20px;
   flex-direction:column;align-items:center;border-radius:0 0 48px 48px;
   overflow:hidden;text-align:center;color:#040404}
-.cardhero2:not(.photo){max-height:446px}
+/* 480, not 446 -- 446 was measured against a one-line title (Blue Line
+   Mug); a two-line title (Heart Dishes, Set Of Four) pushes natural
+   content to ~465px, and overflow:hidden was silently eating almost
+   all of the intended 20px bottom padding instead of clipping visible
+   content. 480 covers a two-line title with the padding intact; a
+   shorter card still sizes to its own (smaller) natural height, since
+   this is a max, not a fixed height. */
+.cardhero2:not(.photo){max-height:480px}
 /* No justify-content:space-between here anymore -- status bar/buttons/
    title now stack compactly right under each other, same position as
    every gradient (non-photo) card, instead of the title floating in the

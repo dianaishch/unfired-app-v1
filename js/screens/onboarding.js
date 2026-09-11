@@ -26,7 +26,10 @@ export function openOnboarding() {
       nav.refresh();
     };
 
-    const shell = (label, big, para, primary, onPrimary, skipLabel, extra) => {
+    /* onSkip lets a step override the default "advance one step" skip
+       behavior -- step 0's "SKIP EVERYTHING" needs to actually skip
+       everything (jump straight to READY), not just this one screen. */
+    const shell = (label, big, para, primary, onPrimary, skipLabel, extra, onSkip) => {
       /* .fadein goes on this inner wrapper, not on root -- root is the
          full-screen opaque black panel, and animating its opacity/transform
          on every step flashed the app behind it and jumped the whole
@@ -41,7 +44,7 @@ export function openOnboarding() {
             extra || null),
           h('div', { class: 'ofoot' },
             h('button', { class: 'prim', onclick: onPrimary }, primary),
-            h('button', { class: 'skip', onclick: () => step === 3 ? finish() : go(step + 1) }, skipLabel || 'SKIP')))
+            h('button', { class: 'skip', onclick: onSkip || (() => step === 3 ? finish() : go(step + 1)) }, skipLabel || 'SKIP')))
       );
     };
 
@@ -49,7 +52,7 @@ export function openOnboarding() {
       step = n;
       if (n === 0) shell('UNFIRED', 'YOUR\nCERAMICS\nALREADY\nLIVE ON\nYOUR PHONE.',
         'Photos, screenshots, saved pins, half-written notes. UNFIRED turns them into one ceramic memory, without you filing anything.',
-        'SHOW ME', () => go(1), 'SKIP EVERYTHING');
+        'SHOW ME', () => go(1), 'SKIP EVERYTHING', null, () => go(3));
 
       else if (n === 1) shell('PHOTOS', 'IT CAN\nTELL A\nGLAZE TEST\nFROM A\nSCREENSHOT.',
         'UNFIRED reads your camera roll in the background, groups photos of the same piece, and files them against the right card. Nothing leaves your phone.',
