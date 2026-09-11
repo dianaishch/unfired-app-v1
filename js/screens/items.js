@@ -395,9 +395,9 @@ export function openSearch(prefill) {
    Post-preview cards are exact Figma exports (assets/posts/Post*.png), not
    rebuilt from primitives, and still not individually clickable -- per
    your direction, they're images you swipe past, not buttons.
-   Carousel animation modeled on https://pin.it/3HbQi36yD: the centered
-   card sits at full scale, neighbors shrink/fade toward the edges as you
-   scroll, continuously (not stepped). Post/Edit buttons are the static
+   Carousel animation is a port of infinite-scrolling-cards-slider.webflow.io
+   (see the loop inside openReadyToPost), driven by horizontal scrolling of
+   the screen; none of the reference's own UI is used. Post/Edit buttons are the static
    #0B0B0B chip from Figma node 467:60895 -- no color animation on them;
    only their onclick target follows the centered card, positionally
    (image i <-> rts[i], same as before). Fewer real cards than images
@@ -416,7 +416,17 @@ function statusBar() {
 export function openReadyToPost() {
   page((p, close) => {
     const rts = S.readyToShare();
-    const cardEls = RTP_IMAGES.map(src => img(src, ''));
+    /* The loop needs enough cards that the wrap point sits off-screen (the
+       reference refuses to run with < 6), so the image set is repeated:
+       3 images -> 9 cards, visible slots -4..+4 are always distinct cards. */
+    const n = RTP_IMAGES.length;
+    const total = n * Math.ceil(9 / n);
+    const cardEls = Array.from({ length: total }, (_, j) => {
+      const el = img(RTP_IMAGES[j % n], '');
+      el.loading = 'eager';
+      el.draggable = false;
+      return el;
+    });
     const deck = h('div', { class: 'rtp-deck' }, ...cardEls);
     const postBtn = h('button', {}, 'Post');
     const editBtn = h('button', {}, 'Edit');
@@ -432,37 +442,95 @@ export function openReadyToPost() {
       editBtn.onclick = c ? () => openCard(c.id) : null;
     };
 
-    /* Coverflow, matching infinite-scrolling-cards-slider.webflow.io: a
-       card's scale AND opacity are both (1 - |slot|*0.2)^2, where `slot`
-       is its continuous distance from centre in card-slots; cards are
-       pulled to a fixed 0.8*cardWidth step so they overlap slightly.
-       Scroll-driven off the deck's own horizontal scroll -- swiping the
-       row is what advances the cards. */
-    const layout = () => {
-      const naturalStep = cardEls.length > 1
-        ? cardEls[1].offsetLeft - cardEls[0].offsetLeft
-        : cardEls[0].offsetWidth;
-      const targetStep = cardEls[0].offsetWidth * 0.8;
-      const viewCenter = deck.scrollLeft + deck.clientWidth / 2;
-      let bestI = 0, bestSlot = Infinity;
-      cardEls.forEach((el, i) => {
-        const naturalX = el.offsetLeft + el.offsetWidth / 2 - viewCenter;
-        const slot = naturalX / naturalStep;
+    /* Port of infinite-scrolling-cards-slider.webflow.io (GSAP seamless
+       loop), animation only:
+       - a card `slot` places from centre sits at x = slot*80% of its width,
+         scale == opacity == (1 - |slot|*0.2)^2 (the reference's power1.in
+         yoyo), z-index tracks scale so the centre card is on top;
+       - it loops forever in both directions;
+       - input only ever moves a raw position; the target is that position
+         snapped to a whole card, and the displayed position eases to it
+         over 0.5s power3.out (the reference's `scrub` tween), so cards
+         always settle dead-centre.
+       Driven by horizontal scrolling of the screen -- a horizontal
+       swipe/drag anywhere on the page, or trackpad / shift+wheel -- instead
+       of the reference's vertical page scroll. */
+    const WHEEL_PX_PER_CARD = 300;   // reference: 3000px scroll per 10 cards
+    const SCRUB_MS = 500;            // reference: scrub duration 0.5
+    const easeOut3 = t => 1 - Math.pow(1 - t, 3);
+    let raw = 0, target = 0, shown = 0;
+    let from = 0, t0 = 0, raf = 0;
+
+    const render = () => {
+      cardEls.forEach((el, j) => {
+        let slot = ((j - shown) % total + total) % total;
+        if (slot >= total / 2) slot -= total;
         const s = Math.max(0, 1 - Math.abs(slot) * 0.2);
-        const scale = s * s;
-        el.style.transform = `translateX(${(slot * targetStep - naturalX).toFixed(1)}px) scale(${scale.toFixed(3)})`;
-        el.style.opacity = scale.toFixed(3);
-        el.style.zIndex = Math.round(scale * 100);
-        if (Math.abs(slot) < bestSlot) { bestSlot = Math.abs(slot); bestI = i; }
+        const k = s * s;
+        el.style.transform = `translate(${(slot * 80 - 50).toFixed(2)}%, -50%) scale(${k.toFixed(4)})`;
+        el.style.opacity = k.toFixed(4);
+        el.style.zIndex = Math.round(k * 100);
       });
-      setActive(bestI);
+      setActive(((Math.round(shown) % n) + n) % n);
     };
-    let ticking = false;
-    deck.addEventListener('scroll', () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => { layout(); ticking = false; });
-    }, { passive: true });
+    const tick = (now) => {
+      const t = Math.min(1, (now - t0) / SCRUB_MS);
+      shown = from + (target - from) * easeOut3(t);
+      render();
+      raf = t < 1 ? requestAnimationFrame(tick) : 0;
+    };
+    const setRaw = (v) => {
+      raw = v;
+      const snapped = Math.round(raw);
+      if (snapped === target) return;
+      target = snapped;
+      from = shown; t0 = performance.now();   // restart the scrub, like scrub.invalidate().restart()
+      if (!raf) raf = requestAnimationFrame(tick);
+    };
+
+    /* trackpad horizontal scroll / shift+wheel */
+    p.addEventListener('wheel', (e) => {
+      let dx = e.deltaX;
+      if (e.shiftKey && !dx) dx = e.deltaY;
+      else if (Math.abs(dx) <= Math.abs(e.deltaY)) return;
+      e.preventDefault();   // keep the browser's back/forward swipe out of it
+      setRaw(raw + dx / WHEEL_PX_PER_CARD);
+    }, { passive: false });
+
+    /* horizontal swipe / drag anywhere on the screen. Skips the left-edge
+       strip (page()'s swipe-back) and the buttons. The finger moves the raw
+       position 1:1 with card spacing; a flick carries on a little. */
+    p.style.touchAction = 'pan-y';
+    let drag = null;
+    p.addEventListener('pointerdown', (e) => {
+      if (e.button || e.target.closest('button')) return;
+      if (e.pointerType === 'touch' && e.clientX < 26) return;
+      drag = { id: e.pointerId, x: e.clientX, y: e.clientY, raw0: raw, on: false,
+               step: cardEls[0].offsetWidth * 0.8, vx: 0, lx: e.clientX, lt: e.timeStamp };
+    });
+    p.addEventListener('pointermove', (e) => {
+      if (!drag || e.pointerId !== drag.id) return;
+      const dx = e.clientX - drag.x;
+      if (!drag.on) {
+        if (Math.abs(dx) < 6 || Math.abs(dx) < Math.abs(e.clientY - drag.y)) return;
+        drag.on = true;
+        try { p.setPointerCapture(e.pointerId); } catch { /* pointer already gone */ }
+      }
+      const dt = e.timeStamp - drag.lt;
+      if (dt > 0) drag.vx = 0.8 * ((e.clientX - drag.lx) / dt) + 0.2 * drag.vx;
+      drag.lx = e.clientX; drag.lt = e.timeStamp;
+      setRaw(drag.raw0 - dx / drag.step);
+    });
+    const endDrag = (e) => {
+      if (!drag || e.pointerId !== drag.id) return;
+      if (drag.on) {
+        const fling = e.timeStamp - drag.lt < 80 ? -drag.vx * 120 / drag.step : 0;
+        setRaw(Math.round(raw + Math.max(-2, Math.min(2, fling))));
+      }
+      drag = null;
+    };
+    p.addEventListener('pointerup', endDrag);
+    p.addEventListener('pointercancel', endDrag);
 
     p.append(
       statusBar(),
@@ -477,6 +545,6 @@ export function openReadyToPost() {
       deck,
       h('div', { class: 'rtp-bottombar' }, postBtn, editBtn));
 
-    requestAnimationFrame(layout);
+    render();
   });
 }

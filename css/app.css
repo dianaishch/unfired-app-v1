@@ -151,16 +151,19 @@ img{display:block;max-width:100%}
 .rtp-page-head .sub{font-size:16px;color:#f6f4ec;margin:0}
 
 /* actual Figma card exports (assets/posts) -- not rebuilt from primitives.
-   Coverflow carousel matching infinite-scrolling-cards-slider.webflow.io:
-   scale == opacity == (1 - |slot|*0.2)^2, cards pulled into a slight
-   overlap, all driven by the deck's own horizontal scroll (see layout()
-   in items.js), snapping to a centred card. */
-.rtp-deck{display:flex;align-items:center;gap:16px;overflow-x:auto;
-  scroll-snap-type:x mandatory;padding:20px calc(50% - 110px) 24px;scrollbar-width:none}
-.rtp-deck::-webkit-scrollbar{display:none}
-.rtp-deck img{width:220px;height:auto;flex:none;scroll-snap-align:center;display:block;
-  transform-origin:center;transition:transform .18s ease-out,opacity .18s ease-out;
-  will-change:transform,opacity}
+   Infinite card loop matching infinite-scrolling-cards-slider.webflow.io:
+   cards are stacked on the deck's centre and placed purely by JS transform
+   (x = slot*80% of card width, scale == opacity == (1 - |slot|*0.2)^2),
+   driven by horizontal swipe / trackpad scroll -- see openReadyToPost() in
+   items.js. Every card gets the same frame (the re-exported posts are all
+   804x~1325); centre card is 75% of the screen width like the reference,
+   so neighbours tuck behind it -- smaller only if the screen is too short. */
+.rtp-deck{position:relative;flex:1 1 auto;min-height:0;overflow:hidden;
+  container-type:size;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.rtp-deck img{position:absolute;left:50%;top:50%;
+  width:min(75cqw, (100cqh - 24px) * 804 / 1325);height:auto;aspect-ratio:804/1325;
+  object-fit:cover;display:block;transform-origin:center;will-change:transform,opacity;
+  pointer-events:none;-webkit-user-drag:none}
 
 .rtp-bottombar{display:flex;gap:8px;justify-content:center;
   padding:8px 12px calc(20px + var(--safe-b))}
