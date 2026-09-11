@@ -2,7 +2,8 @@
 import { h, ICON, toast } from './ui.js';
 import * as S from './store.js';
 import { nav } from './nav.js';
-import { renderItems, openSearch } from './screens/items.js';
+import { renderItems, openSearch, openReadyToPost } from './screens/items.js';
+import { openPostEdit } from './screens/post.js';
 import { renderInsights } from './screens/insights.js';
 import { openCard, openChat } from './screens/card.js';
 import { openCapture } from './screens/capture.js';
@@ -92,10 +93,15 @@ document.getElementById('devtoggle').addEventListener('click', () => devbar.hidd
 devbar.addEventListener('click', e => {
   const a = e.target.dataset.dev;
   if (!a) return;
-  if (a === 'shake') shake();
-  if (a === 'lock') openLock();
-  if (a === 'watch') openWatch();
-  if (a === 'scan') runImport(true);
+  /* screens open on a fresh Items screen, so Back behaves normally */
+  const fresh = () => { document.getElementById('layers').replaceChildren(); route = 'items'; render(); };
+  if (a.startsWith('card:')) { fresh(); openCard(a.slice(5)); }
+  if (a === 'rtp') { fresh(); openReadyToPost(); }
+  if (a === 'edit') { fresh(); openPostEdit('post-1'); }
+  if (a === 'log') { fresh(); openCapture({}); }
+  if (a === 'log-rec') { fresh(); openCapture({ listen: true }); }
+  if (a === 'lock') { fresh(); openLock('lavender-teapot-2'); }
+  if (a === 'shake') { fresh(); shake(); }
   if (a === 'onboard') openOnboarding();
   if (a === 'reset') {
     S.resetDemo();

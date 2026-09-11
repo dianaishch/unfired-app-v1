@@ -1,5 +1,5 @@
 /* CARD DETAIL — hero, description, how to make it, photos, notes & chats. */
-import { h, frag, ICON, page, sheet, toast, fmtShort, ago, img, sleep, squircle } from '../ui.js';
+import { h, frag, ICON, page, sheet, toast, fmtShort, ago, img, sleep, squircle, pageHead, navBtn } from '../ui.js';
 import * as S from '../store.js';
 import * as AI from '../ai.js';
 import { nav } from '../nav.js';
@@ -379,9 +379,7 @@ function openAttachments(cardId, parentRender) {
       });
       grid.append(h('button', { class: 'att-cell add', onclick: () => addPhotoFlow(c, () => { render(); parentRender(); }), html: ICON.plus }));
       p.append(
-        h('div', { class: 'page-top' },
-          h('button', { class: 'iconbtn', onclick: close, html: ICON.back }),
-          h('div', { class: 'label', style: { flex: '1' } }, 'Attachments')),
+        pageHead({ left: navBtn(ICON.back, close, 'Back'), title: 'Attachments', sub: titleCase(c.title) }),
         h('div', { class: 'scroll' }, grid));
     };
     render();
@@ -652,8 +650,8 @@ export function openChat(cardId, threadId, onDone, seed, { ask } = {}) {
 
   page((p, close) => {
     const list = h('div', { class: 'thread' });
-    const cardLabel = h('div', { class: 'label' }, cid ? S.byId(cid).title : '');
-    const headTitle = h('div', { class: 'h-mid', style: { marginTop: '2px' } }, thread()?.title || 'NEW CHAT');
+    const cardLabel = h('span', {}, cid ? titleCase(S.byId(cid).title) : '');
+    const headTitle = h('span', {}, thread()?.title || 'NEW CHAT');
     const ti = h('div', { class: 'ti', contenteditable: 'true',
       'data-ph': cid ? 'Ask about this piece…' : 'Ask UNFIRED anything…' });
     let busy = false;
@@ -686,7 +684,7 @@ export function openChat(cardId, threadId, onDone, seed, { ask } = {}) {
       const name = titleCase(S.byId(cid).title);
       S.addMessage(cid, tid, { role: 'sys',
         text: res.kind === 'attach' ? `Added to ${name}` : `Started a new idea: ${name}` });
-      cardLabel.textContent = S.byId(cid).title;
+      cardLabel.textContent = titleCase(S.byId(cid).title);
       ti.dataset.ph = 'Ask about this piece…';
       nav.refresh();
     };
@@ -721,9 +719,10 @@ export function openChat(cardId, threadId, onDone, seed, { ask } = {}) {
     });
 
     p.append(
-      h('div', { class: 'page-top' },
-        h('button', { class: 'iconbtn', onclick: () => { if (cid) cleanEmpty(cid, tid); onDone && onDone(); close(); }, html: ICON.back }),
-        h('div', { class: 'chat-head' }, cardLabel, headTitle)),
+      /* header like Ready to post: thread title, card name under it (both
+         fill in once a card-less chat has been routed) */
+      pageHead({ left: navBtn(ICON.back, () => { if (cid) cleanEmpty(cid, tid); onDone && onDone(); close(); }, 'Back'),
+        title: headTitle, sub: cardLabel }),
       list,
       h('div', { class: 'composer' }, ti,
         h('button', { class: 'sendb', html: ICON.send, onclick: () => send() }))

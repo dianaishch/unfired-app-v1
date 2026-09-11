@@ -1,5 +1,5 @@
 /* COLLIDE — shake two or three cards into one another and see what falls out. */
-import { h, ICON, toast, fullLayer, img, sleep, titleCase } from '../ui.js';
+import { h, ICON, toast, fullLayer, img, sleep, titleCase, pageHead, navBtn } from '../ui.js';
 import * as S from '../store.js';
 import * as AI from '../ai.js';
 import { nav } from '../nav.js';
@@ -12,9 +12,7 @@ export function openCollide(withId) {
     const flash = h('div', { class: 'flash' });
     const result = h('div', { class: 'cresult' });
     const root = h('div', { class: 'collide' },
-      h('div', { class: 'page-top' },
-        h('button', { class: 'iconbtn', html: ICON.close, onclick: kill }),
-        h('div', { class: 'label', style: { flex: '1' } }, 'COLLIDE')),
+      pageHead({ left: navBtn(ICON.close, kill, 'Close'), title: 'Collide' }),
       stage, flash, result);
     wrap.append(root);
 

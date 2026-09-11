@@ -1,5 +1,5 @@
 /* DISCOVER — a physical stack of ideas. Swipe, tap, or shake to collide. */
-import { h, ICON, toast, fullLayer, img, sleep, titleCase } from '../ui.js';
+import { h, ICON, toast, fullLayer, img, sleep, titleCase, pageHead, navBtn } from '../ui.js';
 import * as S from '../store.js';
 import * as AI from '../ai.js';
 import { nav } from '../nav.js';
@@ -12,12 +12,13 @@ export function openDiscover() {
     const stage = h('div', { class: 'stage' });
     const root = h('div', { class: 'disc' });
 
-    const head = h('div', { class: 'page-top' },
-      h('button', { class: 'iconbtn', html: ICON.close, onclick: kill }),
-      h('div', { style: { flex: '1' } },
-        h('div', { class: 'label' }, 'DISCOVER'),
-        h('div', { class: 'meta', style: { marginTop: '2px' } }, 'Swipe · tap to inspect · shake to collide')),
-      h('button', { class: 'iconbtn', html: ICON.spark, onclick: () => { kill(); openCollide(); } }));
+    /* header: same layout as the Ready to post screen (ui.js pageHead) */
+    const head = pageHead({
+      left: navBtn(ICON.close, kill, 'Close'),
+      right: navBtn(ICON.spark, () => { kill(); openCollide(); }, 'Collide'),
+      title: 'Discover',
+      sub: 'Swipe · tap to inspect · shake to collide',
+    });
 
     const paint = () => {
       stage.replaceChildren();

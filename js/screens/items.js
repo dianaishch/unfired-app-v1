@@ -1,5 +1,5 @@
 /* ITEMS — what am I making now, what's ready to share, and the archive. */
-import { h, ICON, img, ago, page, toast, squircle } from '../ui.js';
+import { h, ICON, img, ago, page, toast, squircle, statusBar, pageHead, navBtn } from '../ui.js';
 import * as S from '../store.js';
 import * as AI from '../ai.js';
 import { nav } from '../nav.js';
@@ -385,11 +385,10 @@ export function openSearch(prefill) {
     input.addEventListener('keydown', e => { if (e.key === 'Enter') run(input.value); });
 
     p.append(
-      h('div', { class: 'page-top' },
-        h('button', { class: 'iconbtn', onclick: close, html: ICON.back }),
-        h('div', { class: 'searchbar', style: { flex: '1', margin: '0' } },
-          h('div', { style: { width: '17px', height: '17px', color: '#8C8A84' }, html: ICON.search }),
-          input)),
+      pageHead({ left: navBtn(ICON.back, close, 'Back'), title: 'Ask your archive' }),
+      h('div', { class: 'searchbar', style: { flex: 'none' } },
+        h('div', { style: { width: '17px', height: '17px', color: '#8C8A84' }, html: ICON.search }),
+        input),
       scroll);
 
     if (prefill) run(prefill); else showSuggests();
@@ -405,14 +404,8 @@ export function openSearch(prefill) {
    the reference's own UI is used. EDIT (dark chip) then POST (orange
    #FF451A / #040404 text); both act on the centred card. Tapping the
    centred card opens Edit too; tapping a side card brings it to centre. */
-export function statusBar() {
-  return h('div', { class: 'rtp-statusbar' },
-    h('span', {}, '9:41'),
-    h('div', { class: 'icons' },
-      h('div', { class: 'bars' }, h('i'), h('i'), h('i'), h('i')),
-      h('div', { class: 'wifi' }),
-      h('div', { class: 'batt' }, h('i'))));
-}
+/* status bar lives in ui.js now; re-exported for post.js / capture.js */
+export { statusBar };
 
 export function openReadyToPost() {
   page((p, close) => {

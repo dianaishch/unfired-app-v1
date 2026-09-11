@@ -160,6 +160,32 @@ export function fullLayer(build) {
   return { close, el: wrap };
 }
 
+/* iOS-style status bar (the Figma frames all show one). */
+export function statusBar() {
+  return h('div', { class: 'rtp-statusbar' },
+    h('span', {}, '9:41'),
+    h('div', { class: 'icons' },
+      h('div', { class: 'bars' }, h('i'), h('i'), h('i'), h('i')),
+      h('div', { class: 'wifi' }),
+      h('div', { class: 'batt' }, h('i'))));
+}
+
+/* Sub-page header, same layout as the Ready to post screen: status bar,
+   a row of 40px round buttons (left = back/close, right = optional action),
+   then a centred 20px title and optional subtitle. title/sub may be text
+   or nodes (for ones that update live). */
+export const navBtn = (icon, onclick, label) =>
+  h('button', { class: 'navbtn', html: icon, onclick, 'aria-label': label });
+export function pageHead({ left, right, title, sub } = {}) {
+  const slot = (b) => b || h('span', { class: 'navbtn-gap' });
+  return h('div', { class: 'page-head' },
+    statusBar(),
+    h('div', { class: 'rtp-page-head' },
+      h('div', { class: 'navrow' }, slot(left), slot(right)),
+      title != null ? h('div', { class: 't' }, title) : null,
+      sub != null ? h('div', { class: 'sub' }, sub) : null));
+}
+
 export function topbar(title, close, right) {
   return h('div', { class: 'page-top' },
     h('button', { class: 'iconbtn', onclick: close, html: ICON.back, 'aria-label': 'Back' }),

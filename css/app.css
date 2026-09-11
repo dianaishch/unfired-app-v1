@@ -172,8 +172,11 @@ img{display:block;max-width:100%}
 .rtp-page-head{display:flex;flex-direction:column;align-items:center;gap:8px;
   padding:8px 12px 20px}
 .rtp-page-head .navrow{display:flex;justify-content:space-between;width:100%}
-.rtp-page-head .navbtn{width:40px;height:40px;border-radius:50%;background:#0B0B0B;
-  border:1px solid var(--line-2);display:grid;place-items:center;flex:none}
+.rtp-page-head .navbtn{width:40px;height:40px;border-radius:50%;background:#0e0e0e;
+  border:1px solid #292929;color:#f6f4ec;display:grid;place-items:center;flex:none}
+.rtp-page-head .navbtn-gap{width:40px;height:40px;flex:none}
+/* shared sub-page header (ui.js pageHead) */
+.page-head{flex:none;position:relative;z-index:6}
 .rtp-page-head .navbtn svg{width:16px;height:16px}
 .rtp-page-head .t{font-size:20px;font-weight:700;letter-spacing:-.55px;
   text-transform:uppercase;color:#f6f4ec;margin:0}
@@ -599,7 +602,8 @@ img{display:block;max-width:100%}
    uppercase like a card status / chat bubble caption, no pill. Colour keeps
    its meaning: YOUR ARCHIVE cyan, CERAMIC REFERENCE grey. */
 .src{font-size:12px;line-height:normal;letter-spacing:normal;text-transform:uppercase;color:var(--ink-dim)}
-.src.archive{color:var(--cyan)}
+/* padding:0 -- the tag shares the .archive class name with the archive grid */
+.src.archive{color:var(--cyan);padding:0}
 
 /* chats (Figma nodes 487:3571 / 487:3575) -- paper bubbles, one 16px
    summary line + a "TYPE, DATE" meta line, whole bubble is the tap
@@ -937,15 +941,26 @@ img{display:block;max-width:100%}
 .scanline .s b{color:var(--acid);font-weight:700}
 
 /* ---------- misc ---------- */
-.devbar{position:fixed;left:14px;bottom:14px;z-index:200;display:flex;flex-direction:column;
-  gap:5px;background:#141414;border:1px solid #2a2a2a;border-radius:14px;padding:8px}
-.devbar button{font-size:11px;letter-spacing:.04em;color:#aaa;text-align:left;padding:5px 8px;
-  border-radius:8px}
+/* Prototype menu -- sits beside the phone, never over the app's controls.
+   Wide screens: just left of the device frame, bottom-aligned with it.
+   Phone-width: a slim tab on the left edge, mid-height (the app is
+   full-screen there, so this is the least-used strip). */
+.devbar{position:fixed;z-index:200;display:flex;flex-direction:column;gap:2px;width:min(190px, calc(50vw - 201px - 24px));
+  max-height:80vh;overflow-y:auto;background:#141414;border:1px solid #2a2a2a;border-radius:14px;padding:8px;
+  right:calc(50% + 201px + 16px);bottom:calc(50vh - min(437px, 48vh) + 44px)}
+.devbar button{font-size:12px;letter-spacing:.02em;color:#aaa;text-align:left;padding:6px 8px;
+  border-radius:8px;flex:none}
 .devbar button:hover{background:#222;color:#fff}
-.devtoggle{position:fixed;left:14px;bottom:14px;z-index:201;width:30px;height:30px;
-  border-radius:50%;background:#141414;border:1px solid #2a2a2a;color:#666;font-size:13px}
-@media (max-width:759px){.devtoggle{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 6px);left:6px;
-  opacity:.35}.devbar{bottom:auto;top:44px;left:6px}}
+.devbar .devgrp{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#5a5a5a;padding:8px 8px 2px}
+.devbar .devgrp:first-child{padding-top:2px}
+.devtoggle{position:fixed;z-index:201;width:32px;height:32px;
+  border-radius:50%;background:#141414;border:1px solid #2a2a2a;color:#777;font-size:13px;
+  right:calc(50% + 201px + 16px);bottom:calc(50vh - min(437px, 48vh))}
+@media (max-width:759px){
+  .devtoggle{right:auto;bottom:auto;left:0;top:50%;transform:translateY(-50%);width:14px;height:48px;
+    border-radius:0 10px 10px 0;border-left:0;font-size:0;opacity:.6}
+  .devbar{right:auto;bottom:auto;left:18px;top:50%;transform:translateY(-50%);width:190px}
+}
 
 .fadein{animation:fi .4s var(--ease)}
 @keyframes fi{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
