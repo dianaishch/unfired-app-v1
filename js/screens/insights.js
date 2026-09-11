@@ -1,5 +1,5 @@
 /* INSIGHTS — patterns pulled out of the same dataset. Not a dashboard. */
-import { h } from '../ui.js';
+import { h, squircle } from '../ui.js';
 import * as AI from '../ai.js';
 import { nav } from '../nav.js';
 import { openCard } from './card.js';
@@ -9,11 +9,9 @@ export function renderInsights(root) {
   const scroll = h('div', { class: 'scroll' });
   const list = AI.insights();
 
-  scroll.append(h('div', { class: 'pad', style: { padding: '4px 20px 22px' } },
-    h('div', { class: 'label' }, 'WHAT YOUR ARCHIVE KNOWS'),
-    h('div', { class: 'meta', style: { marginTop: '8px' } },
-      'Derived from every card, note and firing you have logged.')));
-
+  /* intro heading + "Derived from…" line removed per your call; a small
+     spacer keeps the first panel off the tabs */
+  scroll.append(h('div', { style: { height: '4px' } }));
   list.forEach(i => scroll.append(panel(i)));
 
   scroll.append(h('div', { class: 'pad', style: { padding: '20px' } },
@@ -37,10 +35,9 @@ function panel(i) {
     top.append(bars, h('div', { class: 'barlab' }, ...i.months.map(m => h('span', {}, m.lab))));
   }
   if (i.kind === 'tech') {
-    const max = Math.max(...i.techCount.map(t => t.n), 1);
     top.append(h('div', { class: 'tech' },
       ...i.techCount.filter(t => t.n).map(t =>
-        h('b', { class: t.n === max ? 'hot' : '' }, h('em', {}, `${t.t} ${t.n}`)))));
+        h('span', { class: 'chip' }, `${t.t} ${t.n}`))));
   }
   if (i.kind === 'evo') {
     const evo = h('div', { class: 'evo' });
@@ -61,5 +58,7 @@ function panel(i) {
       }
     }, i.act));
 
+  /* same 48px smoothed (superellipse) corners as the Items page cards */
+  squircle(el, 48);
   return el;
 }

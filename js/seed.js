@@ -916,24 +916,10 @@ export const CARDS = [
   desc:'Six or seven of the speckled bird, all slightly different sizes, sold as a flock.',
   tags:['modelled','figure','animal','series','speckled stoneware','idea'],
   hero:null,
-  plan:{
-    assumptions:['Speckled stoneware, cone 6','6–11 cm each','Modelled'],
-    params:[
-      par('technique','Modelled + hollowed'),
-      par('clay','Speckled stoneware'),
-      par('clay amount','~2 kg for seven'),
-      par('surface','Brown breaking glaze'),
-      par('firing','Bisque 04 · glaze cone 6'),
-    ],
-    tools:['Loop tool','Needle tool'],
-    steps:[
-      'Weigh the balls first — 200 g to 400 g — so the sizes step evenly.',
-      'Model, hollow, vent each one.',
-      'Glaze the same and let the speckle do the variation.'
-    ],
-    risks:[{ k:'Sameness', t:'Vary the head angle, not the glaze, or it reads as a factory set.' }],
-    refs:[{ cardId:'speckled-bird', note:'350 g, 10 mm wall, vented in the base.' }]
-  },
+  /* Deliberately thin: this idea demonstrates the "not enough info to build
+     a plan yet" state (card.js planIsThin) -- the plan points to a chat
+     with UNFIRED instead of guessing tools and steps. */
+  plan:{ assumptions:[], params:[], tools:[], steps:[], risks:[], refs:[] },
   photos:[], notes:[], threads:[]
 },
 {

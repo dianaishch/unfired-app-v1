@@ -13,18 +13,46 @@ const fresh = () => ({
   importedBatches: 0,
   shared: [],
   lastRoute: null,
+  /* Edit-screen state per post (or per card, for cards with no post yet):
+     { [key]: { bg, caption, photos: [src] } } -- see screens/post.js. */
+  posts: {},
+  /* Live mode sheet's "Save this choice": ['lock', 'widget', 'watch'] or null. */
+  liveChoice: null,
+  migrations: [],
 });
+
+/* One-off patches for seed changes that saved state (localStorage) would
+   otherwise hide from anyone who opened the prototype before. */
+const MIGRATIONS = {
+  /* A Flock of Birds demonstrates the "not enough info for a plan" idea. */
+  'bird-flock-thin-plan': (s) => {
+    const seed = CARDS.find(c => c.id === 'idea-bird-flock');
+    const c = s.cards.find(x => x.id === 'idea-bird-flock');
+    if (seed && c) c.plan = JSON.parse(JSON.stringify(seed.plan));
+  },
+};
+function migrate(s) {
+  let changed = false;
+  for (const [k, fn] of Object.entries(MIGRATIONS)) {
+    if (s.migrations.includes(k)) continue;
+    fn(s);
+    s.migrations.push(k);
+    changed = true;
+  }
+  if (changed) try { localStorage.setItem(KEY, JSON.stringify(s)); } catch { /* private mode etc. */ }
+  return s;
+}
 
 let state = load();
 
 function load() {
   try {
     const raw = localStorage.getItem(KEY);
-    if (!raw) return fresh();
+    if (!raw) return migrate(fresh());
     const parsed = JSON.parse(raw);
-    if (!parsed || !Array.isArray(parsed.cards) || !parsed.cards.length) return fresh();
-    return { ...fresh(), ...parsed };
-  } catch { return fresh(); }
+    if (!parsed || !Array.isArray(parsed.cards) || !parsed.cards.length) return migrate(fresh());
+    return migrate({ ...fresh(), ...parsed });
+  } catch { return migrate(fresh()); }
 }
 
 function persist() {
@@ -55,6 +83,27 @@ export function resetDemo() {
 }
 
 /* ---------- selectors ---------- */
+/* Per-piece card gradients straight from Figma, overriding the generic
+   paper -> c.glow gradient on the Items "now" card and the card-page hero.
+   Keyed by id in code, not stored on the card, because saved state in
+   localStorage would keep serving an old seed value. */
+const CARD_BG = {
+  /* Figma node 461:54289 */
+  'lavender-teapot-2': 'linear-gradient(0deg, #dab4ff 14.423%, #f6f4ec 58.666%, #f6f4ec 99.038%)',
+};
+export const cardBg = (c) => CARD_BG[c.id] || null;
+
+/* The piece's colour as a single value (post backdrops build their
+   swatches from it): the Figma override's colour where one exists, else
+   c.glow -- the same colour its card page gradient tints toward. */
+const CARD_TINT = { 'lavender-teapot-2': '#dab4ff' };
+export const pieceColor = (c) => CARD_TINT[c.id] || c.glow || '#dab4ff';
+
+export const postEdit = (key) => state.posts[key] || null;
+export function updatePostEdit(key, patch) {
+  return mutate(s => { s.posts[key] = { ...(s.posts[key] || {}), ...patch }; });
+}
+
 export const cards = () => state.cards;
 export const byId = (id) => state.cards.find(c => c.id === id);
 export const byState = (s) => state.cards.filter(c => c.state === s);
@@ -105,6 +154,44 @@ export function updateCard(id, patch) {
   });
 }
 
+/* REMAKE: a new idea card from a piece -- same title + "REMAKE", its
+   description, plan, tags, colour, and the piece photo as a reference.
+   No notes, chats or posts. Returns the new card's id. */
+export function remakeCard(id) {
+  const src = byId(id);
+  if (!src) return null;
+  const piece = (src.photos || []).find(p => /assets\/pieces\//.test(p.src || ''));
+  const nid = uid('remake-');
+  const now = Date.now();
+  mutate(s => {
+    s.cards.unshift({
+      id: nid, state: 'idea', title: src.title + ' REMAKE', remakeOf: src.id,
+      created: now, updated: now,
+      origin: { type: 'remake', label: 'Remake of ' + src.title },
+      glow: src.glow, desc: src.desc || '', tags: [...(src.tags || [])],
+      plan: src.plan ? JSON.parse(JSON.stringify(src.plan)) : null,
+      hero: null,
+      photos: piece ? [{ ...piece, id: uid('p'), kind: 'inspiration', cap: 'From ' + src.title }] : [],
+      notes: [], threads: [],
+    });
+  });
+  return nid;
+}
+
+/* Delete a card for good -- with its notes, chats and photos, and any post
+   edits saved for it (keys "gen-<id>", "card:<id>"; exported posts are
+   dropped from the list by post.js once their card is gone). Returns an
+   undo snapshot. */
+export function deleteCard(id) {
+  return mutate(s => {
+    s.cards = s.cards.filter(c => c.id !== id);
+    delete s.posts['gen-' + id];
+    delete s.posts['card:' + id];
+  });
+}
+
+export function setLiveChoice(surfaces) { mutate(s => { s.liveChoice = surfaces; }); }
+
 export function setState(id, next) {
   return mutate(s => {
     const c = s.cards.find(x => x.id === id);
@@ -116,12 +203,14 @@ export function setState(id, next) {
   });
 }
 
+/* c.loggedAt: last time you added something yourself -- a note, a photo or
+   a chat message. The archive puts those cards first (items.js). */
 export function addNote(id, note) {
   return mutate(s => {
     const c = s.cards.find(x => x.id === id);
     if (!c) return;
     (c.notes ||= []).unshift({ id: uid('n'), at: Date.now(), src: 'voice', ...note });
-    c.updated = Date.now();
+    c.updated = c.loggedAt = Date.now();
   });
 }
 
@@ -131,7 +220,7 @@ export function addPhoto(id, photo) {
     if (!c) return;
     (c.photos ||= []).push({ id: uid('p'), kind: 'process', ...photo });
     if (!c.hero) c.hero = { src: photo.src, kind: photo.kind || 'process' };
-    c.updated = Date.now();
+    c.updated = c.loggedAt = Date.now();
   });
 }
 
@@ -163,6 +252,7 @@ export function addMessage(cardId, threadId, msg) {
     t.msgs.push(msg);
     t.at = Date.now();
     c.updated = Date.now();
+    if (msg.role === 'me') c.loggedAt = c.updated;
   });
 }
 

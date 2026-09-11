@@ -554,11 +554,14 @@ function variation(c) {
 }
 
 /* ══════════════════ 7. COLLIDE ══════════════════ */
-export function collide() {
-  const pool = S.cards().filter(c => c.state !== 'idea' || c.hero);
+/* withId: always include that card (the idea card's own collide button),
+   plus one or two others at random. */
+export function collide(withId) {
+  const pool = S.cards().filter(c => (c.state !== 'idea' || c.hero) && c.id !== withId);
   const shuffled = [...pool].sort(() => Math.random() - .5);
   const n = Math.random() > .55 ? 3 : 2;
-  const picks = shuffled.slice(0, n);
+  const first = withId && S.byId(withId);
+  const picks = first ? [first, ...shuffled.slice(0, n - 1)] : shuffled.slice(0, n);
   return { picks, result: fuse(picks) };
 }
 

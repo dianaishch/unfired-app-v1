@@ -1,11 +1,12 @@
 /* COLLIDE — shake two or three cards into one another and see what falls out. */
-import { h, ICON, toast, fullLayer, img, sleep } from '../ui.js';
+import { h, ICON, toast, fullLayer, img, sleep, titleCase } from '../ui.js';
 import * as S from '../store.js';
 import * as AI from '../ai.js';
 import { nav } from '../nav.js';
 import { openCard } from './card.js';
 
-export function openCollide() {
+/* withId: collide this particular card (from its own card page). */
+export function openCollide(withId) {
   fullLayer((wrap, kill) => {
     const stage = h('div', { class: 'cstage' });
     const flash = h('div', { class: 'flash' });
@@ -22,7 +23,7 @@ export function openCollide() {
       result.replaceChildren();
       stage.replaceChildren();
 
-      const { picks, result: fused } = AI.collide();
+      const { picks, result: fused } = AI.collide(withId);
       const W = stage.clientWidth || 380, H = stage.clientHeight || 500;
 
       /* fly the source cards in from the edges */
@@ -30,8 +31,8 @@ export function openCollide() {
         const el = h('div', { class: 'cchip' });
         const src = S.cutoutSrc(c);
         el.append(src ? img(src, c.title)
-          : h('div', { style: { height: '86px', display: 'grid', placeItems: 'center', color: '#666', fontSize: '10px', letterSpacing: '.12em' } }, 'TEXT IDEA'),
-          h('div', { class: 'n' }, c.title));
+          : h('div', { style: { height: '86px', display: 'grid', placeItems: 'center', color: '#666', fontSize: '12px', textTransform: 'uppercase' } }, 'Text idea'),
+          h('div', { class: 'n' }, titleCase(c.title)));
         const ang = (i / picks.length) * Math.PI * 2 + .6;
         el.style.left = (W / 2 - 66 + Math.cos(ang) * W) + 'px';
         el.style.top = (H / 2 - 70 + Math.sin(ang) * H * .8) + 'px';
@@ -56,7 +57,7 @@ export function openCollide() {
       /* the fused concept */
       const formula = h('div', { class: 'cformula' });
       picks.forEach((c, i) => {
-        formula.append(h('button', { class: 'f', onclick: () => openCard(c.id) }, c.title));
+        formula.append(h('button', { class: 'f', onclick: () => openCard(c.id) }, titleCase(c.title)));
         if (i < picks.length - 1) formula.append(h('div', { class: 'x' }, '×'));
       });
 
@@ -64,7 +65,7 @@ export function openCollide() {
         h('div', { class: 'label' }, 'COMBINED FROM'),
         formula,
         h('div', { class: 'gradpanel' },
-          h('h1', { class: 'h-mega' }, fused.title),
+          h('h1', { class: 'piece-t' }, titleCase(fused.title)),
           h('p', {}, fused.why)),
         h('div', { class: 'assume', style: { marginTop: '18px' } },
           h('div', { class: 'label' }, 'ASSUMING'),

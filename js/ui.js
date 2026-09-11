@@ -207,6 +207,8 @@ export function ago(ts) {
   return m + (m === 1 ? ' month ago' : ' months ago');
 }
 export const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+/* Piece names are stored ALL CAPS; shown as titles they're Title Case. */
+export const titleCase = (s) => (s || '').toLowerCase().replace(/\b\w/g, (m) => m.toUpperCase());
 
 export function img(src, alt = '', cls = '') {
   const i = h('img', { src, alt, loading: 'lazy', class: cls });

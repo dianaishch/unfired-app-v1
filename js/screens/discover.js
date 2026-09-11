@@ -1,5 +1,5 @@
 /* DISCOVER — a physical stack of ideas. Swipe, tap, or shake to collide. */
-import { h, ICON, toast, fullLayer, img, sleep } from '../ui.js';
+import { h, ICON, toast, fullLayer, img, sleep, titleCase } from '../ui.js';
 import * as S from '../store.js';
 import * as AI from '../ai.js';
 import { nav } from '../nav.js';
@@ -49,7 +49,7 @@ export function openDiscover() {
         h('div', { class: 'stamp no' }, 'NOPE'),
         h('div', { class: 'dtx' },
           h('div', { class: 'src' + (item.source === 'YOUR ARCHIVE' ? ' archive' : ''), style: { marginBottom: '12px', display: 'inline-block' } }, item.source),
-          h('div', { class: 'h-big' }, item.title),
+          h('div', { class: 'piece-t' }, titleCase(item.title)),
           h('div', { class: 'why' }, item.desc)));
       return c;
     };
@@ -135,7 +135,7 @@ function inspect(item, save) {
     sheet({ full: true, build: (b, done) => {
       b.append(
         h('div', { class: 'src' + (item.source === 'YOUR ARCHIVE' ? ' archive' : ''), style: { display: 'inline-block' } }, item.source),
-        h('h1', { class: 'h-mega', style: { margin: '14px 0 12px' } }, item.title),
+        h('h1', { class: 'piece-t', style: { margin: '14px 0 12px' } }, titleCase(item.title)),
         h('div', { class: 'meta' }, item.why),
         item.src ? h('div', { style: { margin: '18px 0', display: 'grid', placeItems: 'center' } },
           img(item.src, '', '')) : null,

@@ -4,13 +4,17 @@ import * as S from '../store.js';
 import * as AI from '../ai.js';
 import { nav } from '../nav.js';
 import { openCard, openChat, startMaking } from './card.js';
-import { openShare } from './share.js';
+import { allPosts, postPlaceholder, openPostEdit, openShareSheet } from './post.js';
+import { CARDS } from '../seed.js';
+
+const SEED_IDS = new Set(CARDS.map(c => c.id));
 
 let filter = 'all';
+let itemsScrollTop = 0;
 
 export function renderItems(root) {
   const scroll = h('div', { class: 'scroll' });
-  const mk = S.making(), rts = S.readyToShare(), ids = S.ideas();
+  const mk = S.making(), ids = S.ideas();
 
   /* ── 1. MAKING NOW / MAKE NEXT ───────────────────────── */
   if (mk.length) {
@@ -28,20 +32,21 @@ export function renderItems(root) {
         h('button', { class: 'circlebtn', html: ICON.arrowFwd, onclick: () => nav.openDiscover(), 'aria-label': 'Discover' })),
       nowCard(c, c.desc || '', 'idea')));
   } else {
-    scroll.append(h('div', { class: 'hero-now' },
+    scroll.append(h('div', { class: 'hero-now keep-type' },
       h('div', { class: 'label' }, 'NOTHING ON THE BENCH'),
       h('h1', { class: 'h-mega', style: { margin: '14px 0 18px' } }, 'WHAT\nSHOULD\nYOU MAKE?'),
       h('button', { class: 'bigact paper', style: { margin: '0', width: '100%' },
         onclick: () => nav.openDiscover() }, 'OPEN DISCOVER')));
   }
 
-  /* ── 2. READY TO SHARE ───────────────────────────────── */
-  if (rts.length) {
+  /* ── 2. READY TO POST ────────────────────────────────── */
+  const posts = allPosts();
+  if (posts.length) {
     scroll.append(h('div', { class: 'blk' },
       h('div', { class: 'blk-head act' },
         h('div', { class: 'sec-t' }, 'Ready to post'),
         h('button', { class: 'circlebtn', html: ICON.arrowFwd, onclick: () => openReadyToPost(), 'aria-label': 'See all' })),
-      h('div', { class: 'rtp-row' }, ...rts.map(rtpCard))));
+      h('div', { class: 'rtp-row' }, ...posts.map(rtpCard))));
   }
 
   /* ── 3. ARCHIVE ──────────────────────────────────────── */
@@ -52,7 +57,12 @@ export function renderItems(root) {
     filters(),
     archive()));
 
+  /* Keep the scroll position across re-renders (archive tab switches,
+     refreshes after an edit) instead of jumping back to the top. app.js
+     rebuilds the whole stage each render, so it's remembered here. */
   root.replaceChildren(scroll);
+  scroll.scrollTop = itemsScrollTop;
+  scroll.addEventListener('scroll', () => { itemsScrollTop = scroll.scrollTop; }, { passive: true });
 }
 
 /* Figma's hero-card titles are set in title case; app data stores titles ALL CAPS
@@ -82,7 +92,7 @@ function nowCard(c, sub, mode) {
   const tint = c.glow || (mode === 'making' ? '#7192ff' : '#6ab8ef');
   const el = h('div', {
     class: 'mkcard ' + mode,
-    style: { background: `linear-gradient(180deg, #f6f4ec ${stop}, ${tint} 100%)` },
+    style: { background: S.cardBg(c) || `linear-gradient(180deg, #f6f4ec ${stop}, ${tint} 100%)` },
     onclick: () => openCard(c.id),
   },
     h('div', { class: 'status' },
@@ -105,17 +115,14 @@ function nowCard(c, sub, mode) {
   return el;
 }
 
-function rtpCard(c) {
-  const src = cutoutFor(c);
-  /* Description and buttons removed per your latest spec -- without them
-     the card had no way to open the piece at all, so it's now clickable
-     as a whole (opens the card), matching every other preview card in
-     the app (hero, archive). Flagging that addition since it wasn't
-     explicitly requested. */
-  const el = h('div', { class: 'rtp-card', onclick: () => openCard(c.id) },
-    h('div', { class: 'thumb' }, src ? img(src, c.title) : null),
+/* One card per post (same list and order as the "see all" carousel) --
+   the post's piece photo and name rather than a placeholder; tapping it
+   opens that post's Edit screen. */
+function rtpCard(post) {
+  const el = h('div', { class: 'rtp-card', onclick: () => openPostEdit(post.id) },
+    h('div', { class: 'thumb' }, img(post.piece, post.name)),
     h('div', { class: 'head' },
-      h('div', { class: 't' }, titleCase(c.title))));
+      h('div', { class: 't' }, post.name)));
   squircle(el, 40);
   return el;
 }
@@ -175,16 +182,8 @@ function finCard(c) {
       archStatusRow(archStatus(c))));
 }
 
-/* Idea photos here are your real cards' product cutouts (assets/pieces) --
-   mostly-transparent, which broke badly under object-fit:cover (it zooms
-   into the empty margin, so the card's solid color shows through almost
-   everywhere except a small floating object). "assets/images for ideas"
-   holds proper opaque bleed-ready photos instead -- only 2 exist and their
-   content (a creature figure, a paint-texture close-up) doesn't match any
-   real card's actual subject, so this is a stock pool, cycled positionally
-   across however many idea-with-photo cards render -- same pattern as the
-   ready-to-post carousel images, not a per-card content match. */
-const IDEA_PHOTOS = ['assets/images for ideas/image creature.png', 'assets/images for ideas/image paint.png'];
+/* Idea with its own (non-cutout) photo: the photo bleeds full-card, the
+   same image its piece page shows. */
 
 function bleedCard(c, photoSrc) {
   return h('button', { class: 'arch bleed', style: { background: c.glow || '#222' }, onclick: () => openCard(c.id) },
@@ -254,35 +253,42 @@ function archive() {
   if (filter !== 'all') list = list.filter(c => c.state === filter);
 
   if (!list.length)
-    return h('div', { class: 'empty' },
+    return h('div', { class: 'empty keep-type' },
       h('div', { class: 'h-big' }, 'NOTHING HERE YET'),
       h('div', { class: 'meta' }, 'Press LOG and say what you are making.'));
 
   const isGradient = (c) => c.state === 'idea' && !S.cutoutSrc(c);
-  const idKey = list.map(c => c.id).sort().join(',');
+  /* Shuffled once per filter; when cards are added/removed, the ones
+     already placed keep their order and only the newcomers get slotted in,
+     so the grid doesn't reshuffle. Cards you've just touched lead, most
+     recent first: ones you made (not in the seed -- remakes, logged ideas,
+     collide results) and ones you logged something to (a note, photo or
+     chat message -- c.loggedAt), so you can see where it went. */
+  const byId = new Map(list.map(c => [c.id, c]));
   const cached = archiveShuffleCache.get(filter);
-  let photoPool, gradPool;
-  if (cached && cached.idKey === idKey) {
-    const byId = new Map(list.map(c => [c.id, c]));
-    photoPool = cached.photoIds.map(id => byId.get(id));
-    gradPool = cached.gradIds.map(id => byId.get(id));
-  } else {
-    photoPool = shuffled(list.filter(c => !isGradient(c)));
-    gradPool = shuffled(list.filter(isGradient));
-    archiveShuffleCache.set(filter, {
-      idKey, photoIds: photoPool.map(c => c.id), gradIds: gradPool.map(c => c.id),
-    });
-  }
+  const order = (pool, cachedIds) => {
+    const kept = (cachedIds || []).filter(id => pool.some(c => c.id === id)).map(id => byId.get(id));
+    const added = shuffled(pool.filter(c => !kept.includes(c)));
+    const all = [...kept, ...added];
+    const touched = (c) => Math.max(c.loggedAt || 0, SEED_IDS.has(c.id) ? 0 : c.created || 0);
+    const mine = all.filter(c => touched(c) > 0).sort((a, b) => touched(b) - touched(a));
+    return [...mine, ...all.filter(c => !touched(c))];
+  };
+  const photoPool = order(list.filter(c => !isGradient(c)), cached?.photoIds);
+  const gradPool = order(list.filter(isGradient), cached?.gradIds);
+  archiveShuffleCache.set(filter, { photoIds: photoPool.map(c => c.id), gradIds: gradPool.map(c => c.id) });
   let pi = 0, gi = 0;
   const nextPhoto = () => pi < photoPool.length ? photoPool[pi++] : null;
   const nextGrad = () => gi < gradPool.length ? gradPool[gi++] : null;
   const nextAny = () => nextPhoto() || nextGrad();
   const remaining = () => (photoPool.length - pi) + (gradPool.length - gi);
 
-  let ideaPhotoIdx = 0;
-  const halfCard = (c) => isGradient(c)
-    ? smallSpotCard(c)
-    : (c.state === 'idea' ? bleedCard(c, IDEA_PHOTOS[ideaPhotoIdx++ % IDEA_PHOTOS.length]) : finCard(c));
+  /* An idea whose photo is a real piece cutout (a remake) shows that piece
+     like finished work does; other photo ideas keep the stock bleed photo. */
+  const hasPiece = (c) => (c.photos || []).some(p => /assets\/pieces\//.test(p.src || ''));
+  const halfCard = (c) => isGradient(c) ? smallSpotCard(c)
+    : (c.state === 'idea' && !hasPiece(c)) ? bleedCard(c, S.heroSrc(c))
+    : finCard(c);
 
   const wrap = h('div', { class: 'archive' });
   const CYCLE = ['pair', 'wide', 'single'];
@@ -367,7 +373,7 @@ export function openSearch(prefill) {
           l.append(h('button', { class: 'res', onclick: () => openCard(c.id) },
             h('div', { class: 't' }, src ? img(src, '') : h('div', { class: 'state ' + c.state })),
             h('div', { style: { minWidth: '0' } },
-              h('div', { class: 'n' }, c.title),
+              h('div', { class: 'n' }, titleCase(c.title)),
               h('div', { class: 'w' }, AI.memoryLine(c))),
             h('div', { class: 'state ' + c.state })));
         });
@@ -392,21 +398,14 @@ export function openSearch(prefill) {
 }
 
 /* ══════════════ READY TO POST (all) ══════════════
-   Post-preview cards are exact Figma exports (assets/posts/Post*.png), not
-   rebuilt from primitives, and still not individually clickable -- per
-   your direction, they're images you swipe past, not buttons.
-   Carousel animation is a port of infinite-scrolling-cards-slider.webflow.io
-   (see the loop inside openReadyToPost), driven by horizontal scrolling of
-   the screen; none of the reference's own UI is used. Post/Edit buttons are the static
-   #0B0B0B chip from Figma node 467:60895 -- no color animation on them;
-   only their onclick target follows the centered card, positionally
-   (image i <-> rts[i], same as before). Fewer real cards than images
-   just means the tail images center with no click target. */
-/* ?v= busts the year-long immutable cache on /assets (vercel.json) --
-   bump it whenever the post exports are replaced under the same names. */
-const RTP_IMAGES = ['assets/posts/Post 1.png?v=2', 'assets/posts/Post 2.png?v=2', 'assets/posts/Post 3.png?v=2'];
-
-function statusBar() {
+   Post-preview cards are exact Figma exports (POSTS in post.js, each tied
+   to its real piece card). Carousel animation is a port of
+   infinite-scrolling-cards-slider.webflow.io (see the loop inside
+   openReadyToPost), driven by horizontal scrolling of the screen; none of
+   the reference's own UI is used. EDIT (dark chip) then POST (orange
+   #FF451A / #040404 text); both act on the centred card. Tapping the
+   centred card opens Edit too; tapping a side card brings it to centre. */
+export function statusBar() {
   return h('div', { class: 'rtp-statusbar' },
     h('span', {}, '9:41'),
     h('div', { class: 'icons' },
@@ -417,32 +416,29 @@ function statusBar() {
 
 export function openReadyToPost() {
   page((p, close) => {
-    const rts = S.readyToShare();
     /* The loop needs enough cards that the wrap point sits off-screen (the
        reference refuses to run with < 6), so the image set is repeated:
        3 images -> 9 cards, visible slots -4..+4 are always distinct cards. */
-    const n = RTP_IMAGES.length;
+    /* Every post: the exported images, then a same-size placeholder card
+       for each generated post (Figma 493:19727) until it gets its export. */
+    const posts = allPosts();
+    const n = posts.length;
     const total = n * Math.ceil(9 / n);
     const cardEls = Array.from({ length: total }, (_, j) => {
-      const el = img(RTP_IMAGES[j % n], '');
+      const post = posts[j % n];
+      if (!post.img) return postPlaceholder(post.name);
+      const el = img(post.img, '');
       el.loading = 'eager';
       el.draggable = false;
       return el;
     });
     const deck = h('div', { class: 'rtp-deck' }, ...cardEls);
-    const postBtn = h('button', {}, 'Post');
     const editBtn = h('button', {}, 'Edit');
-    let currentIdx = -1;
-
-    /* Buttons stay Figma's static #0B0B0B chip (node 467:60895) -- no color
-       animation. Only their onclick target follows the centered card. */
-    const setActive = (i) => {
-      if (i === currentIdx) return;
-      currentIdx = i;
-      const c = rts[i];
-      postBtn.onclick = c ? () => openShare(c.id) : null;
-      editBtn.onclick = c ? () => openCard(c.id) : null;
-    };
+    const postBtn = h('button', { class: 'post', onclick: openShareSheet }, 'Post');
+    let currentIdx = 0;
+    const setActive = (i) => { currentIdx = i; };
+    const editCurrent = () => openPostEdit(posts[currentIdx].id);
+    editBtn.onclick = editCurrent;
 
     /* Port of infinite-scrolling-cards-slider.webflow.io (GSAP seamless
        loop), animation only:
@@ -528,6 +524,14 @@ export function openReadyToPost() {
       if (drag.on) {
         const fling = e.timeStamp - drag.lt < 80 ? -drag.vx * 120 / drag.step : 0;
         setRaw(Math.round(raw + Math.max(-2, Math.min(2, fling))));
+      } else if (e.type === 'pointerup' && deck.contains(e.target)
+                 && Math.abs(e.clientY - drag.y) < 10) {
+        /* a tap, not a swipe: centre card -> Edit; a side card -> centre it */
+        const j = ((Math.round(shown) % total) + total) % total;
+        const r = cardEls[j].getBoundingClientRect();
+        if (e.clientX < r.left) setRaw(target - 1);
+        else if (e.clientX > r.right) setRaw(target + 1);
+        else if (e.clientY >= r.top && e.clientY <= r.bottom) editCurrent();
       }
       drag = null;
     };
@@ -545,7 +549,7 @@ export function openReadyToPost() {
         h('div', { class: 't' }, 'Ready to post'),
         h('div', { class: 'sub' }, 'Prepared while you were away')),
       deck,
-      h('div', { class: 'rtp-bottombar' }, postBtn, editBtn));
+      h('div', { class: 'rtp-bottombar' }, editBtn, postBtn));
 
     render();
   });

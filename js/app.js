@@ -4,7 +4,7 @@ import * as S from './store.js';
 import { nav } from './nav.js';
 import { renderItems, openSearch } from './screens/items.js';
 import { renderInsights } from './screens/insights.js';
-import { openCard } from './screens/card.js';
+import { openCard, openChat } from './screens/card.js';
 import { openCapture } from './screens/capture.js';
 import { openDiscover } from './screens/discover.js';
 import { openCollide } from './screens/collide.js';
@@ -20,14 +20,15 @@ function chrome() {
     h('button', { class: 'navword' + (route === 'items' ? ' on' : ''), onclick: () => go('items') }, 'Items'),
     h('button', { class: 'navword' + (route === 'insights' ? ' on' : ''), onclick: () => go('insights') }, 'Insights'),
     h('div', { class: 'spacer' }),
-    route === 'items'
-      ? h('button', { class: 'circlebtn', html: ICON.topSearch, onclick: () => openSearch(), 'aria-label': 'Search' })
-      : h('button', { class: 'circlebtn', html: ICON.cards, onclick: () => openDiscover(), 'aria-label': 'Discover' }));
+    /* Search on both tabs (Insights used to show a Discover icon here) */
+    h('button', { class: 'circlebtn', html: ICON.topSearch, onclick: () => openSearch(), 'aria-label': 'Search' }));
 
   const dock = h('div', { class: 'logdock' },
     h('button', { class: 'side', html: ICON.dockDiscover, onclick: openDiscover, 'aria-label': 'Discover' }),
     h('button', { class: 'logbtn', onclick: () => openCapture({}) }, h('span', { class: 'dot' }), 'Log'),
-    h('button', { class: 'side', html: ICON.dockWatch, onclick: () => openWatch(), 'aria-label': 'Watch' }));
+    /* new chat -- UNFIRED files it under the right piece after the first
+       message (card.js openChat with no card). Watch sim stays on the W key. */
+    h('button', { class: 'side', html: ICON.dockWatch, onclick: () => openChat(null), 'aria-label': 'New chat' }));
 
   return { bar, dock };
 }

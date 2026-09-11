@@ -38,15 +38,36 @@ img{display:block;max-width:100%}
 .app{position:absolute;inset:0;overflow:hidden}
 
 /* ---------- typography ---------- */
-.h-mega{font-size:clamp(44px,15vw,64px);line-height:.86;letter-spacing:-.045em;
+/* Type scale = the Items screen + piece card (Figma). Outside those, the
+   shared classes map onto it:
+     .h-mega  screen title   32px bold upper -1.05px   (ITEMS / INSIGHTS)
+     .h-big   section title  24px bold upper -0.55px   (READY TO POST)
+     .label   meta / status  12px regular upper        (MAKING, 23 DAYS AGO)
+     .meta    small secondary 14px regular              (Edit screen helper text)
+   .h-mid stays as the piece card's own section title. .keep-type (Items
+   screen empty states, "card gone") pins the previous look there. */
+.h-mega{font-size:32px;line-height:1;letter-spacing:-1.05px;
   font-weight:700;text-transform:uppercase;margin:0}
-.h-big{font-size:clamp(30px,9vw,38px);line-height:.92;letter-spacing:-.035em;
+.h-big{font-size:24px;line-height:1.1;letter-spacing:-.55px;
   font-weight:700;text-transform:uppercase;margin:0}
 .h-mid{font-size:22px;line-height:1.02;letter-spacing:-.025em;font-weight:700;
   text-transform:uppercase;margin:0}
-.label{font-size:10px;letter-spacing:.16em;text-transform:uppercase;font-weight:600;
-  color:var(--ink-dim)}
-.meta{font-size:12px;letter-spacing:.02em;color:var(--ink-dim);line-height:1.45}
+/* piece name as a title, like the Items screen / card page: Title Case
+   (in JS), medium, tight -- 32px big title, .sm 20px on small cards */
+.piece-t{font-size:32px;font-weight:500;letter-spacing:-1.05px;line-height:30px;margin:0}
+.piece-t.sm{font-size:20px;letter-spacing:-.4px;line-height:20px}
+.label{font-size:12px;line-height:normal;letter-spacing:normal;text-transform:uppercase;
+  font-weight:400;color:var(--ink-dim)}
+.meta{font-size:14px;letter-spacing:.22px;color:var(--ink-dim);line-height:1.3}
+.keep-type .h-mega{font-size:clamp(44px,15vw,64px);line-height:.86;letter-spacing:-.045em}
+.keep-type .h-big{font-size:clamp(30px,9vw,38px);line-height:.92;letter-spacing:-.035em}
+.keep-type .label{font-size:10px;letter-spacing:.16em;font-weight:600}
+.keep-type .meta{font-size:12px;letter-spacing:.02em;line-height:1.45}
+.keep-type .bigact{font-size:14px;letter-spacing:.13em;border-radius:30px;padding:0;box-shadow:none}
+/* sub-page header title (Ready to post / Edit headers) */
+.page-top .label{font-size:20px;font-weight:700;letter-spacing:-.55px;color:#f6f4ec}
+.chat-head .label{font-size:12px;font-weight:400;letter-spacing:normal;color:var(--ink-dim)}
+.chat-head .h-mid{font-size:20px;letter-spacing:-.55px;line-height:normal}
 .body{font-size:15px;line-height:1.5;color:var(--ink);letter-spacing:-.01em}
 .dim{color:var(--ink-dim)}
 .faint{color:var(--ink-faint)}
@@ -64,8 +85,8 @@ img{display:block;max-width:100%}
   text-transform:uppercase;color:var(--ink-faint);transition:color .25s var(--ease)}
 .navword.on{color:#f6f4ec}
 .topbar .spacer{flex:1}
-.iconbtn{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;
-  border:1px solid var(--line-2);flex:none}
+.iconbtn{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;
+  background:#0e0e0e;border:1px solid #292929;color:#f6f4ec;flex:none}
 .iconbtn svg{width:16px;height:16px}
 .iconbtn:active{transform:scale(.92)}
 .circlebtn{width:40px;height:40px;display:grid;place-items:center;flex:none}
@@ -129,7 +150,7 @@ img{display:block;max-width:100%}
 .rtp-card .thumb{width:122px;height:92px;flex:none;overflow:hidden}
 .rtp-card .thumb img{width:100%;height:100%;object-fit:cover}
 .rtp-card .head{display:flex;flex-direction:column;min-width:0}
-.rtp-card .head .t{font-family:"Helvetica Neue";font-size:32px;font-weight:500;
+.rtp-card .head .t{font-family:var(--font);font-size:32px;font-weight:500;
   line-height:30px;letter-spacing:-1.05px;color:#040404}
 
 /* ready to post -- "see all" page */
@@ -168,16 +189,84 @@ img{display:block;max-width:100%}
    so neighbours tuck behind it -- smaller only if the screen is too short. */
 .rtp-deck{position:relative;flex:1 1 auto;min-height:0;overflow:hidden;
   container-type:size;touch-action:pan-y;user-select:none;-webkit-user-select:none}
-.rtp-deck img{position:absolute;left:50%;top:50%;
+.rtp-deck > *{position:absolute;left:50%;top:50%;
   width:min(75cqw, (100cqh - 24px) * 804 / 1325);height:auto;aspect-ratio:804/1325;
   object-fit:cover;display:block;transform-origin:center;will-change:transform,opacity;
   pointer-events:none;-webkit-user-drag:none}
+/* Post with no exported image yet (Figma 493:19727) -- same size as the
+   exports wherever it stands in for one (carousel, preview). */
+.post-ph{display:flex;align-items:center;padding:0 40px;aspect-ratio:804/1325;
+  background:#181818;border:1px solid #292929;border-radius:29px;
+  font-size:14px;line-height:15.95px;letter-spacing:.22px;color:#54524e}
+.pv-art .post-ph{height:100%;max-width:100%}
 
 .rtp-bottombar{display:flex;gap:8px;justify-content:center;
   padding:8px 12px calc(20px + var(--safe-b))}
-.rtp-bottombar button{height:58px;padding:4px 24px 0;border-radius:29px;background:#0B0B0B;
-  border:1px solid var(--line-2);font-size:16px;font-weight:700;text-transform:uppercase;
+.rtp-bottombar button{height:58px;padding:4px 24px 0;border-radius:100px;background:#0e0e0e;
+  border:1px solid #292929;font-size:16px;font-weight:700;text-transform:uppercase;
   color:#f6f4ec}
+.rtp-bottombar button.post{background:#FF451A;border-color:#FF451A;color:#040404;box-shadow:0 10px 17px rgba(255,255,255,.13)}
+
+/* ---------- post Edit / Preview (screens/post.js, Figma 493:16808 / 493:16989) ---------- */
+.pe-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:8px 16px 4px;flex:none}
+.pe-navbtn{width:40px;height:40px;border-radius:29px;background:#0e0e0e;border:1px solid #292929;
+  display:grid;place-items:center;flex:none;color:#f6f4ec}
+.pe-navbtn svg{width:16px;height:16px}
+.pe-title{flex:1;min-width:0;text-align:center;padding-top:4px;font-size:20px;font-weight:700;
+  letter-spacing:-.55px;text-transform:uppercase;color:#f6f4ec;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pe-body{flex:1;min-height:0;overflow-y:auto;padding:12px 16px 0;scrollbar-width:none}
+.pe-body::-webkit-scrollbar{display:none}
+.pe-imgwrap{padding-bottom:16px}
+.pe-img{position:relative;height:441px;overflow:hidden}
+.pe-slides{position:absolute;inset:0;display:flex;overflow-x:auto;scroll-snap-type:x mandatory;
+  scrollbar-width:none}
+.pe-slides::-webkit-scrollbar{display:none}
+.pe-slide{flex:0 0 100%;display:grid;place-items:center;scroll-snap-align:center}
+.pe-slide img{width:263px;height:263px;object-fit:contain}
+.pe-lab{position:absolute;padding:2px 0;font-size:16px;line-height:normal;color:#8c8c8c;
+  pointer-events:none;white-space:nowrap}
+.pe-lab.tl,.pe-lab.tr{top:14px;text-transform:uppercase}
+.pe-lab.bl,.pe-lab.br{bottom:16px}
+.pe-lab.tl,.pe-lab.bl{left:14px}
+.pe-lab.tr,.pe-lab.br{right:14px}
+.pe-empty{width:100%;height:441px;border-radius:29px;background:#0e0e0e;border:1px solid #292929;
+  display:grid;place-items:center;font-size:14px;line-height:15.95px;letter-spacing:.22px;color:#54524e}
+.pe-sh{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:16px}
+.pe-sh-t{font-size:24px;font-weight:700;letter-spacing:-.55px;text-transform:uppercase;color:#f6f4ec}
+.pe-sh-sub{margin-top:8px;font-size:14px;line-height:15.95px;letter-spacing:.22px;color:#54524e}
+.pe-sh-sub.big{font-size:16px}
+.pe-sh-act{margin-top:6px;font-size:16px;font-weight:500;text-transform:uppercase;color:#f6f4ec}
+.pe-swatches{display:flex;justify-content:space-between;padding-bottom:32px}
+.pe-sw{width:40px;height:40px;border-radius:12px;border:1px solid #292929;flex:none}
+.pe-sw.on{border:2px solid #FF451A}
+.pe-caption{display:block;width:100%;height:120px;padding:16px;border-radius:24px;background:#181818;
+  font-size:16px;line-height:18px;color:#f6f4ec;resize:none;margin-bottom:32px}
+.pe-caption::placeholder{color:#54524e}
+.pe-piece{padding-bottom:32px}
+.pe-piece > div{padding-top:8px}
+.pe-bottom{display:flex;align-items:center;justify-content:space-between;flex:none;
+  padding:16px 16px calc(24px + var(--safe-b))}
+.pe-regen{width:58px;height:58px;border-radius:29px;background:#0e0e0e;border:1px solid #292929;
+  display:grid;place-items:center;color:#f6f4ec;flex:none}
+.pe-regen svg{width:24px;height:24px}
+.pe-btn{height:58px;padding:4px 24px 0;border-radius:100px;font-size:16px;font-weight:700;
+  text-transform:uppercase;color:#040404}
+.pe-btn.paper{background:#f6f4ec;box-shadow:0 10px 17px rgba(255,255,255,.13)}
+.pe-btn.accent{background:#FF451A;box-shadow:0 10px 17px rgba(255,255,255,.13)}
+.pe-btn.dark{width:87px;padding:4px 0 0;background:#0e0e0e;border:1px solid #292929;color:#f6f4ec}
+.pv-body{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;
+  padding:12px 16px calc(44px + var(--safe-b))}
+.pv-art{flex:1;min-height:0;width:100%;display:flex;justify-content:center;padding-bottom:16px}
+.pv-art img{max-width:100%;max-height:100%;object-fit:contain}
+.pv-art.composed{display:block}
+.pv-btns{display:flex;gap:8px;padding-top:32px;flex:none}
+.ph-modal{padding:28px 4px 20px;font-size:16px;line-height:18px;text-align:center;color:#f6f4ec}
+
+/* piece card: "Ready to post" row (Figma 493:16931) */
+.rtp-sect{display:flex;justify-content:space-between;align-items:flex-start}
+.rtp-sect-sub{margin-top:8px;font-size:16px;line-height:15.95px;letter-spacing:.22px;color:#54524e}
 
 /* filters */
 .filters{display:flex;gap:20px;padding:0 20px 16px;overflow-x:auto;scrollbar-width:none}
@@ -200,7 +289,7 @@ img{display:block;max-width:100%}
 .arch .st .sq{width:5px;height:5px;background:currentColor;flex:none}
 .arch .st .ic{width:8px;height:8px;flex:none;display:flex;align-items:center;justify-content:center}
 .arch .st .ic svg{width:100%;height:100%;display:block}
-.arch .t{font-family:"Helvetica Neue";font-size:20px;font-weight:500;line-height:20px;
+.arch .t{font-family:var(--font);font-size:20px;font-weight:500;line-height:20px;
   letter-spacing:-.4px}
 
 /* finished/making with a photo -- floating cutout, no card background */
@@ -208,7 +297,7 @@ img{display:block;max-width:100%}
 .arch.fin .obj{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .arch.fin .obj .noimg{width:100%;height:100%;border-radius:29px;background:#0B0B0B;
   border:1px solid var(--line-2);display:grid;place-items:center}
-.arch.fin .obj .noimg .noimg-t{color:var(--ink-faint);font-family:"Helvetica Neue";
+.arch.fin .obj .noimg .noimg-t{color:var(--ink-faint);font-family:var(--font);
   font-size:16px;font-weight:400;line-height:15.95px;letter-spacing:.22px}
 .arch.fin .obj img{width:100%;height:100%;object-fit:contain}
 .arch.fin .info{display:flex;flex-direction:column;gap:8px}
@@ -341,6 +430,8 @@ img{display:block;max-width:100%}
   justify-content:center;align-items:center;flex-shrink:0;border-radius:29px;
   border:1px solid var(--line-2);background:#F6F4EC;color:#040404}
 .ch-circle svg{width:20px;height:20px}
+.ch-circle.more svg{width:16px;height:16px}
+.bigact.ghost.danger{color:#FF451A}
 
 /* status row and title: same shape/type params as .mkcard .status/.t (Make Next
    card on the Items screen) -- reused verbatim per your instruction. Grouped in
@@ -357,13 +448,12 @@ img{display:block;max-width:100%}
    it'd fight the white-for-legibility rule, so B keeps everything white. */
 .cardhero2.making:not(.photo) .ch-status{color:var(--orange)}
 .cardhero2.making:not(.photo) .ch-status .sq{background:var(--orange)}
-.cardhero2 .ch-t{font-family:"Helvetica Neue";font-size:32px;font-weight:500;line-height:30px;
+.cardhero2 .ch-t{font-family:var(--font);font-size:32px;font-weight:500;line-height:30px;
   letter-spacing:-1.05px;color:inherit;outline:none;max-width:100%}
 .cardhero2 .ch-t[contenteditable]:focus{background:rgba(0,0,0,.06);border-radius:8px}
 .cardhero2.photo .ch-t[contenteditable]:focus{background:rgba(255,255,255,.14)}
 .cardhero2 .ch-img{position:relative;max-width:100%;height:190px;margin-top:16px}
-.cardhero2 .ch-img img{width:100%;height:100%;object-fit:contain;display:block;
-  margin:0 auto;filter:drop-shadow(0 20px 30px rgba(0,0,0,.35))}
+.cardhero2 .ch-img img{width:100%;height:100%;object-fit:contain;display:block;margin:0 auto}
 
 .cardhero2 .statepick{position:relative;margin:16px 16px 0}
 /* Treatment A only -- B's tabs are pinned to the bottom via
@@ -389,7 +479,7 @@ img{display:block;max-width:100%}
   align-self:stretch;border-radius:100px;background:#0E0E0E}
 .statepick button{display:flex;padding:2px 24px 0;flex-direction:column;
   justify-content:center;align-items:center;flex:1 0 0;align-self:stretch;
-  border-radius:100px;font-family:"Helvetica Neue";font-size:14px;font-weight:700;
+  border-radius:100px;font-family:var(--font);font-size:14px;font-weight:700;
   line-height:normal;letter-spacing:-.14px;text-transform:uppercase;text-align:center;
   color:var(--ink-faint)}
 .statepick button.on{height:40px;background:var(--paper);color:#040404}
@@ -399,12 +489,12 @@ img{display:block;max-width:100%}
 .sect2{margin-top:28px;padding:0 20px}
 .sh2{display:flex;align-items:baseline;justify-content:space-between}
 .sh2 .h-mid{letter-spacing:-.02em}
-.plan-toggle{font-family:"Helvetica Neue";font-size:16px;font-weight:500;line-height:normal;
+.plan-toggle{font-family:var(--font);font-size:16px;font-weight:500;line-height:normal;
   text-align:center;text-transform:uppercase;color:#F6F4EC}
 /* Scoped standalone -- see the comment where this is used in card.js
    for why it isn't just .meta. Exact match to --ink-faint, reused as
    the token instead of restating the hex. */
-.plan-sub{font-family:"Helvetica Neue";font-size:16px;font-weight:400;line-height:15.95px;
+.plan-sub{font-family:var(--font);font-size:16px;font-weight:400;line-height:15.95px;
   letter-spacing:.22px;color:var(--ink-faint);margin:8px 0 16px}
 /* REGENERATE PLAN -- 16px below the plan input, 32px below itself.
    #292929 border kept as --line-2 per the near-duplicate policy (same as
@@ -420,12 +510,12 @@ img{display:block;max-width:100%}
    can't drift apart. min-height:180px is the default -- both grow with
    their content past that. */
 .desc2, .plan-text{margin-top:16px;background:#181818;color:#F6F4EC;border-radius:24px;
-  padding:16px;font-family:"Helvetica Neue";font-size:16px;font-weight:400;line-height:18px;
+  padding:16px;font-family:var(--font);font-size:16px;font-weight:400;line-height:18px;
   min-height:180px;outline:none;white-space:pre-wrap}
 .desc2:empty:before, .plan-text:empty:before{content:attr(data-ph);color:#54524E}
 /* HIDE fully removes the input (and, for Plan, its Regenerate button),
    toggled via the .hidden attribute in card.js. */
-.desc2[hidden], .plan-text[hidden], .regen-plan[hidden]{display:none}
+.desc2[hidden], .plan-text[hidden], .regen-plan[hidden], .bubbles[hidden]{display:none}
 
 .att-row{display:flex;gap:8px;margin-top:12px;overflow-x:auto;scrollbar-width:none}
 .att-row::-webkit-scrollbar{display:none}
@@ -444,63 +534,72 @@ img{display:block;max-width:100%}
 .att-cell img{width:100%;height:100%;object-fit:cover}
 .att-cell.add{display:grid;place-items:center}
 .att-cell.add svg{width:24px;height:24px;color:var(--ink)}
-.att-cell .k{position:absolute;top:6px;left:6px;font-size:8px;letter-spacing:.14em;
-  font-weight:700;text-transform:uppercase;background:rgba(0,0,0,.62);padding:4px 7px;
-  border-radius:9px}
-.att-cell .cp{position:absolute;left:0;right:0;bottom:0;font-size:9px;line-height:1.3;
+/* photo-kind tag: plain status-style text (like "MAKING, 23 DAYS AGO"), a
+   soft shadow only so it reads on any photo */
+.att-cell .k{position:absolute;top:12px;left:14px;font-size:12px;letter-spacing:normal;
+  font-weight:400;text-transform:uppercase;color:#f6f4ec;text-shadow:0 1px 3px rgba(0,0,0,.7)}
+.att-cell .cp{position:absolute;left:0;right:0;bottom:0;font-size:12px;line-height:1.3;
   padding:6px 7px;color:var(--ink-dim);background:linear-gradient(rgba(0,0,0,0),rgba(0,0,0,.75))}
 .att-cell .x{position:absolute;top:6px;right:6px;width:20px;height:20px;border-radius:50%;
   background:rgba(0,0,0,.66);display:grid;place-items:center;font-size:11px}
 
-.composebar{display:flex;align-items:center;gap:8px;flex:none;
-  padding:10px 16px calc(14px + var(--safe-b));background:#000;border-top:1px solid var(--line)}
-.composebar input{flex:1;background:#141414;border-radius:24px;padding:12px 16px;
-  font-size:14px;color:var(--ink)}
-.composebar input::placeholder{color:var(--ink-faint)}
-.cb-ic{width:40px;height:40px;border-radius:50%;background:#0B0B0B;border:1px solid var(--line-2);
-  display:grid;place-items:center;flex:none;color:var(--ink)}
-.cb-ic svg{width:18px;height:18px}
+/* piece card bottom bar, per state (Figma 493:19500 / 493:18702 / 493:19297);
+   buttons reuse the post Edit screen's .pe-regen / .pe-btn */
+.card-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex:none;
+  padding:16px 16px calc(24px + var(--safe-b));background:var(--bg);container-type:inline-size}
+/* Figma's 24px side padding on the 402px frame; eases down on narrower
+   phones so labels stay on one line instead of wrapping. */
+.card-bar .pe-btn{white-space:nowrap;
+  padding-left:max(10px, min(24px, (100cqw - 280px) / 4));
+  padding-right:max(10px, min(24px, (100cqw - 280px) / 4))}
+/* Live mode sheet */
+.live-opt{display:flex;align-items:center;gap:12px;width:100%;padding:12px 0;
+  font-size:16px;line-height:18px;color:var(--ink);text-align:left}
+.live-opt .box{width:24px;height:24px;border-radius:7px;border:1.5px solid var(--line-2);
+  display:grid;place-items:center;flex:none;color:transparent}
+.live-opt .box svg{width:16px;height:16px}
+.live-opt.on .box{background:#FF451A;border-color:#FF451A;color:#040404}
+.live-sep{height:1px;background:var(--line);margin:8px 0}
+.pe-btn.live-go{width:100%;margin-top:18px;box-shadow:none}
+.pe-btn.live-go:disabled{opacity:.4}
 
-.desc{font-size:16px;line-height:1.45;letter-spacing:-.012em;margin-top:12px;white-space:pre-wrap}
+.desc{font-size:16px;line-height:18px;letter-spacing:normal;margin-top:12px;white-space:pre-wrap}
 .desc[contenteditable]:focus{background:#121212;border-radius:10px;outline:none}
 
 .assume{margin-top:14px;border-radius:20px;padding:15px 16px;
   background:linear-gradient(125deg,rgba(43,54,255,.22),rgba(0,226,255,.10) 55%,rgba(214,255,46,.10));
   border:1px solid rgba(255,255,255,.09)}
 .assume .label{color:var(--cyan)}
-.assume p{margin:7px 0 0;font-size:14.5px;line-height:1.5;white-space:pre-wrap;
+.assume p{margin:7px 0 0;font-size:16px;line-height:18px;white-space:pre-wrap;
   border-radius:10px;padding:2px 4px;margin-left:-4px;outline:none;
   transition:background .2s var(--ease)}
 .assume p[contenteditable]:focus{background:rgba(0,0,0,.42)}
 .assume p[contenteditable]:active{background:rgba(0,0,0,.22)}
 
-.params{display:flex;flex-wrap:wrap;gap:7px;margin-top:16px}
-.ptag{border:1px solid var(--line-2);border-radius:16px;padding:9px 12px;display:flex;
-  flex-direction:column;gap:3px;min-width:0;background:#0C0C0C}
-.ptag .k{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint)}
-.ptag .v{font-size:13px;font-weight:600;letter-spacing:-.01em}
-.ptag.est{border-style:dashed}
+.params{display:flex;flex-wrap:wrap;gap:12px 24px;margin-top:16px}
+/* pulled-out values: status-style caption over the value, no box */
+.ptag{display:flex;flex-direction:column;gap:3px;min-width:0}
+.ptag .k{font-size:12px;letter-spacing:normal;text-transform:uppercase;color:var(--ink-faint)}
+.ptag .v{font-size:16px;font-weight:500;letter-spacing:normal}
 .ptag.est .k::after{content:" · est";color:var(--cyan)}
-.ptag.user{border-color:#3A3A3A;background:#141414}
 .ptag.user .k::after{content:" · logged";color:var(--ink-dim)}
 .ptag input{width:100%;min-width:70px}
 
 .steps{counter-reset:s;margin-top:18px;padding:0;list-style:none}
 .steps li{counter-increment:s;display:flex;gap:12px;padding:11px 0;
-  border-bottom:1px solid var(--line);font-size:14px;line-height:1.4}
-.steps li::before{content:counter(s,decimal-leading-zero);font-size:10px;letter-spacing:.1em;
-  color:var(--ink-faint);flex:none;padding-top:3px;font-weight:700}
+  border-bottom:1px solid var(--line);font-size:16px;line-height:18px}
+.steps li::before{content:counter(s,decimal-leading-zero);font-size:12px;letter-spacing:normal;
+  color:var(--ink-faint);flex:none;padding-top:3px;font-weight:400}
 .risks{margin-top:16px}
-.risk{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13.5px;
-  line-height:1.4;color:var(--ink)}
-.risk b{color:var(--orange);font-weight:700;flex:none;font-size:11px;letter-spacing:.1em;
+.risk{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:16px;
+  line-height:18px;color:var(--ink)}
+.risk b{color:var(--orange);font-weight:700;flex:none;font-size:12px;letter-spacing:normal;
   text-transform:uppercase;padding-top:2px}
-/* .src / .src.archive: still used by discover.js and items.js's answer-card
-   "from your archive" tags -- kept. .srcline/.memo (card.js's old howTo()
-   TOOLS line and memo block) are dead now, deleted. */
-.src{font-size:9px;letter-spacing:.14em;text-transform:uppercase;border:1px solid var(--line-2);
-  border-radius:12px;padding:5px 9px;color:var(--ink-dim)}
-.src.archive{border-color:rgba(0,226,255,.4);color:var(--cyan)}
+/* .src: source tag (chat replies, Discover, search answers) -- plain 12px
+   uppercase like a card status / chat bubble caption, no pill. Colour keeps
+   its meaning: YOUR ARCHIVE cyan, CERAMIC REFERENCE grey. */
+.src{font-size:12px;line-height:normal;letter-spacing:normal;text-transform:uppercase;color:var(--ink-dim)}
+.src.archive{color:var(--cyan)}
 
 /* chats (Figma nodes 487:3571 / 487:3575) -- paper bubbles, one 16px
    summary line + a "TYPE, DATE" meta line, whole bubble is the tap
@@ -509,37 +608,41 @@ img{display:block;max-width:100%}
 .bub{display:flex;flex-direction:column;gap:12px;align-items:flex-start;text-align:left;
   background:#f6f4ec;border-radius:24px;padding:16px;transition:transform .15s var(--ease)}
 .bub:active{transform:scale(.98)}
-.bub .sum{width:100%;font-family:"Helvetica Neue";font-size:16px;font-weight:400;
+.bub .sum{width:100%;font-family:var(--font);font-size:16px;font-weight:400;
   line-height:18px;color:#040404;overflow-wrap:break-word;
   display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 /* "TYPE, DATE" meta -- 12px/400 Helvetica Neue, centered, uppercase. */
-.bub .w{font-family:"Helvetica Neue";font-size:12px;font-weight:400;line-height:normal;
+.bub .w{font-family:var(--font);font-size:12px;font-weight:400;line-height:normal;
   text-transform:uppercase;text-align:center;color:#040404;white-space:nowrap}
 .newchat{margin-top:10px;border:1px dashed var(--line-2);border-radius:18px;padding:14px;
-  width:100%;text-align:left;font-size:12px;letter-spacing:.12em;text-transform:uppercase;
+  width:100%;text-align:left;font-size:12px;letter-spacing:normal;text-transform:uppercase;
   color:var(--ink-dim)}
 
-.bigact{margin:26px 20px 0;height:58px;border-radius:30px;background:var(--orange);color:#fff;
-  width:calc(100% - 40px);font-size:14px;font-weight:700;letter-spacing:.13em;
-  text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:10px}
-.bigact.paper{background:var(--paper);color:#000}
-.bigact.ghost{background:none;border:1px solid var(--line-2);color:var(--ink)}
+/* large pill (Items LOG / card bar / Edit): accent default, .paper, .ghost = dark */
+.bigact{margin:26px 20px 0;height:58px;border-radius:100px;padding:4px 24px 0;background:#FF451A;color:#040404;
+  width:calc(100% - 40px);font-size:16px;font-weight:700;letter-spacing:normal;
+  text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:10px;
+  box-shadow:0 10px 17px rgba(255,255,255,.13)}
+.bigact.paper{background:#f6f4ec;color:#040404}
+.bigact.ghost{background:#0e0e0e;border:1px solid #292929;color:#f6f4ec;box-shadow:none}
 .bigact:active{transform:scale(.97)}
 
 /* ---------- chat thread ---------- */
 .thread{flex:1;overflow-y:auto;padding:12px 20px 20px;display:flex;flex-direction:column;gap:12px}
-.msg{max-width:84%;padding:12px 15px;border-radius:20px;font-size:14.5px;line-height:1.45}
+.msg{max-width:84%;padding:12px 15px;border-radius:20px;font-size:16px;line-height:18px;
+  white-space:pre-line}
 .msg.me{align-self:flex-end;background:var(--paper);color:#000;border-bottom-right-radius:7px}
 .msg.ai{align-self:flex-start;background:#121212;border:1px solid var(--line);
   border-bottom-left-radius:7px}
-.msg.ai .src{margin-top:9px;display:inline-block}
+.msg.ai .src{margin-top:9px;display:table}
 .composer{flex:none;display:flex;gap:9px;align-items:flex-end;padding:10px 16px calc(12px + var(--safe-b));
   border-top:1px solid var(--line);background:#060606}
-.composer .ti{flex:1;background:#131313;border-radius:22px;padding:13px 16px;font-size:15px;
+.composer .ti{flex:1;background:#131313;border-radius:22px;padding:13px 16px;font-size:16px;
   max-height:110px;overflow-y:auto}
 .composer .ti:empty::before{content:attr(data-ph);color:var(--ink-faint)}
-.sendb{width:44px;height:44px;border-radius:50%;background:var(--paper);color:#000;flex:none;
-  display:grid;place-items:center}
+.sendb{width:40px;height:40px;border-radius:50%;background:#f6f4ec;border:1px solid var(--line-2);
+  color:#040404;flex:none;display:grid;place-items:center}
+.sendb svg{width:20px;height:20px}
 .typing{display:flex;gap:4px;padding:14px 16px}
 .typing i{width:6px;height:6px;border-radius:50%;background:var(--ink-faint);
   animation:blink 1.2s infinite}
@@ -547,39 +650,44 @@ img{display:block;max-width:100%}
 @keyframes blink{0%,100%{opacity:.25}50%{opacity:1}}
 
 /* ---------- log composer ---------- */
-.capture{position:absolute;inset:0;background:#000;display:flex;flex-direction:column;
+.capture{position:absolute;inset:0;background:#040404;display:flex;flex-direction:column;
   transform:translateY(100%);transition:transform .34s var(--ease)}
 .capture.in{transform:translateY(0)}
-.capture .ctop{padding:calc(var(--safe-t) + 14px) 20px 0;display:flex;justify-content:flex-end}
-.capture .cmid{flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 22px}
-.capture .prompt{color:var(--ink-faint);transition:opacity .3s;margin-bottom:20px}
-.capture .live{font-size:26px;line-height:1.14;letter-spacing:-.03em;font-weight:600;
-  min-height:120px;max-height:44vh;overflow-y:auto}
-.capture .live:empty::before{content:"";}
-.capture .live .tail{color:var(--ink-faint)}
-.capture .cbot{padding:0 20px calc(20px + var(--safe-b))}
-.capture .chips{display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;scrollbar-width:none}
-.capture .chips::-webkit-scrollbar{display:none}
-.capture .chip{border:1px solid var(--line-2);border-radius:20px;padding:10px 14px;font-size:11px;
-  letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;color:var(--ink-dim)}
-.capture .chip.on{border-color:var(--paper);color:var(--paper)}
-.capture .crow{display:flex;align-items:center;gap:14px}
-.mic{width:74px;height:74px;border-radius:50%;background:var(--orange);display:grid;
-  place-items:center;flex:none;position:relative;transition:transform .2s var(--ease)}
-.mic.rec{background:var(--paper);color:#000}
+/* Log screen, Figma 494:23392 / 23423 / 23454 / 23482 / 23512 */
+.capture .ctop{padding:8px 16px 4px;display:flex;justify-content:flex-end}
+.capture .cmid{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;
+  padding:0 22px;cursor:text}
+.capture .prompt{font-size:64px;font-weight:700;line-height:55.04px;letter-spacing:-2.88px;
+  text-transform:uppercase;color:#54524e;margin-bottom:20px}
+.capture .live{font-size:26px;line-height:29.64px;letter-spacing:-.78px;font-weight:500;color:#f4f2ec;
+  min-height:120px;max-height:44vh;overflow-y:auto;outline:none}
+/* empty: one caret line, so LOG A NOTE sits centred like the Figma frame */
+.capture .live:empty{min-height:30px}
+.capture .cbot{flex:none}
+.capture .crow{display:flex;align-items:center;gap:8px;padding:16px 16px calc(16px + var(--safe-b))}
+.capture .cround{width:58px;height:58px;border-radius:50%;background:#0e0e0e;border:1px solid #292929;
+  color:#f6f4ec;display:grid;place-items:center;flex:none}
+.capture .cround svg{width:24px;height:24px}
+/* mic: dark round like "+", orange while listening (the pulsing ring is the
+   existing recording animation) */
+.mic{width:58px;height:58px;border-radius:50%;background:#0e0e0e;border:1px solid #292929;color:#f6f4ec;
+  display:grid;place-items:center;flex:none;position:relative;transition:transform .2s var(--ease)}
+.mic.rec{background:#FF451A;color:#f6f4ec}
 .mic.rec::after{content:"";position:absolute;inset:-9px;border-radius:50%;
-  border:2px solid rgba(244,242,236,.35);animation:ring 1.5s infinite}
+  border:2px solid rgba(255,69,26,.45);animation:ring 1.5s infinite}
 @keyframes ring{0%{transform:scale(.9);opacity:1}100%{transform:scale(1.28);opacity:0}}
-.mic svg{width:26px;height:26px}
-.capture .send{flex:1;height:56px;border-radius:30px;background:var(--paper);color:#000;
-  font-size:14px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;
+.mic svg{width:22px;height:22px}
+.capture .send{flex:1;min-width:0;height:58px;border-radius:100px;padding:4px 30px 0;background:#f6f4ec;
+  color:#040404;font-size:16px;font-weight:700;letter-spacing:normal;text-transform:uppercase;
   opacity:.28;pointer-events:none;transition:opacity .25s}
 .capture .send.on{opacity:1;pointer-events:auto}
-.attachrow{display:flex;gap:9px;margin-bottom:14px;flex-wrap:wrap}
-.att{border-radius:14px;overflow:hidden;position:relative;width:64px;height:64px;background:#121212;
-  display:grid;place-items:center;font-size:9px;letter-spacing:.1em;color:var(--ink-dim);
-  text-align:center;padding:4px}
+.attachrow{display:flex;gap:8px;padding:0 16px;overflow-x:auto;scrollbar-width:none}
+.attachrow::-webkit-scrollbar{display:none}
+.attachrow[hidden]{display:none}
+.att{border-radius:29px;overflow:hidden;position:relative;width:100px;height:100px;flex:none;
+  background:#0e0e0e;border:1px solid #292929}
 .att img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.chat-sys{align-self:center;text-align:center;font-size:12px;text-transform:uppercase;padding:6px 0}
 
 /* ---------- toasts ---------- */
 .toasts{position:absolute;left:0;right:0;top:calc(var(--safe-t) + 56px);z-index:90;
@@ -589,10 +697,9 @@ img{display:block;max-width:100%}
   box-shadow:0 14px 34px rgba(0,0,0,.5);transform:translateY(-18px) scale(.97);opacity:0;
   transition:all .2s var(--ease)}
 .toast.in{transform:none;opacity:1}
-.toast .tx{flex:1;font-size:13px;line-height:1.3;letter-spacing:-.01em}
+.toast .tx{flex:1;font-size:14px;line-height:1.3;letter-spacing:.22px}
 .toast .tx b{text-transform:uppercase;font-weight:700}
-.toast .un{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
-  border-bottom:1px solid rgba(0,0,0,.35);padding-bottom:1px;flex:none}
+.toast .un{font-size:16px;font-weight:500;letter-spacing:normal;text-transform:uppercase;flex:none}
 .toast.work{background:#121212;color:var(--ink);border:1px solid var(--line-2)}
 .toast.work .un{border-color:var(--line-2)}
 .toast .spin{width:15px;height:15px;border-radius:50%;border:2px solid var(--line-2);
@@ -602,16 +709,16 @@ img{display:block;max-width:100%}
 /* ---------- search ---------- */
 .searchbar{display:flex;align-items:center;gap:10px;margin:0 20px;background:#111;
   border-radius:24px;padding:13px 16px}
-.searchbar input{flex:1;font-size:15px}
+.searchbar input{flex:1;font-size:16px}
 .searchbar input::placeholder{color:var(--ink-faint)}
 .suggests{padding:22px 20px 0;display:flex;flex-direction:column;gap:2px}
 .suggests button{text-align:left;padding:13px 0;border-bottom:1px solid var(--line);
-  font-size:16px;letter-spacing:-.02em;line-height:1.25}
+  font-size:16px;letter-spacing:normal;line-height:18px}
 .suggests button span{color:var(--ink-faint)}
 .answer{margin:22px 20px 0;border-radius:24px;padding:18px;
   background:linear-gradient(140deg,rgba(43,54,255,.20),rgba(0,226,255,.08));
   border:1px solid rgba(255,255,255,.08)}
-.answer p{margin:0;font-size:16px;line-height:1.45;letter-spacing:-.012em}
+.answer p{margin:0;font-size:16px;line-height:18px;letter-spacing:normal}
 .answer p + p{margin-top:10px}
 .reslist{padding:20px 20px 0;display:flex;flex-direction:column;gap:10px}
 .res{display:flex;gap:13px;align-items:center;text-align:left;padding:9px;border-radius:18px;
@@ -619,19 +726,18 @@ img{display:block;max-width:100%}
 .res .t{width:58px;height:58px;border-radius:13px;background:#111;flex:none;overflow:hidden;
   display:grid;place-items:center}
 .res .t img{width:100%;height:100%;object-fit:contain;padding:4px}
-.res .n{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:-.01em}
-.res .w{font-size:12px;color:var(--ink-dim);margin-top:3px;line-height:1.35;
+.res .n{font-size:20px;font-weight:500;line-height:20px;letter-spacing:-.4px}
+.res .w{font-size:14px;letter-spacing:.22px;color:var(--ink-dim);margin-top:4px;line-height:1.3;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .empty{padding:70px 30px;text-align:center}
 .empty .h-big{margin-bottom:12px}
 
 /* ---------- insights ---------- */
-.ins{margin:0 12px 12px;border-radius:28px;padding:26px 22px;position:relative;overflow:hidden;
+.ins{margin:0 20px 8px;border-radius:48px;padding:20px;position:relative;overflow:hidden;
   min-height:212px;display:flex;flex-direction:column;justify-content:space-between}
-.ins .h-mega{font-size:clamp(34px,10.5vw,46px)}
-.ins .note{font-size:14px;line-height:1.4;margin-top:12px;opacity:.72;max-width:88%}
-.ins .act{margin-top:18px;align-self:flex-start;border-radius:22px;padding:11px 17px;
-  font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+.ins .note{font-size:16px;line-height:18px;margin-top:12px;opacity:.72;max-width:88%}
+.ins .act{margin-top:18px;align-self:flex-start;display:inline-flex;align-items:center;height:40px;
+  border-radius:100px;padding:2px 16px 0;font-size:14px;font-weight:700;letter-spacing:normal;text-transform:uppercase}
 .ins.dark{background:#0E0E0E;border:1px solid var(--line)}
 .ins.dark .act{background:var(--paper);color:#000}
 .ins.acid{background:var(--acid);color:#000}
@@ -646,13 +752,16 @@ img{display:block;max-width:100%}
 .bars i{flex:1;background:currentColor;opacity:.28;border-radius:3px 3px 0 0;min-height:3px}
 .bars i.hi{opacity:1}
 .barlab{display:flex;gap:5px;margin-top:7px}
-.barlab span{flex:1;font-size:8px;letter-spacing:.06em;text-align:center;opacity:.55;
+.barlab span{flex:1;font-size:12px;letter-spacing:normal;text-align:center;opacity:.55;
   text-transform:uppercase}
 .tech{display:flex;flex-wrap:wrap;gap:7px;margin-top:16px}
-.tech b{font-size:11px;letter-spacing:.1em;text-transform:uppercase;border:1px solid currentColor;
-  border-radius:14px;padding:6px 10px;font-weight:600;opacity:.75}
-.tech b.hot{opacity:1;background:currentColor}
-.tech b.hot em{color:var(--bg);font-style:normal}
+/* technique chips: same type as the Items screen's NEW CHAT / STUDIO MODE
+   chips (14px bold uppercase, upright); the top one is filled, its text
+   taking the panel's own background colour (--ins-bg) so it stays legible */
+.tech .chip{display:inline-flex;align-items:center;height:40px;padding:2px 16px 0;border-radius:100px;
+  border:1px solid currentColor;font-size:14px;font-weight:700;font-style:normal;
+  letter-spacing:normal;text-transform:uppercase;opacity:.75}
+
 .evo{display:flex;align-items:flex-end;gap:10px;margin-top:18px;height:70px}
 .evo i{flex:1;border-radius:50% 50% 4px 4px;background:currentColor;opacity:.75}
 
@@ -667,9 +776,9 @@ img{display:block;max-width:100%}
 .dcard .dbg img{width:100%;height:100%;object-fit:contain;padding:26px 26px 140px;
   filter:drop-shadow(0 24px 40px rgba(0,0,0,.6))}
 .dcard .dtx{position:relative;padding:22px;background:linear-gradient(rgba(0,0,0,0),rgba(0,0,0,.86) 42%)}
-.dcard .why{font-size:12.5px;line-height:1.4;color:var(--ink-dim);margin-top:9px}
+.dcard .why{font-size:14px;line-height:1.3;letter-spacing:.22px;color:var(--ink-dim);margin-top:9px}
 .dcard .stamp{position:absolute;top:22px;left:22px;border:2px solid;border-radius:12px;
-  padding:7px 12px;font-size:14px;font-weight:800;letter-spacing:.14em;opacity:0;
+  padding:7px 12px;font-size:14px;font-weight:700;letter-spacing:normal;text-transform:uppercase;opacity:0;
   transform:rotate(-9deg)}
 .dcard .stamp.yes{color:var(--acid)}
 .dcard .stamp.no{right:22px;left:auto;color:var(--orange);transform:rotate(9deg)}
@@ -679,9 +788,10 @@ img{display:block;max-width:100%}
 .dcard.g4 .dbg{background:linear-gradient(150deg,#FF7BB0,#2B36FF)}
 .dactions{flex:none;display:flex;gap:14px;justify-content:center;align-items:center;
   padding:0 20px calc(18px + var(--safe-b))}
-.dact{width:60px;height:60px;border-radius:50%;display:grid;place-items:center;
-  border:1px solid var(--line-2);font-size:22px}
-.dact.big{width:70px;height:70px;background:var(--acid);color:#000;border:0}
+.dact{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;
+  background:#0e0e0e;border:1px solid #292929;color:#f6f4ec;font-size:22px}
+.dact svg{width:24px;height:24px}
+.dact.big{background:#FF451A;color:#040404;border:0}
 .dact:active{transform:scale(.9)}
 
 /* ---------- collide ---------- */
@@ -691,8 +801,8 @@ img{display:block;max-width:100%}
 .cchip{position:absolute;width:132px;border-radius:20px;overflow:hidden;background:#121212;
   border:1px solid var(--line-2);padding:10px;transition:transform .75s var(--ease),opacity .4s}
 .cchip img{width:100%;height:86px;object-fit:contain}
-.cchip .n{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
-  margin-top:7px;line-height:1.15}
+.cchip .n{font-size:20px;font-weight:500;letter-spacing:-.4px;
+  margin-top:7px;line-height:20px}
 .flash{position:absolute;inset:0;background:radial-gradient(circle at 50% 46%,#fff,transparent 62%);
   opacity:0;pointer-events:none}
 .flash.go{animation:fl .6s var(--ease)}
@@ -701,13 +811,12 @@ img{display:block;max-width:100%}
   opacity:0;transform:translateY(16px);transition:all .5s var(--ease);pointer-events:none}
 .cresult.in{opacity:1;transform:none;pointer-events:auto}
 .cformula{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:20px}
-.cformula .f{font-size:11px;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--line-2);
+.cformula .f{font-size:14px;letter-spacing:.22px;border:1px solid var(--line-2);
   border-radius:14px;padding:7px 10px}
 .cformula .x{color:var(--ink-faint)}
 .gradpanel{border-radius:26px;padding:22px;
   background:linear-gradient(140deg,#2B36FF,#7A2BFF 46%,#FF4A17);position:relative;overflow:hidden}
-.gradpanel .h-mega{font-size:clamp(32px,10vw,44px)}
-.gradpanel p{font-size:14.5px;line-height:1.45;margin:14px 0 0}
+.gradpanel p{font-size:16px;line-height:18px;margin:14px 0 0}
 
 /* ---------- share ---------- */
 .canvasprev{margin:0 20px;border-radius:24px;overflow:hidden;aspect-ratio:1;position:relative;
@@ -744,20 +853,33 @@ img{display:block;max-width:100%}
 .lock .clock .d{font-size:14px;letter-spacing:.02em;opacity:.7}
 .lock .clock .t{font-size:74px;font-weight:200;line-height:1;letter-spacing:-.03em;
   font-family:var(--font)}
-.la{background:rgba(28,28,30,.74);backdrop-filter:blur(22px);border-radius:26px;padding:16px;
-  border:1px solid rgba(255,255,255,.09)}
-.la .lah{display:flex;align-items:center;gap:9px;margin-bottom:12px}
-.la .mark{width:22px;height:22px;border-radius:7px;background:var(--orange);display:grid;
-  place-items:center;font-size:10px;font-weight:800}
-.la .nm{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-dim);flex:1}
-.la .title{font-size:24px;font-weight:700;letter-spacing:-.03em;text-transform:uppercase;
-  line-height:1}
-.la ol{margin:13px 0 0;padding-left:16px;font-size:13px;line-height:1.55}
-.la ol li{margin-bottom:2px}
-.la ol li.done{opacity:.4;text-decoration:line-through}
-.la ol li.now{color:var(--acid);font-weight:600}
-.la .laact{margin-top:14px;width:100%;height:46px;border-radius:24px;background:var(--paper);
-  color:#000;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+/* live activity card, Figma 494:24966 */
+.la{background:#0a0a0a;border-radius:18px;padding:16px;box-shadow:0 10px 15px rgba(0,0,0,.28)}
+.la .lah{display:flex;align-items:center;gap:10px;padding:1px 0}
+.la .latx{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.la .lat{display:flex;align-items:center;gap:8px;min-width:0}
+.la .title{font-size:20px;font-weight:500;letter-spacing:-.4px;line-height:normal;color:#fff;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.la .lastate{display:flex;align-items:center;gap:4px;flex:none;font-size:12px;
+  text-transform:uppercase;color:#FF451A}
+.la .lastate i{width:6px;height:6px;border-radius:50%;background:#FF451A}
+.la .lasub{padding-top:2px;font-size:14px;color:#54524e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.la .laic{display:grid;place-items:center;flex:none}
+.la .laic svg{width:18px;height:18px}
+.la button.laic svg{width:16px;height:16px;transition:transform .2s}
+.la button.laic.up svg{transform:rotate(180deg)}
+.la ol{margin:16px 0 0;padding-left:16px;display:flex;flex-direction:column;gap:2px}
+.la ol li{font-size:13px;line-height:20.15px;color:#f6f4ec;padding-left:5px}
+.la ol li.done{font-size:14px;line-height:normal;color:#54524e}
+.la ol li.now{color:#d9ff26}
+.la ol li::marker{font-size:13px}
+.la ol li.now::marker{font-weight:500}
+/* iOS live-activity buttons (Figma uses SF Pro semibold here) */
+.la .labtns{display:flex;gap:7px;margin-top:16px}
+.la .labtns button{flex:1;min-width:0;height:54px;border-radius:11px;padding:8px 4px;
+  background:rgba(255,255,255,.12);color:#fff;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",var(--font);
+  font-size:12px;font-weight:600}
+.la .labtns button.end{background:#ff4b18}
 .lock .exit{margin-top:auto;text-align:center;font-size:11px;letter-spacing:.14em;
   text-transform:uppercase;color:var(--ink-faint);padding-top:20px}
 
@@ -793,7 +915,7 @@ img{display:block;max-width:100%}
 /* 46px (was 52) so the longest line -- "SCREENSHOT." -- actually fits the
    column on a narrow phone; that overflow is what was forcing the
    sideways scroll, .obody's overflow-x:hidden is just the backstop. */
-.onb .h-mega{font-size:46px;color:#f6f4ec}
+.onb .h-mega{font-size:46px;line-height:.86;letter-spacing:-.045em;color:#f6f4ec}
 .onb p{font-size:16px;line-height:20px;color:var(--ink-dim);margin:16px 0 0;max-width:none}
 .onb .ofoot{display:flex;flex-direction:column;gap:10px}
 .onb .prim{height:58px;border-radius:30px;background:#f6f4ec;color:#040404;font-size:16px;
@@ -834,5 +956,5 @@ img{display:block;max-width:100%}
 .pinned{border:1px solid var(--line-2);border-radius:20px;padding:14px 16px;margin:16px 20px 0;
   background:#0B0B0B}
 .devbar[hidden]{display:none}
-.dcard .dtx .src{background:rgba(0,0,0,.5);border-color:rgba(255,255,255,.28);color:#fff}
+.dcard .dtx .src{color:#f6f4ec}
 .dcard .dtx .src.archive{color:var(--cyan)}
