@@ -432,17 +432,28 @@ export function openReadyToPost() {
       editBtn.onclick = c ? () => openCard(c.id) : null;
     };
 
+    /* Coverflow, matching infinite-scrolling-cards-slider.webflow.io: a
+       card's scale AND opacity are both (1 - |slot|*0.2)^2, where `slot`
+       is its continuous distance from centre in card-slots; cards are
+       pulled to a fixed 0.8*cardWidth step so they overlap slightly.
+       Scroll-driven off the deck's own horizontal scroll -- swiping the
+       row is what advances the cards. */
     const layout = () => {
-      const rect = deck.getBoundingClientRect();
-      const mid = rect.left + rect.width / 2;
-      let bestI = 0, bestDist = Infinity;
+      const naturalStep = cardEls.length > 1
+        ? cardEls[1].offsetLeft - cardEls[0].offsetLeft
+        : cardEls[0].offsetWidth;
+      const targetStep = cardEls[0].offsetWidth * 0.8;
+      const viewCenter = deck.scrollLeft + deck.clientWidth / 2;
+      let bestI = 0, bestSlot = Infinity;
       cardEls.forEach((el, i) => {
-        const r = el.getBoundingClientRect();
-        const dist = Math.abs((r.left + r.width / 2) - mid);
-        const norm = Math.min(1, dist / (rect.width * 0.55));
-        el.style.transform = `scale(${(1 - norm * 0.18).toFixed(3)})`;
-        el.style.opacity = (1 - norm * 0.35).toFixed(3);
-        if (dist < bestDist) { bestDist = dist; bestI = i; }
+        const naturalX = el.offsetLeft + el.offsetWidth / 2 - viewCenter;
+        const slot = naturalX / naturalStep;
+        const s = Math.max(0, 1 - Math.abs(slot) * 0.2);
+        const scale = s * s;
+        el.style.transform = `translateX(${(slot * targetStep - naturalX).toFixed(1)}px) scale(${scale.toFixed(3)})`;
+        el.style.opacity = scale.toFixed(3);
+        el.style.zIndex = Math.round(scale * 100);
+        if (Math.abs(slot) < bestSlot) { bestSlot = Math.abs(slot); bestI = i; }
       });
       setActive(bestI);
     };

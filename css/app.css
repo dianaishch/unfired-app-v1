@@ -151,13 +151,16 @@ img{display:block;max-width:100%}
 .rtp-page-head .sub{font-size:16px;color:#f6f4ec;margin:0}
 
 /* actual Figma card exports (assets/posts) -- not rebuilt from primitives.
-   Swipeable peek carousel: cards scale/fade by distance from center as you
-   scroll (JS-driven, see rtpDeckScroll in items.js), snapping to center. */
+   Coverflow carousel matching infinite-scrolling-cards-slider.webflow.io:
+   scale == opacity == (1 - |slot|*0.2)^2, cards pulled into a slight
+   overlap, all driven by the deck's own horizontal scroll (see layout()
+   in items.js), snapping to a centred card. */
 .rtp-deck{display:flex;align-items:center;gap:16px;overflow-x:auto;
   scroll-snap-type:x mandatory;padding:20px calc(50% - 110px) 24px;scrollbar-width:none}
 .rtp-deck::-webkit-scrollbar{display:none}
 .rtp-deck img{width:220px;height:auto;flex:none;scroll-snap-align:center;display:block;
-  transition:transform .12s linear,opacity .12s linear;will-change:transform}
+  transform-origin:center;transition:transform .18s ease-out,opacity .18s ease-out;
+  will-change:transform,opacity}
 
 .rtp-bottombar{display:flex;gap:8px;justify-content:center;
   padding:8px 12px calc(20px + var(--safe-b))}
