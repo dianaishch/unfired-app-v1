@@ -1,5 +1,5 @@
 /* DISCOVER — a physical stack of ideas. Swipe, tap, or shake to collide. */
-import { h, ICON, toast, fullLayer, img, sleep, titleCase, pageHead, navBtn } from '../ui.js';
+import { h, ICON, toast, fullLayer, img, sleep, titleCase, pageHead, navBtn, squircle } from '../ui.js';
 import * as S from '../store.js';
 import * as AI from '../ai.js';
 import { nav } from '../nav.js';
@@ -41,8 +41,15 @@ export function openDiscover() {
       });
     };
 
+    /* Same look as the Items screen's idea card: paper fading to the piece's
+       colour, 48px smoothed corners. Archive items use their card's colour;
+       suggestions keep the hue of their old gradient. */
+    const GRAD_COLOR = { g1: '#2B36FF', g2: '#FF4A17', g3: '#8C8A84', g4: '#FF7BB0' };
+    const colorOf = (item) => S.byId(item.cardId || item.from)?.glow || GRAD_COLOR[item.grad] || '#8C8A84';
     const build = (item) => {
-      const c = h('div', { class: 'dcard ' + (item.src ? '' : item.grad) });
+      const c = h('div', { class: 'dcard', style: {
+        background: `linear-gradient(180deg, #f6f4ec 23.32%, ${colorOf(item)} 100%)` } });
+      squircle(c, 48);
       const bg = h('div', { class: 'dbg' });
       if (item.src) bg.append(img(item.src, item.title));
       c.append(bg,

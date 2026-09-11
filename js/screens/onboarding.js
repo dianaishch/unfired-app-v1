@@ -44,7 +44,8 @@ export function openOnboarding() {
             extra || null),
           h('div', { class: 'ofoot' },
             h('button', { class: 'prim', onclick: onPrimary }, primary),
-            h('button', { class: 'skip', onclick: onSkip || (() => step === 3 ? finish() : go(step + 1)) }, skipLabel || 'SKIP')))
+            /* skipLabel null = no second button (the READY step has only START) */
+            skipLabel === null ? null : h('button', { class: 'skip', onclick: onSkip || (() => step === 3 ? finish() : go(step + 1)) }, skipLabel || 'SKIP')))
       );
     };
 
@@ -82,7 +83,7 @@ export function openOnboarding() {
 
       else shell('READY', 'THAT\'S IT.\nJUST MAKE\nTHINGS.',
         'Press LOG whenever something happens. UNFIRED works out where it belongs. You can always undo it.',
-        'START', () => { finish(); setTimeout(() => runImport(true), 1400); }, 'DONE');
+        'START', () => { finish(); setTimeout(() => runImport(true), 1400); }, null);
     };
     go(0);
   });
