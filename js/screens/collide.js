@@ -1,101 +1,108 @@
-/* COLLIDE — shake two or three cards into one another and see what falls out. */
-import { h, ICON, toast, fullLayer, img, sleep, titleCase, pageHead, navBtn } from '../ui.js';
+/* COLLIDE -- two or three of your cards fused into one new idea. Built from
+   the same parts as Items and the piece cards (there's no Figma frame):
+   the short card header, the source cards as Items tiles that glide
+   together and fade into the new idea (shown in the header, like a piece
+   card's), then COMBINED FROM, the PLAN
+   box, and the floating bottom bar -- SAVE AS IDEA / COLLIDE AGAIN. */
+import { h, ICON, toast, fullLayer, sleep, titleCase } from '../ui.js';
 import * as S from '../store.js';
 import * as AI from '../ai.js';
 import { nav } from '../nav.js';
-import { openCard } from './card.js';
+import { openCard, planFallbackText, heroStatusBar } from './card.js';
+import { itemTile } from './items.js';
+import { CLOSE_SVG } from './capture.js';
+
+const GLOW = '#7A2BFF';   // the colour a collided idea is saved with
 
 /* withId: collide this particular card (from its own card page). */
 export function openCollide(withId) {
   fullLayer((wrap, kill) => {
-    const stage = h('div', { class: 'cstage' });
-    const flash = h('div', { class: 'flash' });
-    const result = h('div', { class: 'cresult' });
+    const scroll = h('div', { class: 'scroll under-bar' });
+    const bar = h('div', { class: 'card-bar' });
     const root = h('div', { class: 'collide' },
-      pageHead({ left: navBtn(ICON.close, kill, 'Close'), title: 'Collide' }),
-      stage, flash, result);
+      scroll, bar);
     wrap.append(root);
 
+    /* the header holds the new idea, like a piece card's header: "Collide /
+       New idea" while the cards gather, then its status, name and why */
+    const statusTx = h('span', {}, 'Collide');
+    const titleTx = h('div', { class: 'cx-t' }, 'New idea');
+    const whyTx = h('div', { class: 'cl-why' });
+    const headText = h('div', { class: 'cl-head' },
+      h('div', { class: 'cx-status' }, h('span', { class: 'ic', html: ICON.ideaStar }), statusTx), titleTx);
+    const header = h('div', { class: 'cx' }, h('div', { class: 'cx-in tint compact',
+      style: { background: `linear-gradient(0deg, #f6f4ec 11.058%, ${GLOW} 100%)` } },
+      heroStatusBar(),
+      h('div', { class: 'cx-top' },
+        h('button', { class: 'cx-btn', onclick: kill, html: CLOSE_SVG, 'aria-label': 'Close' }),
+        h('div', { class: 'cx-title' }, headText),
+        h('span', { class: 'cx-btn ghost' })),
+      whyTx));
+    const setHead = (status, title, why) => {
+      statusTx.textContent = status; titleTx.textContent = title;
+      whyTx.textContent = why || ''; whyTx.hidden = !why;
+    };
+
     const run = async () => {
-      result.classList.remove('in');
-      result.replaceChildren();
-      stage.replaceChildren();
-
       const { picks, result: fused } = AI.collide(withId);
-      const W = stage.clientWidth || 380, H = stage.clientHeight || 500;
+      bar.replaceChildren();
+      setHead('Collide', 'New idea', '');
 
-      /* fly the source cards in from the edges */
-      const chips = picks.map((c, i) => {
-        const el = h('div', { class: 'cchip' });
-        const src = S.cutoutSrc(c);
-        el.append(src ? img(src, c.title)
-          : h('div', { style: { height: '86px', display: 'grid', placeItems: 'center', color: '#666', fontSize: '12px', textTransform: 'uppercase' } }, 'Text idea'),
-          h('div', { class: 'n' }, titleCase(c.title)));
-        const ang = (i / picks.length) * Math.PI * 2 + .6;
-        el.style.left = (W / 2 - 66 + Math.cos(ang) * W) + 'px';
-        el.style.top = (H / 2 - 70 + Math.sin(ang) * H * .8) + 'px';
-        stage.append(el);
-        return el;
+      /* 1. the source cards, side by side, as their Items tiles */
+      const row = h('div', { class: 'cl-row n' + picks.length }, ...picks.map(itemTile));
+      const stage = h('div', { class: 'cl-stage' }, row);
+      scroll.replaceChildren(header, stage);
+      requestAnimationFrame(() => row.classList.add('in'));
+      await sleep(900);
+
+      /* 2. they glide to the centre and fade out... */
+      const mid = stage.getBoundingClientRect();
+      [...row.children].forEach(t => {
+        const r = t.getBoundingClientRect();
+        const dx = (mid.left + mid.width / 2) - (r.left + r.width / 2);
+        t.style.transform = `translateX(${dx}px) scale(.82)`;
+        t.style.opacity = '0';
       });
-
-      await sleep(60);
-      chips.forEach((el, i) => {
-        el.style.left = (W / 2 - 66 + (i - (chips.length - 1) / 2) * 14) + 'px';
-        el.style.top = (H / 2 - 70) + 'px';
-        el.style.transform = `rotate(${(i - 1) * 7}deg)`;
-      });
-
-      await sleep(820);
-      flash.classList.add('go');
-      chips.forEach(el => { el.style.opacity = '0'; el.style.transform = 'scale(.7)'; });
       await sleep(420);
-      flash.classList.remove('go');
-      stage.replaceChildren();
 
-      /* the fused concept */
-      const formula = h('div', { class: 'cformula' });
-      picks.forEach((c, i) => {
-        formula.append(h('button', { class: 'f', onclick: () => openCard(c.id) }, titleCase(c.title)));
-        if (i < picks.length - 1) formula.append(h('div', { class: 'x' }, '×'));
-      });
+      /* 3. ...into the new idea, in the header; the rest follows */
+      headText.classList.add('out'); await sleep(180);
+      setHead('Idea, now', titleCase(fused.title),
+        picks.reduce((t, c) => t.split(c.title).join(titleCase(c.title)), fused.why));
+      headText.classList.remove('out');
+      const from = h('div', { class: 'sx open' },
+        h('div', { class: 'sx-h' }, h('div', { class: 'sx-t' }, 'Combined from')),
+        h('div', { class: 'cl-row from n' + picks.length }, ...picks.map(c => {
+          const t = itemTile(c);
+          t.onclick = () => openCard(c.id);
+          return t;
+        })));
+      const plan = h('div', { class: 'sx open' },
+        h('div', { class: 'sx-h' }, h('div', { class: 'sx-t' }, 'Plan')),
+        h('div', { class: 'pl-box', style: { background: `linear-gradient(0deg, #f6f4ec 6.25%, ${GLOW} 100%)` } },
+          h('div', { class: 'pl-text' }, planFallbackText({ plan: fused.plan }))));
+      const rest = h('div', { class: 'cl-rest' }, from, plan);
+      scroll.replaceChildren(header, rest);
+      requestAnimationFrame(() => rest.classList.add('in'));
 
-      result.append(
-        h('div', { class: 'label' }, 'COMBINED FROM'),
-        formula,
-        h('div', { class: 'gradpanel' },
-          h('h1', { class: 'piece-t' }, titleCase(fused.title)),
-          h('p', {}, fused.why)),
-        h('div', { class: 'assume', style: { marginTop: '18px' } },
-          h('div', { class: 'label' }, 'ASSUMING'),
-          h('p', {}, fused.plan.assumptions.join(' · '))),
-        h('div', { class: 'label', style: { marginTop: '22px' } }, 'HOW TO MAKE IT'),
-        h('ol', { class: 'steps' }, ...fused.plan.steps.map(s => h('li', {}, s))),
-        h('div', { class: 'risks' }, ...fused.plan.risks.map(r =>
-          h('div', { class: 'risk' }, h('b', {}, r.k), h('span', {}, r.t)))),
-        h('button', {
-          class: 'bigact paper', style: { width: '100%', marginLeft: '0' }, onclick: () => {
-            const card = {
-              id: S.uid('c'), state: 'idea', title: fused.title,
-              created: Date.now(), updated: Date.now(),
-              origin: { type: 'collide', label: 'From Collide' },
-              glow: '#7A2BFF', desc: fused.desc,
-              tags: AI.conceptsIn(fused.title + ' ' + fused.desc),
-              hero: null, plan: fused.plan, photos: [], notes: [], threads: [],
-              collidedFrom: fused.sources,
-            };
-            const snap = S.addCard(card);
-            nav.refresh();
-            toast({
-              html: `Saved — <b>${card.title}</b> is in your items`,
-              undo: () => { S.restore(snap); nav.refresh(); },
-            });
-            kill();
-          }
-        }, 'SAVE AS CARD'),
-        h('button', { class: 'bigact ghost', style: { width: '100%', marginLeft: '0' }, onclick: run }, 'COLLIDE AGAIN'),
-        h('div', { style: { height: '30px' } })
-      );
-      requestAnimationFrame(() => result.classList.add('in'));
+      bar.append(
+        h('button', { class: 'pe-btn accent', onclick: () => {
+          const card = {
+            id: S.uid('c'), state: 'idea', title: fused.title,
+            created: Date.now(), updated: Date.now(),
+            origin: { type: 'collide', label: 'From Collide' },
+            glow: GLOW, desc: fused.desc,
+            tags: AI.conceptsIn(fused.title + ' ' + fused.desc),
+            hero: null, plan: fused.plan, photos: [], notes: [], threads: [],
+            collidedFrom: fused.sources,
+          };
+          const snap = S.addCard(card);
+          nav.refresh();
+          toast({ html: `Saved — <b>${card.title}</b> is in your items`, undo: () => { S.restore(snap); nav.refresh(); } });
+          kill();
+          openCard(card.id);
+        } }, 'Save as idea'),
+        h('button', { class: 'pe-btn paper', onclick: run }, 'Collide again'));
     };
 
     run();

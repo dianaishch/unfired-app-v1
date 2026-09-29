@@ -12,58 +12,38 @@ const SEED_IDS = new Set(CARDS.map(c => c.id));
 let filter = 'all';
 let itemsScrollTop = 0;
 
+/* Items feed -- Figma 562:8203 / 562:8713 / 562:9355: the filter row, one
+   featured card (what you're making, else an idea), then every other
+   card as a half-width tile, two per row. */
 export function renderItems(root) {
-  const scroll = h('div', { class: 'scroll' });
-  const mk = S.making(), ids = S.ideas();
-
-  /* ── 1. MAKING NOW / MAKE NEXT ───────────────────────── */
-  if (mk.length) {
-    const c = mk[0];
-    const done = (c.photos || []).filter(p => p.kind === 'process').length;
-    scroll.append(h('div', { class: 'hero-now' },
-      h('div', { class: 'kicker' },
-        h('div', { class: 'sec-t' }, 'Making now')),
-      nowCard(c, `${done} photo${done === 1 ? '' : 's'}, started ${ago(c.startedMaking || c.created)}`, 'making')));
-  } else if (ids.length) {
-    const c = ids[0];
-    scroll.append(h('div', { class: 'hero-now' },
-      h('div', { class: 'kicker' },
-        h('div', { class: 'sec-t' }, 'Make next'),
-        h('button', { class: 'circlebtn', html: ICON.arrowFwd, onclick: () => nav.openDiscover(), 'aria-label': 'Discover' })),
-      nowCard(c, c.desc || '', 'idea')));
-  } else {
-    scroll.append(h('div', { class: 'hero-now keep-type' },
-      h('div', { class: 'label' }, 'NOTHING ON THE BENCH'),
-      h('h1', { class: 'h-mega', style: { margin: '14px 0 18px' } }, 'WHAT\nSHOULD\nYOU MAKE?'),
-      h('button', { class: 'bigact paper', style: { margin: '0', width: '100%' },
-        onclick: () => nav.openDiscover() }, 'OPEN DISCOVER')));
+  const scroll = h('div', { class: 'scroll feed' });
+  const feat = featured();
+  scroll.append(filters());
+  if (feat && (filter === 'all' || filter === feat.state)) {
+    scroll.append(h('div', { class: 'feat' }, feat.state === 'making'
+      ? nowCard(feat, makingSub(feat), 'making')
+      : nowCard(feat, feat.desc || '', 'idea')));
   }
+  scroll.append(archive(feat));
 
-  /* ── 2. READY TO POST ────────────────────────────────── */
-  const posts = allPosts();
-  if (posts.length) {
-    scroll.append(h('div', { class: 'blk' },
-      h('div', { class: 'blk-head act' },
-        h('div', { class: 'sec-t' }, 'Ready to post'),
-        h('button', { class: 'circlebtn', html: ICON.arrowFwd, onclick: () => openReadyToPost(), 'aria-label': 'See all' })),
-      h('div', { class: 'rtp-row' }, ...posts.map(rtpCard))));
-  }
-
-  /* ── 3. ARCHIVE ──────────────────────────────────────── */
-  scroll.append(h('div', { class: 'blk' },
-    h('div', { class: 'blk-head act' },
-      h('div', { class: 'sec-t' }, 'Archive'),
-      h('button', { class: 'circlebtn', html: ICON.arrowFwd, onclick: () => openSearch(), 'aria-label': 'Ask your archive' })),
-    filters(),
-    archive()));
-
-  /* Keep the scroll position across re-renders (archive tab switches,
+  /* Keep the scroll position across re-renders (filter switches,
      refreshes after an edit) instead of jumping back to the top. app.js
      rebuilds the whole stage each render, so it's remembered here. */
   root.replaceChildren(scroll);
   scroll.scrollTop = itemsScrollTop;
   scroll.addEventListener('scroll', () => { itemsScrollTop = scroll.scrollTop; }, { passive: true });
 }
+
+/* last time you did anything with a card: logged to it, edited it, made it */
+const touchedAt = (c) => Math.max(c.loggedAt || 0, c.updated || 0, c.created || 0, c.startedMaking || 0);
+/* The big card: the piece you're making (the latest one, if several);
+   with nothing on the go, an idea -- the one you touched last. */
+const latest = (list) => list.slice().sort((a, b) => touchedAt(b) - touchedAt(a))[0] || null;
+const featured = () => latest(S.making()) || latest(S.ideas());
+const makingSub = (c) => {
+  const n = (c.photos || []).length;
+  return `${n} photo${n === 1 ? '' : 's'}, started ${ago(c.startedMaking || c.created)}`;
+};
 
 /* Figma's hero-card titles are set in title case; app data stores titles ALL CAPS
    (see seed.js). Transforming here only, scoped to this card — every other place
@@ -76,6 +56,8 @@ const titleCase = (s) => (s || '').toLowerCase().replace(/\b\w/g, (m) => m.toUpp
    keyed by the same filename. Derive that key from whatever src the card already
    has and look up the cutout instead of rendering the bench photo directly. */
 const cutoutFor = (c) => {
+  const piece = S.hiRes(S.cutoutSrc(c));
+  if (S.isPiece(piece)) return piece;
   const src = (c.hero && c.hero.src) || S.heroSrc(c) || '';
   const m = src.match(/([^/]+)\.webp$/);
   return m ? `assets/pieces without bg/${m[1]} 1.png` : null;
@@ -88,21 +70,23 @@ function nowCard(c, sub, mode) {
      other card in the app already draws its accent from) instead of a
      fixed hex -- so each piece's hero card tints toward its real color
      rather than a generic blue for every "making" card. */
-  const stop = mode === 'making' ? '23.558%' : '23.32%';
-  const tint = c.glow || (mode === 'making' ? '#7192ff' : '#6ab8ef');
+  const stop = mode === 'making' ? '6.25%' : '11.058%';
   const el = h('div', {
     class: 'mkcard ' + mode,
-    style: { background: S.cardBg(c) || `linear-gradient(180deg, #f6f4ec ${stop}, ${tint} 100%)` },
+    style: { background: `linear-gradient(0deg, #f6f4ec ${stop}, ${S.pieceColor(c)} 100%)` },
     onclick: () => openCard(c.id),
   },
-    h('div', { class: 'status' },
-      mode === 'making' ? h('span', { class: 'dot' }) : h('span', { html: ICON.ideaStar }),
-      h('span', {}, mode === 'making' ? 'making' : 'Idea, ' + ago(c.created))),
-    h('div', { class: 't' }, titleCase(c.title)),
-    h('div', { class: 'sub' }, sub),
+    /* status, title and line underneath: one group, 8px apart (the idea
+       card spreads its content to fill 210px -- this keeps the three
+       together and only the buttons go to the bottom) */
+    h('div', { class: 'head' },
+      h('div', { class: 'status' },
+        mode === 'making' ? h('span', { class: 'dot' }) : h('span', { html: ICON.ideaStar }),
+        h('span', {}, mode === 'making' ? 'making' : 'Idea, ' + ago(c.created))),
+      h('div', { class: 't' }, titleCase(c.title)),
+      h('div', { class: 'sub' }, sub)),
     mode === 'making' && src ? h('div', { class: 'img' }, img(src, c.title)) : null,
     h('div', { class: 'acts' },
-      h('button', { onclick: act(() => openChat(c.id)) }, 'New chat'),
       mode === 'making'
         ? h('button', { onclick: act(() => nav.openLock(c.id)) }, 'Studio mode')
         : h('button', { onclick: act(() => {
@@ -110,22 +94,12 @@ function nowCard(c, sub, mode) {
             toast({ html: '<b>making</b> · set by you', undo: () => { S.restore(snap); nav.refresh(); } });
             startMaking(c.id);
             nav.refresh();
-          }) }, 'Start making')));
+          }) }, 'Start making'),
+      h('button', { onclick: act(() => openChat(c.id)) }, 'New chat')));
   squircle(el, 48);
   return el;
 }
 
-/* One card per post (same list and order as the "see all" carousel) --
-   the post's piece photo and name rather than a placeholder; tapping it
-   opens that post's Edit screen. */
-function rtpCard(post) {
-  const el = h('div', { class: 'rtp-card', onclick: () => openPostEdit(post.id) },
-    h('div', { class: 'thumb' }, img(post.piece, post.name)),
-    h('div', { class: 'head' },
-      h('div', { class: 't' }, post.name)));
-  squircle(el, 40);
-  return el;
-}
 
 function filters() {
   const counts = {
@@ -163,7 +137,7 @@ const shortDate = (ts) => { const d = new Date(ts); return `${d.getDate()} ${MON
 function archStatus(c) {
   if (c.state === 'idea') return { sq: false, text: 'Idea, ' + shortDate(c.created) };
   if (c.state === 'making') return { sq: true, text: 'Making, ' + shortDate(c.startedMaking || c.created) };
-  return { sq: true, text: (c.outcome === 'partial' ? 'Partial, ' : 'Finished, ') + shortDate(c.finishedAt || c.updated) };
+  return { sq: true, text: 'Finished, ' + shortDate(c.finishedAt || c.updated) };
 }
 
 function archStatusRow(st) {
@@ -172,9 +146,13 @@ function archStatusRow(st) {
     h('span', {}, st.text));
 }
 
+/* Finished: the piece without a background, straight on black. Making:
+   the same cutout on the card's gradient, like its card header. */
 function finCard(c) {
   const src = S.hiRes(S.cutoutSrc(c));
-  return h('button', { class: 'arch fin', onclick: () => openCard(c.id) },
+  const making = c.state === 'making';
+  return h('button', { class: 'arch fin' + (making ? ' mk' : ''), onclick: () => openCard(c.id),
+    style: making ? { background: `linear-gradient(0deg, #f6f4ec 6.25%, ${S.pieceColor(c)} 100%)` } : null },
     h('div', { class: 'obj' },
       src ? img(src, c.title) : h('div', { class: 'noimg' }, h('div', { class: 'noimg-t' }, 'No photo'))),
     h('div', { class: 'info' },
@@ -195,13 +173,6 @@ function bleedCard(c, photoSrc) {
 
 const gradTint = (c) => `linear-gradient(180deg, ${c.glow || '#8C8A84'} 0%, #f4f2ec 100%)`;
 
-function spotCard(c) {
-  return h('button', { class: 'arch spot', style: { background: gradTint(c) }, onclick: () => openCard(c.id) },
-    archStatusRow(archStatus(c)),
-    h('div', {},
-      h('div', { class: 't' }, titleCase(c.title)),
-      h('div', { class: 'd' }, (c.desc || '').slice(0, 74) + ((c.desc || '').length > 74 ? '…' : ''))));
-}
 
 /* Half-width gradient card (Figma node 477:64406) -- same content/style as
    spotCard, sized to pair with a photo card instead of always full-width.
@@ -217,21 +188,16 @@ function smallSpotCard(c) {
       h('div', { class: 'd clamp3' }, c.desc || '')));
 }
 
-/* Archive layout: a fixed repeating 3-row rhythm -- pair (2 half-width),
-   wide (1 full-width, gradient-only), single (1 half-width, alternating
-   left/right each time) -- rather than the previous content-driven
-   packing. Cards are split into two recency-ordered pools: "photo" (has a
-   real photo -- finished/making cutouts, idea-with-photo) and "gradient"
-   (idea, no photo). Wide rows must pull from the gradient pool only; if
-   it's empty when a wide row comes up, that row is skipped and the cycle
-   keeps going (confirmed) rather than forcing a photo card into it. Pair/
-   single rows pull whichever pool's next card is more recent, mixing
-   both types freely (confirmed) -- gradient cards that don't make it into
-   a wide row show up here as the small variant instead. */
-/* Shuffle (Fisher-Yates) instead of sorting by date -- ideas mix randomly
-   rather than clustering by when they were made, so a pair row is much
-   more likely to land one photo card + one gradient/bleed idea card
-   together instead of two of the same type in a row. */
+/* One grid tile for a card (also Collide's source tiles). Only finished
+   pieces sit without a background. Making pieces are the cutout on their
+   gradient; ideas are their own photo full-bleed, or the gradient tile
+   with the description (remakes too -- a cutout isn't a photo). */
+const ownPhoto = (c) => ((c.photos || []).find(p => !S.isPiece(p.src)) || {}).src || null;
+export const itemTile = (c) => c.state !== 'idea' ? finCard(c)
+  : ownPhoto(c) ? bleedCard(c, ownPhoto(c)) : smallSpotCard(c);
+
+/* Shuffle (Fisher-Yates) instead of sorting by date -- cards mix randomly
+   rather than clustering by when they were made. */
 function shuffled(arr) {
   const a = arr.slice();
   for (let i = a.length - 1; i > 0; i--) {
@@ -242,28 +208,27 @@ function shuffled(arr) {
 }
 
 /* Pinned per filter tab: the shuffle only reshuffles when the actual set
-   of card ids under that filter changes (a card added/removed/moved in
-   or out), not on every re-render -- otherwise the whole grid would
-   visibly reshuffle after every toggle/refresh, which reads as broken
-   rather than "randomly mixed once". */
+   of card ids under that filter changes, not on every re-render. */
 const archiveShuffleCache = new Map();
 
-function archive() {
-  let list = S.cards();
+/* The grid (Figma 562:8266 ...): every card a half-width tile, two per
+   row. Pieces (a photo of the object: finished, making, remakes) and ideas
+   (a gradient tile, or their own photo full-bleed) alternate, so most rows
+   pair one of each; the pair swaps sides every row, like the Figma feed. */
+function archive(feat) {
+  let list = S.cards().filter(c => c !== feat);
   if (filter !== 'all') list = list.filter(c => c.state === filter);
 
-  if (!list.length)
+  if (!list.length && !(feat && (filter === 'all' || filter === feat.state)))
     return h('div', { class: 'empty keep-type' },
       h('div', { class: 'h-big' }, 'NOTHING HERE YET'),
       h('div', { class: 'meta' }, 'Press LOG and say what you are making.'));
 
-  const isGradient = (c) => c.state === 'idea' && !S.cutoutSrc(c);
-  /* Shuffled once per filter; when cards are added/removed, the ones
-     already placed keep their order and only the newcomers get slotted in,
-     so the grid doesn't reshuffle. Cards you've just touched lead, most
-     recent first: ones you made (not in the seed -- remakes, logged ideas,
-     collide results) and ones you logged something to (a note, photo or
-     chat message -- c.loggedAt), so you can see where it went. */
+  const isIdeaTile = (c) => c.state === 'idea';
+  const halfCard = itemTile;
+
+  /* Cards you've just touched lead, most recent first: ones you made (not
+     in the seed) and ones you logged something to (c.loggedAt). */
   const byId = new Map(list.map(c => [c.id, c]));
   const cached = archiveShuffleCache.get(filter);
   const order = (pool, cachedIds) => {
@@ -274,52 +239,18 @@ function archive() {
     const mine = all.filter(c => touched(c) > 0).sort((a, b) => touched(b) - touched(a));
     return [...mine, ...all.filter(c => !touched(c))];
   };
-  const photoPool = order(list.filter(c => !isGradient(c)), cached?.photoIds);
-  const gradPool = order(list.filter(isGradient), cached?.gradIds);
-  archiveShuffleCache.set(filter, { photoIds: photoPool.map(c => c.id), gradIds: gradPool.map(c => c.id) });
-  let pi = 0, gi = 0;
-  const nextPhoto = () => pi < photoPool.length ? photoPool[pi++] : null;
-  const nextGrad = () => gi < gradPool.length ? gradPool[gi++] : null;
-  const nextAny = () => nextPhoto() || nextGrad();
-  const remaining = () => (photoPool.length - pi) + (gradPool.length - gi);
-
-  /* An idea whose photo is a real piece cutout (a remake) shows that piece
-     like finished work does; other photo ideas keep the stock bleed photo. */
-  const hasPiece = (c) => (c.photos || []).some(p => /assets\/pieces\//.test(p.src || ''));
-  const halfCard = (c) => isGradient(c) ? smallSpotCard(c)
-    : (c.state === 'idea' && !hasPiece(c)) ? bleedCard(c, S.heroSrc(c))
-    : finCard(c);
+  const pieces = order(list.filter(c => !isIdeaTile(c)), cached?.photoIds);
+  const ideas = order(list.filter(isIdeaTile), cached?.gradIds);
+  archiveShuffleCache.set(filter, { photoIds: pieces.map(c => c.id), gradIds: ideas.map(c => c.id) });
 
   const wrap = h('div', { class: 'archive' });
-  const CYCLE = ['pair', 'wide', 'single'];
-  let step = 0, singleCount = 0;
-  while (remaining() > 0) {
-    const kind = CYCLE[step % 3];
-    step++;
-    if (kind === 'wide') {
-      const g = nextGrad();
-      if (g) wrap.append(spotCard(g));
-      continue;
-    }
-    if (kind === 'single') {
-      const c = nextAny();
-      if (!c) break;
-      wrap.append(h('div', { class: 'arch-row' + (singleCount % 2 ? ' right' : '') }, halfCard(c)));
-      singleCount++;
-      continue;
-    }
-    /* pair -- prefer one photo card + one gradient/bleed idea card together
-       whenever both pools still have cards; drain whichever pool remains
-       once the other runs out. */
-    let a, b;
-    if (pi < photoPool.length && gi < gradPool.length) {
-      a = nextPhoto(); b = nextGrad();
-    } else {
-      a = nextAny();
-      if (!a) break;
-      b = nextAny();
-    }
-    wrap.append(h('div', { class: 'arch-row' }, halfCard(a), b ? halfCard(b) : null));
+  let row = 0;
+  while (pieces.length || ideas.length) {
+    const a = pieces.shift() || ideas.shift();
+    const b = ideas.shift() || pieces.shift();
+    const pair = [a, b].filter(Boolean).map(halfCard);
+    if (row++ % 2) pair.reverse();
+    wrap.append(h('div', { class: 'arch-row' }, ...pair));
   }
   return wrap;
 }

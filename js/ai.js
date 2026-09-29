@@ -107,12 +107,17 @@ export function classify(text, attachments = []) {
 
   if (isNewIdea && bestScore < 12) return newIdeaFrom(text, attachments);
   if (attachKind === 'inspiration' && bestScore < 12) return newIdeaFrom(text, attachments);
+  /* a photo of a known object that isn't clearly about an existing card
+     starts its own card (a finished piece, or one being made) */
+  if (attachments.some(a => S.stateFor(a.src) && S.stateFor(a.src) !== 'idea') && bestScore < 12)
+    return newIdeaFrom(text, attachments);
 
   if (best && bestScore >= 6) {
     return {
       kind: 'attach', card: best,
       extraction: extract(text),
-      inferState: inferState(best, text, attachKind),
+      inferState: attachments.map(a => S.stateFromPhoto(best, a.src)).find(Boolean)
+        || inferState(best, text, attachKind),
       reason: bestScore >= 12 ? 'named' : (isObservation ? 'observation' : 'context'),
     };
   }
@@ -147,19 +152,35 @@ function titleFrom(text) {
   return (w || 'NEW IDEA').toUpperCase();
 }
 
+/* A new card. Its status comes from what the photo shows (S.stateFor):
+   a glazed piece is finished, an unfired one is being made, anything else
+   (or no photo) is an idea -- and a recognised object names the card. */
 function newIdeaFrom(text, attachments) {
+  const RANK = { idea: 0, making: 1, finished: 2 };
+  const shown = attachments.map(a => ({ a, st: S.stateFor(a.src) })).filter(x => x.st)
+    .sort((x, y) => RANK[y.st] - RANK[x.st])[0];
+  const state = shown ? shown.st : 'idea';
+  const objName = shown && state !== 'idea' ? S.nameFor(shown.a.src) : null;
+  const now = Date.now();
   const card = {
     id: S.uid('c'),
-    state: 'idea',
-    title: titleFrom(text),
-    created: Date.now(), updated: Date.now(),
+    state,
+    title: objName ? objName.toUpperCase() : titleFrom(text),
+    created: now, updated: now,
+    ...(state !== 'idea' ? { startedMaking: now } : {}),
+    ...(state === 'finished' ? { finishedAt: now, readyToShare: true } : {}),
     origin: { type: attachments.length ? 'photo' : 'voice', label: 'Logged just now' },
     glow: '#2B36FF',
     desc: text.trim(),
     tags: conceptsIn(text),
-    hero: attachments.length ? { src: attachments[0].src, ref: true } : null,
+    /* a photo with a cutout (S.pieceFor) brings it as the piece image */
+    hero: attachments.length ? { src: S.pieceFor(attachments[0].src) || attachments[0].src, ref: true } : null,
     plan: generatePlan(text),
-    photos: attachments.map((a, i) => ({ id: S.uid('p'), kind: a.kind || 'inspiration', src: a.src, cap: 'Added with the log' })),
+    photos: attachments.flatMap(a => {
+      const p = { id: S.uid('p'), kind: a.kind || 'inspiration', src: a.src, cap: 'Added with the log' };
+      const piece = S.pieceFor(a.src);
+      return piece ? [p, { id: S.uid('p'), kind: p.kind, src: piece, pieceOf: p.id, cap: 'Piece image' }] : [p];
+    }),
     notes: [], threads: [],
     isNew: true,
   };

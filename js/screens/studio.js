@@ -55,11 +55,15 @@ export function openLock(cardId, onChange) {
           }, s))),
           h('div', { class: 'labtns' },
             h('button', { onclick: togglePlan }, planHidden ? 'Show plan' : 'Hide plan'),
-            h('button', { onclick: () => import('./card.js').then(({ mediaDrawer }) =>
+            h('button', { onclick: (e) => { const at = e.currentTarget; import('./card.js').then(({ mediaDrawer }) =>
               mediaDrawer((src, guess) => {
                 S.addPhoto(card.id, { src, kind: guess || 'process', cap: 'From the live activity' });
+                if (S.stateFromPhoto(S.byId(card.id), src) === 'finished') {
+                  S.setState(card.id, 'finished');
+                  S.updateCard(card.id, { readyToShare: true, live: false });
+                }
                 nav.refresh(); paint(); onChange && onChange();
-              }, 'ADD TO ' + card.title)) }, 'Add photo'),
+              }, at)); } }, 'Add photo'),
             h('button', { class: 'end', onclick: () => {
               S.updateCard(card.id, { live: false });
               nav.refresh(); onChange && onChange(); kill();

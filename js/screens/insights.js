@@ -14,17 +14,26 @@ export function renderInsights(root) {
   scroll.append(h('div', { style: { height: '4px' } }));
   list.forEach(i => scroll.append(panel(i)));
 
-  scroll.append(h('div', { class: 'pad', style: { padding: '20px' } },
-    h('div', { class: 'meta' },
-      'Estimates and patterns, not guarantees. Firing and glaze figures come from what you recorded — check manufacturer specifications before you change a schedule.')));
+  scroll.append(h('div', { class: 'ins-foot' },
+    'Estimates and patterns, not guarantees. Firing and glaze figures come from what you recorded.'));
 
   root.replaceChildren(scroll);
 }
 
+/* Figma 583:8265: the headline reads as one sentence ("21 pieces fired"),
+   not the stacked caps the data is written in */
+const sentence = (s) => {
+  const t = (s || '').replace(/\s*\n\s*/g, ' ').replace(/\.$/, '').toLowerCase();
+  return t.charAt(0).toUpperCase() + t.slice(1);
+};
+/* "Blue, then red": eight arch bars, the blue-leaning share bright */
+const EVO_H = [76, 96, 100, 69, 59, 70, 69, 50];
+
 function panel(i) {
-  const el = h('div', { class: 'ins ' + i.tone });
+  /* a text-only card (no chart, no button) is as tall as its text */
+  const el = h('div', { class: 'ins ' + i.tone + (i.kind === 'text' && !i.act ? ' short' : '') });
   const top = h('div');
-  top.append(h('h2', { class: 'h-mega', html: (i.big || '').replace(/\n/g, '<br>') }));
+  top.append(h('h2', { class: 'ins-t' }, sentence(i.big)));
 
   if (i.kind === 'bars') {
     const bars = h('div', { class: 'bars' });
@@ -42,12 +51,12 @@ function panel(i) {
   if (i.kind === 'evo') {
     const evo = h('div', { class: 'evo' });
     const total = i.a + i.b || 1;
-    for (let k = 0; k < 8; k++)
-      evo.append(h('i', { style: { height: (30 + (k < (i.a / total) * 8 ? 62 : 34) * Math.random() + 20) + '%', opacity: k < (i.a / total) * 8 ? .85 : .4 } }));
+    const lit = Math.round((i.a / total) * 8);
+    EVO_H.forEach((ht, k) => evo.append(h('i', { class: k < lit ? 'lit' : '', style: { height: ht + '%' } })));
     top.append(evo);
   }
 
-  if (i.note) top.append(h('div', { class: 'note' }, i.note));
+  if (i.note && i.kind !== 'tech') top.append(h('div', { class: 'note' }, i.note));
   el.append(top);
 
   if (i.act)
