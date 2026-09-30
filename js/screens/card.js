@@ -3,7 +3,7 @@ import { h, frag, ICON, page, sheet, toast, fmtShort, ago, img, sleep, pageHead,
 import * as S from '../store.js';
 import * as AI from '../ai.js';
 import { nav } from '../nav.js';
-import { mediaPicker, BACK16_SVG, DOTS16_SVG } from './media.js';
+import { mediaPicker, popMenu, BACK16_SVG, DOTS16_SVG } from './media.js';
 import { postsForCard, openPostEdit } from './post.js';
 import { SAMPLES, CLOSE_SVG, MIC_SVG, STOP_SVG, PLAY_SVG } from './capture.js';
 
@@ -84,7 +84,7 @@ function cardHeader(c, render, closePage) {
     h('div', { class: 'cx-top' },
       h('button', { class: 'cx-btn', onclick: closePage, html: BACK16_SVG, 'aria-label': 'Back' }),
       h('div', { class: 'cx-title' }, heroStatus(c), title),
-      h('button', { class: 'cx-btn', onclick: () => cardMenu(c, render, closePage), html: DOTS16_SVG, 'aria-label': 'Card options' })),
+      h('button', { class: 'cx-btn', onclick: (e) => cardMenu(c, render, closePage, e.currentTarget), html: DOTS16_SVG, 'aria-label': 'Card options' })),
     compact ? null : h('div', { class: 'cx-hero' }, photo ? null : img(hero, c.title)));
   if (kind === 'tint') {
     const stop = c.state === 'making' ? '6.25%' : '11.058%';
@@ -362,25 +362,28 @@ function chatsSection(c, render) {
 }
 
 /* ---------- CARD OPTIONS ("···" in the hero) ----------
-   Remake as new idea (any state), Live activities (making cards -- the
-   same flow as the LIVE MODE button), Delete card (after a confirm). */
-const MORE_SVG = '<svg viewBox="0 0 16 16" fill="none"><path fill="currentColor" d="M5 8C5 8.26522 4.89464 8.51957 4.70711 8.70711C4.51957 8.89464 4.26522 9 4 9C3.73478 9 3.48043 8.89464 3.29289 8.70711C3.10536 8.51957 3 8.26522 3 8C3 7.73478 3.10536 7.48043 3.29289 7.29289C3.48043 7.10536 3.73478 7 4 7C4.26522 7 4.51957 7.10536 4.70711 7.29289C4.89464 7.48043 5 7.73478 5 8ZM9 8C9 8.26522 8.89464 8.51957 8.70711 8.70711C8.51957 8.89464 8.26522 9 8 9C7.73478 9 7.48043 8.89464 7.29289 8.70711C7.10536 8.51957 7 8.26522 7 8C7 7.73478 7.10536 7.48043 7.29289 7.29289C7.48043 7.10536 7.73478 7 8 7C8.26522 7 8.51957 7.10536 8.70711 7.29289C8.89464 7.48043 9 7.73478 9 8ZM12 9C12.2652 9 12.5196 8.89464 12.7071 8.70711C12.8946 8.51957 13 8.26522 13 8C13 7.73478 12.8946 7.48043 12.7071 7.29289C12.5196 7.10536 12.2652 7 12 7C11.7348 7 11.4804 7.10536 11.2929 7.29289C11.1054 7.48043 11 7.73478 11 8C11 8.26522 11.1054 8.51957 11.2929 8.70711C11.4804 8.89464 11.7348 9 12 9Z"/></svg>';
-
-function cardMenu(c, render, closePage) {
-  sheet({ build: (b, done) => {
-    const opt = (text, fn, cls = '') => h('button', { class: 'bigact ghost ' + cls, style: { margin: '0 0 10px', width: '100%' },
-      onclick: () => { done(); fn(); } }, text);
-    /* filter(Boolean): native append() would print a skipped option as "null" */
-    b.append(...[h('div', { class: 'label' }, 'CARD OPTIONS'),
-      h('div', { class: 'h-big', style: { margin: '10px 0 20px' } }, titleCase(c.title)),
-      opt('REMAKE AS NEW IDEA', () => {
-        const id = S.remakeCard(c.id);
-        nav.refresh();
-        if (id) openCard(id);
-      }),
-      c.state === 'making' ? opt(c.live ? 'TURN OFF STUDIO MODE' : 'STUDIO MODE', () => toggleLive(S.byId(c.id), render)) : null,
-      opt('DELETE CARD', () => confirmDelete(c, closePage), 'danger')].filter(Boolean));
-  } });
+   The Log screen's dropdown, opened below the button, with the actions
+   for the card's status (Delete asks first). */
+function cardMenu(c, render, closePage, anchor) {
+  /* status changes work like FINISH ITEM: the log is saved first */
+  const mark = (next) => () => {
+    commitLog(c.id);
+    const snap = S.setState(c.id, next);
+    if (next === 'finished') S.updateCard(c.id, { readyToShare: true, live: false });
+    toast({ html: `<b>${next}</b> · set by you`, undo: () => { S.restore(snap); render(); nav.refresh(); } });
+    render(); nav.refresh();
+  };
+  const remake = () => { const id = S.remakeCard(c.id); nav.refresh(); if (id) openCard(id); };
+  /* a link to the piece, on the clipboard */
+  const copyLink = () => navigator.clipboard?.writeText(`https://unfired.app/p/${c.id}`).catch(() => {});
+  const link = ['Copy link', copyLink, 'Copied'];
+  const del = () => confirmDelete(c, closePage);
+  const items = {
+    idea: [['Mark finished', mark('finished')], link, ['Delete', del]],
+    making: [['Mark finished', mark('finished')], ['Remake as idea', remake], link, ['Delete', del]],
+    finished: [['Mark making', mark('making')], link, ['Delete', del]],
+  }[c.state];
+  popMenu({ anchor, below: true, items });
 }
 
 function confirmDelete(c, closePage) {
