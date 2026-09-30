@@ -441,7 +441,7 @@ img{display:block;max-width:100%}
 
 /* ---------- sheets / layers ---------- */
 #layers{position:absolute;inset:0;pointer-events:none;z-index:60}
-.layer{position:absolute;inset:0;pointer-events:auto}
+.layer{position:absolute;inset:0;pointer-events:auto;isolation:isolate}  /* its contents' z-index stays inside it: a newer layer always covers an older one */
 .scrim{position:absolute;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(3px);
   opacity:0;transition:opacity .3s var(--ease)}
 .scrim.in{opacity:1}
@@ -1085,6 +1085,8 @@ img{display:block;max-width:100%}
   background:#0e0e0e;border:1px solid #292929;color:#f6f4ec;font-size:22px}
 .dact svg{width:24px;height:24px}
 .dact.big{background:#FF451A;color:#040404;border:0}
+/* COLLIDE: the orange text pill between NOPE and SAVE */
+.dact.dcollide{width:auto;padding:1px 30px 0;border-radius:100px;font-size:16px;font-weight:700;text-transform:uppercase}
 .dact:active{transform:scale(.9)}
 
 /* ---------- collide (built from the Items + piece card parts) ---------- */

@@ -10,7 +10,7 @@ import * as AI from '../ai.js';
 import { nav } from '../nav.js';
 import { openCard, planFallbackText, heroStatusBar } from './card.js';
 import { itemTile } from './items.js';
-import { CLOSE_SVG } from './capture.js';
+import { BACK16_SVG } from './media.js';
 
 const GLOW = '#7A2BFF';   // the colour a collided idea is saved with
 
@@ -35,7 +35,7 @@ export function openCollide(withId) {
       style: { background: `linear-gradient(0deg, #f6f4ec 11.058%, ${GLOW} 100%)` } },
       heroStatusBar(),
       h('div', { class: 'cx-top' },
-        h('button', { class: 'cx-btn', onclick: kill, html: CLOSE_SVG, 'aria-label': 'Close' }),
+        h('button', { class: 'cx-btn', onclick: kill, html: BACK16_SVG, 'aria-label': 'Back' }),
         h('div', { class: 'cx-title' }, headText),
         h('span', { class: 'cx-btn ghost' })),
       whyTx));
