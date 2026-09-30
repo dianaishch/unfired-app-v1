@@ -86,10 +86,6 @@ img{display:block;max-width:100%}
 .sb-safe{flex:none;height:var(--safe-t)}
 .topbar{padding:calc(var(--safe-t) + 4px) 16px 36px;display:flex;align-items:flex-end;
   gap:18px;background:rgba(0,0,0,.01);position:absolute;top:0;left:0;right:0;z-index:40}
-/* darkened: the page colour at 80% over the blur, solid down past the
-   words, then an eased 40px fade below them with no visible edge */
-.topbar::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:.8;
-  background:linear-gradient(to bottom,var(--bg) calc(100% - 40px),color-mix(in srgb,var(--bg) 82%,transparent) calc(100% - 32px),color-mix(in srgb,var(--bg) 55%,transparent) calc(100% - 22px),color-mix(in srgb,var(--bg) 26%,transparent) calc(100% - 12px),color-mix(in srgb,var(--bg) 8%,transparent) calc(100% - 4px),transparent 100%)}
 .screen .scroll{padding-top:calc(var(--safe-t) + 56px)}
 .navword{font-size:32px;line-height:1;letter-spacing:-1.05px;font-weight:700;
   text-transform:uppercase;color:var(--ink-faint);transition:color .25s var(--ease)}
@@ -1021,6 +1017,14 @@ img{display:block;max-width:100%}
 .empty .h-big{margin-bottom:12px}
 
 /* ---------- insights ---------- */
+/* Insights: one card at a time in the looping deck (see .rtp-deck) */
+.ins-page{flex:1;min-height:0;display:flex;flex-direction:column;
+  padding:calc(var(--safe-t) + 56px) 0 calc(106px + var(--safe-b));touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.ins-deck{position:relative;flex:1;min-height:0;overflow:hidden;isolation:isolate}  /* the cards' z-index stays inside the deck, under opened pages */
+.ins-deck > .ins{position:absolute;left:50%;top:50%;margin:0;width:calc(100% - 64px);
+  transform-origin:center;will-change:transform,opacity;pointer-events:none}
+.ins-deck > .ins.center{pointer-events:auto}
+.ins-page .ins-foot{flex:none;padding:12px 32px 0}
 .ins{margin:0 16px 8px;border-radius:48px;padding:24px;position:relative;overflow:hidden;
   min-height:212px;display:flex;flex-direction:column;justify-content:flex-start}
 /* Figma 583:8265: sentence-case headline, 32px medium */

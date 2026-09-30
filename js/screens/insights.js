@@ -1,23 +1,23 @@
 /* INSIGHTS — patterns pulled out of the same dataset. Not a dashboard. */
-import { h, squircle } from '../ui.js';
+import { h, squircle, cardLoop } from '../ui.js';
 import * as AI from '../ai.js';
 import { nav } from '../nav.js';
 import { openCard } from './card.js';
 import { openSearch } from './items.js';
 
+/* One insight at a time, in the same looping deck as Ready to post
+   (ui.js cardLoop): swipe sideways, tap a side card to bring it in. */
 export function renderInsights(root) {
-  const scroll = h('div', { class: 'scroll' });
   const list = AI.insights();
-
-  /* intro heading + "Derived from…" line removed per your call; a small
-     spacer keeps the first panel off the tabs */
-  scroll.append(h('div', { style: { height: '4px' } }));
-  list.forEach(i => scroll.append(panel(i)));
-
-  scroll.append(h('div', { class: 'ins-foot' },
-    'Estimates and patterns, not guarantees. Firing and glaze figures come from what you recorded.'));
-
-  root.replaceChildren(scroll);
+  const n = list.length;
+  const total = n * Math.ceil(9 / n);
+  const els = Array.from({ length: total }, (_, j) => panel(list[j % n]));
+  const deck = h('div', { class: 'ins-deck' }, ...els);
+  const wrap = h('div', { class: 'ins-page' }, deck,
+    h('div', { class: 'ins-foot' },
+      'Estimates and patterns, not guarantees. Firing and glaze figures come from what you recorded.'));
+  root.replaceChildren(wrap);
+  cardLoop(wrap, deck, els, n).render();
 }
 
 /* Figma 583:8265: the headline reads as one sentence ("21 pieces fired"),
@@ -62,7 +62,10 @@ function panel(i) {
   if (i.act)
     el.append(h('button', {
       class: 'act', onclick: () => {
-        if (i.go?.type === 'search') openSearch(i.go.q);
+        /* the chat's AI bubbles take this card's colour (the near-black
+           dark cards keep the default, dark text wouldn't read on it) */
+        const glow = i.tone === 'dark' ? undefined : getComputedStyle(el).backgroundColor;
+        if (i.go?.type === 'search') openSearch(i.go.q, { glow });
         else if (i.go?.type === 'card') openCard(i.go.id);
       }
     }, i.act));

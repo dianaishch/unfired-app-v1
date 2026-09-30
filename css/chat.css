@@ -155,5 +155,4 @@
    message will appear; the cards an answer used, full width */
 .chx-sugs{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
 .chx-sugs .chx-chip{height:auto;min-height:44px;max-width:80cqw;padding:10px 16px;border-radius:22px;text-align:left;color:var(--ink)}
-.chx-used{padding:0;gap:8px}
-.chx-used .res{width:100%;background:var(--line)}
+.chx-used{padding:0}

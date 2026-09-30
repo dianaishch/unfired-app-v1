@@ -9,6 +9,7 @@ import { SAMPLES, CLOSE_SVG, MIC_SVG, STOP_SVG, PLAY_SVG } from './capture.js';
 import { chatView } from '../chatui.js';
 import { render as patternsWidget } from '../widgets/patterns.js';
 import { PATTERNS } from '../seed.js';
+import { itemTile } from './items.js';
 
 export function openCard(id) {
   page((p, close) => {
@@ -487,14 +488,15 @@ function openNote(cardId, n, render) {
 /* ---------- CHAT THREAD ---------- */
 /* seed: a note to ask about ("About this note: …"); ask: a question sent
    as-is; reply: the thread ends on your question (a suggestion just
-   tapped), so UNFIRED answers it.
+   tapped), so UNFIRED answers it; glow: the AI bubbles' colour when it
+   isn't the card's (an Insights card's own colour).
    With no card the chat starts as ASK YOUR ARCHIVE: the suggested
    questions, answered from every card, with the cards it used as a
    widget.
    cardId null = the bottom bar's chat button: no card yet. The first
    message is routed like a Log note (AI.classify) -- it joins the card it's
    about, or starts a new idea card -- and the chat lives on there. */
-export function openChat(cardId, threadId, onDone, seed, { ask, reply } = {}) {
+export function openChat(cardId, threadId, onDone, seed, { ask, reply, glow } = {}) {
   let cid = cardId;
   let tid = threadId;
   if (cid && !tid) tid = S.addThread(cid, { title: 'NEW CHAT', msgs: [] });
@@ -511,7 +513,7 @@ export function openChat(cardId, threadId, onDone, seed, { ask, reply } = {}) {
 
   page((p, close) => {
     let busy = false;
-    const view = chatView({ status: head()[0], title: head()[1], glow: card() ? S.pieceColor(card()) : undefined,
+    const view = chatView({ status: head()[0], title: head()[1], glow: glow || (card() ? S.pieceColor(card()) : undefined),
       onBack: () => { if (cid) cleanEmpty(cid, tid); onDone && onDone(); close(); },
       onSend: (text, photos) => send(text, photos) });
     p.append(view.el);
@@ -618,9 +620,11 @@ export function openChat(cardId, threadId, onDone, seed, { ask, reply } = {}) {
     }
 
     const t = thread();
-    if (!t || !t.msgs.length)
-      view.sys('Ask what’s on your mind', { intro: true });
+    /* an empty chat opens on the intro -- or, with no card, on the
+       suggested questions instead */
     if (!cid && !ask) suggestions();
+    else if ((!t || !t.msgs.length) && !ask && !seed)
+      view.sys('Ask what’s on your mind', { intro: true });
     (t ? t.msgs : []).forEach((m, i) => show(m, i));
     if (seed) setTimeout(() => send(`About this note: ${seed}`), 250);
     else if (ask && !cid) setTimeout(() => archive(ask), 250);
@@ -633,18 +637,13 @@ export function openChat(cardId, threadId, onDone, seed, { ask, reply } = {}) {
   });
 }
 
-/* the cards an archive answer used: a row per card (cut-out or state
-   swatch, name, one memory line); tapping one opens it */
+/* the cards an archive answer used, as the same tiles as the Items feed
+   (items.js itemTile), two to a row */
 function usedCards(box, cards) {
-  box.append(h('div', { class: 'reslist chx-used' }, ...cards.map(c => {
-    const src = S.cutoutSrc(c);
-    return h('button', { class: 'res', type: 'button', onclick: () => openCard(c.id) },
-      h('div', { class: 't' }, src ? img(src, '') : h('div', { class: 'state ' + c.state })),
-      h('div', { style: { minWidth: '0' } },
-        h('div', { class: 'n' }, titleCase(c.title)),
-        h('div', { class: 'w' }, AI.memoryLine(c))),
-      h('div', { class: 'state ' + c.state }));
-  })));
+  const grid = h('div', { class: 'archive chx-used' });
+  for (let k = 0; k < cards.length; k += 2)
+    grid.append(h('div', { class: 'arch-row' }, ...cards.slice(k, k + 2).map(itemTile)));
+  box.append(grid);
 }
 
 function cleanEmpty(cardId, tid) {

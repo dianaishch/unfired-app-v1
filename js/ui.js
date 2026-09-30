@@ -245,3 +245,112 @@ export function img(src, alt = '', cls = '') {
   });
   return i;
 }
+
+/* A looping deck of cards, one centred at a time (Ready to post, Insights).
+   surface: the element that takes the horizontal swipes / wheel; deck: the
+   container holding els (n distinct cards, repeated so the loop has at
+   least 9). onActive(i): the centred card's index 0..n-1. onTapCenter: a
+   tap on the centred card. */
+export function cardLoop(p, deck, cardEls, n, { onActive, onTapCenter } = {}) {
+  const total = cardEls.length;
+  /* Port of infinite-scrolling-cards-slider.webflow.io (GSAP seamless
+     loop), animation only:
+     - a card `slot` places from centre sits at x = slot*80% of its width,
+       scale == opacity == (1 - |slot|*0.2)^2 (the reference's power1.in
+       yoyo), z-index tracks scale so the centre card is on top;
+     - it loops forever in both directions;
+     - input only ever moves a raw position; the target is that position
+       snapped to a whole card, and the displayed position eases to it
+       over 0.5s power3.out (the reference's `scrub` tween), so cards
+       always settle dead-centre.
+     Driven by horizontal scrolling of the screen -- a horizontal
+     swipe/drag anywhere on the page, or trackpad / shift+wheel -- instead
+     of the reference's vertical page scroll. */
+  const WHEEL_PX_PER_CARD = 300;   // reference: 3000px scroll per 10 cards
+  const SCRUB_MS = 500;            // reference: scrub duration 0.5
+  const easeOut3 = t => 1 - Math.pow(1 - t, 3);
+  let raw = 0, target = 0, shown = 0;
+  let from = 0, t0 = 0, raf = 0;
+
+  const render = () => {
+    cardEls.forEach((el, j) => {
+      let slot = ((j - shown) % total + total) % total;
+      if (slot >= total / 2) slot -= total;
+      const s = Math.max(0, 1 - Math.abs(slot) * 0.2);
+      const k = s * s;
+      el.style.transform = `translate(${(slot * 80 - 50).toFixed(2)}%, -50%) scale(${k.toFixed(4)})`;
+      el.style.opacity = k.toFixed(4);
+      el.style.zIndex = Math.round(k * 100);
+      el.classList.toggle('center', Math.abs(slot) < 0.5);
+    });
+    onActive && onActive(((Math.round(shown) % n) + n) % n);
+  };
+  const tick = (now) => {
+    const t = Math.min(1, (now - t0) / SCRUB_MS);
+    shown = from + (target - from) * easeOut3(t);
+    render();
+    raf = t < 1 ? requestAnimationFrame(tick) : 0;
+  };
+  const setRaw = (v) => {
+    raw = v;
+    const snapped = Math.round(raw);
+    if (snapped === target) return;
+    target = snapped;
+    from = shown; t0 = performance.now();   // restart the scrub, like scrub.invalidate().restart()
+    if (!raf) raf = requestAnimationFrame(tick);
+  };
+
+  /* trackpad horizontal scroll / shift+wheel */
+  p.addEventListener('wheel', (e) => {
+    let dx = e.deltaX;
+    if (e.shiftKey && !dx) dx = e.deltaY;
+    else if (Math.abs(dx) <= Math.abs(e.deltaY)) return;
+    e.preventDefault();   // keep the browser's back/forward swipe out of it
+    setRaw(raw + dx / WHEEL_PX_PER_CARD);
+  }, { passive: false });
+
+  /* horizontal swipe / drag anywhere on the screen. Skips the left-edge
+     strip (page()'s swipe-back) and the buttons. The finger moves the raw
+     position 1:1 with card spacing; a flick carries on a little. */
+  p.style.touchAction = 'pan-y';
+  let drag = null;
+  p.addEventListener('pointerdown', (e) => {
+    if (e.button || e.target.closest('button')) return;
+    if (e.pointerType === 'touch' && e.clientX < 26) return;
+    drag = { id: e.pointerId, x: e.clientX, y: e.clientY, raw0: raw, on: false,
+             step: cardEls[0].offsetWidth * 0.8, vx: 0, lx: e.clientX, lt: e.timeStamp };
+  });
+  p.addEventListener('pointermove', (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const dx = e.clientX - drag.x;
+    if (!drag.on) {
+      if (Math.abs(dx) < 6 || Math.abs(dx) < Math.abs(e.clientY - drag.y)) return;
+      drag.on = true;
+      try { p.setPointerCapture(e.pointerId); } catch { /* pointer already gone */ }
+    }
+    const dt = e.timeStamp - drag.lt;
+    if (dt > 0) drag.vx = 0.8 * ((e.clientX - drag.lx) / dt) + 0.2 * drag.vx;
+    drag.lx = e.clientX; drag.lt = e.timeStamp;
+    setRaw(drag.raw0 - dx / drag.step);
+  });
+  const endDrag = (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    if (drag.on) {
+      const fling = e.timeStamp - drag.lt < 80 ? -drag.vx * 120 / drag.step : 0;
+      setRaw(Math.round(raw + Math.max(-2, Math.min(2, fling))));
+    } else if (e.type === 'pointerup' && deck.contains(e.target)
+               && Math.abs(e.clientY - drag.y) < 10) {
+      /* a tap, not a swipe: centre card -> Edit; a side card -> centre it */
+      const j = ((Math.round(shown) % total) + total) % total;
+      const r = cardEls[j].getBoundingClientRect();
+      if (e.clientX < r.left) setRaw(target - 1);
+      else if (e.clientX > r.right) setRaw(target + 1);
+      else if (e.clientY >= r.top && e.clientY <= r.bottom) onTapCenter && onTapCenter();
+    }
+    drag = null;
+  };
+  p.addEventListener('pointerup', endDrag);
+  p.addEventListener('pointercancel', endDrag);
+
+  return { render };
+}
