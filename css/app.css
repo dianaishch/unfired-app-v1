@@ -79,14 +79,17 @@ img{display:block;max-width:100%}
 .scroll::-webkit-scrollbar{width:0}
 .pad{padding-left:20px;padding-right:20px}
 
-/* ITEMS / INSIGHTS: floats over the page like the bottom tab bar, with the
-   same near-clear fill and a progressive blur the other way up -- 5px at
-   the top edge, none at the bottom of the bar. The pages start below it. */
-.topbar{padding:calc(var(--safe-t) + 4px) 16px 12px;display:flex;align-items:flex-end;
+/* ITEMS / INSIGHTS: floats over the page like the bottom tab bar, with a
+   progressive blur the other way up (5px at the top, none at the bottom
+   edge) under a dark tint, so the words stay readable over scrolled content.
+   The pages start below it. */
+.sb-safe{flex:none;height:var(--safe-t)}
+.topbar{padding:calc(var(--safe-t) + 4px) 16px 36px;display:flex;align-items:flex-end;
   gap:18px;background:rgba(0,0,0,.01);position:absolute;top:0;left:0;right:0;z-index:40}
-.topbar::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
-  -webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);
-  -webkit-mask-image:linear-gradient(to bottom,#000,transparent);mask-image:linear-gradient(to bottom,#000,transparent)}
+/* darkened: the page colour at 80% over the blur, solid down past the
+   words, then an eased 40px fade below them with no visible edge */
+.topbar::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:.8;
+  background:linear-gradient(to bottom,var(--bg) calc(100% - 40px),color-mix(in srgb,var(--bg) 82%,transparent) calc(100% - 32px),color-mix(in srgb,var(--bg) 55%,transparent) calc(100% - 22px),color-mix(in srgb,var(--bg) 26%,transparent) calc(100% - 12px),color-mix(in srgb,var(--bg) 8%,transparent) calc(100% - 4px),transparent 100%)}
 .screen .scroll{padding-top:calc(var(--safe-t) + 56px)}
 .navword{font-size:32px;line-height:1;letter-spacing:-1.05px;font-weight:700;
   text-transform:uppercase;color:var(--ink-faint);transition:color .25s var(--ease)}
@@ -103,9 +106,28 @@ img{display:block;max-width:100%}
 /* Progressive blur under the bottom bars: one blurred layer behind the
    buttons, masked from solid at the bottom edge to clear at the top, so
    the blur fades from 5px at the bottom to none at the top of the bar. */
-.logdock::before,.card-bar::before,.pe-bottom::before{content:"";position:absolute;inset:0;z-index:-1;
-  pointer-events:none;-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);
-  -webkit-mask-image:linear-gradient(to top,#000,transparent);mask-image:linear-gradient(to top,#000,transparent)}
+/* Progressive blur without a visible edge (ui.js pblur()): five stacked
+   layers blurred 5 / 3.5 / 2 / 1 / 0.5px, each masked to its own band so
+   the blur strength steps down gradually instead of a 5px copy fading out.
+   .down: strongest at the top (top bars), easing out over the bottom 40px.
+   .up: strongest at the bottom (bottom bars), easing out towards the top. */
+.pblur{position:absolute;inset:0;z-index:-1;pointer-events:none}
+.pblur i{position:absolute;inset:0}
+.pblur i:nth-child(1){-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px)}
+.pblur i:nth-child(2){-webkit-backdrop-filter:blur(3.5px);backdrop-filter:blur(3.5px)}
+.pblur i:nth-child(3){-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+.pblur i:nth-child(4){-webkit-backdrop-filter:blur(1px);backdrop-filter:blur(1px)}
+.pblur i:nth-child(5){-webkit-backdrop-filter:blur(.5px);backdrop-filter:blur(.5px)}
+.pblur.down i:nth-child(1){-webkit-mask-image:linear-gradient(to bottom,var(--bg) 0,var(--bg) calc(100% - 40px),transparent calc(100% - 30px));mask-image:linear-gradient(to bottom,var(--bg) 0,var(--bg) calc(100% - 40px),transparent calc(100% - 30px))}
+.pblur.down i:nth-child(2){-webkit-mask-image:linear-gradient(to bottom,transparent calc(100% - 40px),var(--bg) calc(100% - 34px),var(--bg) calc(100% - 28px),transparent calc(100% - 22px));mask-image:linear-gradient(to bottom,transparent calc(100% - 40px),var(--bg) calc(100% - 34px),var(--bg) calc(100% - 28px),transparent calc(100% - 22px))}
+.pblur.down i:nth-child(3){-webkit-mask-image:linear-gradient(to bottom,transparent calc(100% - 32px),var(--bg) calc(100% - 26px),var(--bg) calc(100% - 20px),transparent calc(100% - 14px));mask-image:linear-gradient(to bottom,transparent calc(100% - 32px),var(--bg) calc(100% - 26px),var(--bg) calc(100% - 20px),transparent calc(100% - 14px))}
+.pblur.down i:nth-child(4){-webkit-mask-image:linear-gradient(to bottom,transparent calc(100% - 24px),var(--bg) calc(100% - 18px),var(--bg) calc(100% - 12px),transparent calc(100% - 6px));mask-image:linear-gradient(to bottom,transparent calc(100% - 24px),var(--bg) calc(100% - 18px),var(--bg) calc(100% - 12px),transparent calc(100% - 6px))}
+.pblur.down i:nth-child(5){-webkit-mask-image:linear-gradient(to bottom,transparent calc(100% - 16px),var(--bg) calc(100% - 10px),var(--bg) calc(100% - 4px),transparent 100%);mask-image:linear-gradient(to bottom,transparent calc(100% - 16px),var(--bg) calc(100% - 10px),var(--bg) calc(100% - 4px),transparent 100%)}
+.pblur.up i:nth-child(1){-webkit-mask-image:linear-gradient(to top,var(--bg) 0,var(--bg) 20%,transparent 36%);mask-image:linear-gradient(to top,var(--bg) 0,var(--bg) 20%,transparent 36%)}
+.pblur.up i:nth-child(2){-webkit-mask-image:linear-gradient(to top,transparent 18%,var(--bg) 30%,var(--bg) 40%,transparent 54%);mask-image:linear-gradient(to top,transparent 18%,var(--bg) 30%,var(--bg) 40%,transparent 54%)}
+.pblur.up i:nth-child(3){-webkit-mask-image:linear-gradient(to top,transparent 38%,var(--bg) 50%,var(--bg) 58%,transparent 72%);mask-image:linear-gradient(to top,transparent 38%,var(--bg) 50%,var(--bg) 58%,transparent 72%)}
+.pblur.up i:nth-child(4){-webkit-mask-image:linear-gradient(to top,transparent 56%,var(--bg) 68%,var(--bg) 76%,transparent 88%);mask-image:linear-gradient(to top,transparent 56%,var(--bg) 68%,var(--bg) 76%,transparent 88%)}
+.pblur.up i:nth-child(5){-webkit-mask-image:linear-gradient(to top,transparent 74%,var(--bg) 84%,var(--bg) 92%,transparent 100%);mask-image:linear-gradient(to top,transparent 74%,var(--bg) 84%,var(--bg) 92%,transparent 100%)}
 
 /* ---------- log button (global) ---------- */
 /* tab bars (Figma 562:8445): near-clear fill + the progressive blur above,

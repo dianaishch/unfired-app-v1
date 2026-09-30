@@ -1,5 +1,5 @@
 /* UNFIRED — app shell: two destinations, one persistent LOG, everything else contextual. */
-import { h, ICON, toast } from './ui.js';
+import { h, ICON, toast, pblur } from './ui.js';
 import * as S from './store.js';
 import { nav } from './nav.js';
 import { renderItems, openSearch, openReadyToPost } from './screens/items.js';
@@ -17,14 +17,14 @@ const app = document.getElementById('app');
 let route = 'items';
 
 function chrome() {
-  const bar = h('div', { class: 'topbar' },
+  const bar = h('div', { class: 'topbar' }, pblur('down'),
     h('button', { class: 'navword' + (route === 'items' ? ' on' : ''), onclick: () => go('items') }, 'Items'),
     h('button', { class: 'navword' + (route === 'insights' ? ' on' : ''), onclick: () => go('insights') }, 'Insights'),
     h('div', { class: 'spacer' }),
     /* Search on both tabs (Insights used to show a Discover icon here) */
     h('button', { class: 'circlebtn', html: ICON.topSearch, onclick: () => openSearch(), 'aria-label': 'Search' }));
 
-  const dock = h('div', { class: 'logdock' },
+  const dock = h('div', { class: 'logdock' }, pblur('up'),
     h('button', { class: 'side', html: ICON.dockDiscover, onclick: openDiscover, 'aria-label': 'Discover' }),
     h('button', { class: 'logbtn', onclick: () => openCapture({}) }, h('span', { class: 'dot' }), 'Log'),
     /* new chat -- UNFIRED files it under the right piece after the first

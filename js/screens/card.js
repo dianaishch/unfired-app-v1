@@ -1,5 +1,5 @@
 /* CARD DETAIL — hero, description, how to make it, photos, notes & chats. */
-import { h, frag, ICON, page, sheet, toast, fmtShort, ago, img, sleep, pageHead, navBtn } from '../ui.js';
+import { h, frag, ICON, page, sheet, toast, fmtShort, ago, img, sleep, pageHead, navBtn, statusBar, pblur } from '../ui.js';
 import * as S from '../store.js';
 import * as AI from '../ai.js';
 import { nav } from '../nav.js';
@@ -37,21 +37,10 @@ export function openCard(id) {
      bottom, the card's glow at the top); finished cards sit on black
    - an idea's own photo fills the whole header, dimmed toward the bottom
    - no picture, or a making card in studio mode: the short header */
-const WIFI_SVG = '<svg viewBox="0 0 16 12" fill="none">' +
-  '<path d="M1 4.5C4.8 0.8 11.2 0.8 15 4.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>' +
-  '<path d="M3.3 7C5.9 4.5 10.1 4.5 12.7 7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>' +
-  '<path d="M5.8 9.3C6.9 8.2 9.1 8.2 10.2 9.3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>' +
-  '<circle cx="8" cy="11.3" r="0.9" fill="currentColor"/></svg>';
 const CHEVRON16_SVG = '<svg viewBox="0 0 16 16" fill="none"><path d="M6 3.33333L10.6667 8L6 12.6667" stroke="currentColor" stroke-width="1.13333" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
-export function heroStatusBar() {
-  return h('div', { class: 'ch-statusbar' },
-    h('span', {}, '9:41'),
-    h('div', { class: 'icons' },
-      h('div', { class: 'bars' }, h('i'), h('i'), h('i'), h('i')),
-      h('span', { class: 'wifi', html: WIFI_SVG }),
-      h('div', { class: 'batt' }, h('i'))));
-}
+/* no drawn status bar (see statusBar() in ui.js): just the safe area */
+export const heroStatusBar = statusBar;
 
 function heroStatus(c) {
   if (c.state === 'making')
@@ -439,7 +428,7 @@ function bottomBar(c, render, log) {
          nav.refresh();
          if (id) openCard(id);
        }), media];
-  return h('div', { class: 'card-bar' }, ...kids);
+  return h('div', { class: 'card-bar' }, pblur('up'), ...kids);
 }
 
 /* "+" on the live activity (studio.js): the popover -> gallery / camera

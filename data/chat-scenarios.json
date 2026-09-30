@@ -1,0 +1,85 @@
+{
+  "scenarios": [
+    {
+      "id": "patterns",
+      "name": "Pattern variants",
+      "status": "Suggested, now",
+      "title": "Visualize this pitcher with different painted patterns",
+      "glow": "#6ab8ef",
+      "messages": [
+        {
+          "role": "me",
+          "text": "Visualize this pitcher with different painted patterns"
+        },
+        {
+          "role": "ai",
+          "text": "Which variant would you like to explore?",
+          "widget": "patterns"
+        }
+      ],
+      "widget": {
+        "selected": 1,
+        "action": "Select",
+        "variants": [
+          {
+            "label": "Glaze run",
+            "img": "assets/chat/glaze run.png"
+          },
+          {
+            "label": "Fade",
+            "img": "assets/chat/fade.png"
+          },
+          {
+            "label": "Stamped",
+            "img": "assets/chat/stampped.png"
+          },
+          {
+            "label": "Brush",
+            "img": "assets/chat/brush.png"
+          }
+        ],
+        "reply": "Saved {variant} to the pitcher. It's on the card as a new direction."
+      }
+    },
+    {
+      "id": "shrinkage",
+      "name": "Shrinkage calculator"
+    },
+    {
+      "id": "layers",
+      "name": "Glaze layer order"
+    },
+    {
+      "id": "archive",
+      "name": "Archive recall"
+    },
+    {
+      "id": "stale-idea",
+      "name": "Stale idea comes back"
+    },
+    {
+      "id": "defect",
+      "name": "Defect match"
+    },
+    {
+      "id": "profile",
+      "name": "Profile shaper"
+    },
+    {
+      "id": "prep",
+      "name": "Session prep + pin"
+    },
+    {
+      "id": "growth",
+      "name": "Growth over time"
+    },
+    {
+      "id": "tiles",
+      "name": "Test tile grid"
+    },
+    {
+      "id": "drying",
+      "name": "Drying check"
+    }
+  ]
+}

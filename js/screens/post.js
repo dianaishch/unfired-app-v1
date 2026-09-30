@@ -5,7 +5,7 @@
    rebuilt Instagram frame (per your call), so edits made on the Edit screen
    don't show there. Post / Custom open placeholder modals; no real share
    sheet or colour picker behind them yet. */
-import { h, ICON, page, sheet, toast, img, ago } from '../ui.js';
+import { h, ICON, page, sheet, toast, img, ago, pblur } from '../ui.js';
 import * as S from '../store.js';
 import { openCard, PLUS24_SVG } from './card.js';
 import { mediaPicker, BACK16_SVG, DOTS16_SVG } from './media.js';
@@ -270,7 +270,7 @@ export function openPostEdit(ref) {
       postHeader(r, 'Ready to post', close),
       h('div', { class: 'pe-tabs' }, tEdit, tPrev),
       slot,
-      h('div', { class: 'pe-bottom' },
+      h('div', { class: 'pe-bottom' }, pblur('up'),
         h('button', { class: 'pe-btn accent', onclick: openShareSheet }, 'Post'),
         h('button', { class: 'pe-regen', onclick: regen, html: REGEN_SVG, 'aria-label': 'Regenerate' })));
 

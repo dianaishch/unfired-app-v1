@@ -4,7 +4,7 @@
    together and fade into the new idea (shown in the header, like a piece
    card's), then COMBINED FROM, the PLAN
    box, and the floating bottom bar -- SAVE AS IDEA / COLLIDE AGAIN. */
-import { h, ICON, toast, fullLayer, sleep, titleCase } from '../ui.js';
+import { h, ICON, toast, fullLayer, sleep, titleCase, pblur } from '../ui.js';
 import * as S from '../store.js';
 import * as AI from '../ai.js';
 import { nav } from '../nav.js';
@@ -19,6 +19,7 @@ export function openCollide(withId) {
   fullLayer((wrap, kill) => {
     const scroll = h('div', { class: 'scroll under-bar' });
     const bar = h('div', { class: 'card-bar' });
+    const barBlur = pblur('up');
     const root = h('div', { class: 'collide' },
       scroll, bar);
     wrap.append(root);
@@ -45,7 +46,7 @@ export function openCollide(withId) {
 
     const run = async () => {
       const { picks, result: fused } = AI.collide(withId);
-      bar.replaceChildren();
+      bar.replaceChildren(barBlur);
       setHead('Collide', 'New idea', '');
 
       /* 1. the source cards, side by side, as their Items tiles */

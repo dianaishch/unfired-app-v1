@@ -160,14 +160,16 @@ export function fullLayer(build) {
   return { close, el: wrap };
 }
 
-/* iOS-style status bar (the Figma frames all show one). */
+/* Progressive blur layers for a bar (see .pblur in app.css): dir 'down'
+   for top bars (strongest at the top), 'up' for bottom bars. */
+export const pblur = (dir) => h('div', { class: 'pblur ' + dir, 'aria-hidden': 'true' },
+  h('i'), h('i'), h('i'), h('i'), h('i'));
+
+/* The Figma frames draw an iOS status bar (time, signal, battery); the
+   prototype doesn't -- the phone shows its own. This keeps its place: the
+   safe-area space at the top, so content clears the notch. */
 export function statusBar() {
-  return h('div', { class: 'rtp-statusbar' },
-    h('span', {}, '9:41'),
-    h('div', { class: 'icons' },
-      h('div', { class: 'bars' }, h('i'), h('i'), h('i'), h('i')),
-      h('div', { class: 'wifi' }),
-      h('div', { class: 'batt' }, h('i'))));
+  return h('div', { class: 'sb-safe', 'aria-hidden': 'true' });
 }
 
 /* Sub-page header, same layout as the Ready to post screen: status bar,

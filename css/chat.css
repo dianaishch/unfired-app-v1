@@ -1,0 +1,122 @@
+/* UNFIRED chat with widgets (chat.html). Existing tokens only (app.css
+   :root): --bg background, --sheet surface, --line surface raised,
+   --line-2 border, --paper / --ink paper and light text, --ink-faint
+   tertiary text, --ink-dim secondary text, --orange accent. */
+.chatx{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--bg);color:var(--ink);
+  container-type:inline-size}
+.chatx :focus-visible{outline:2px solid var(--paper);outline-offset:2px}
+
+/* header (Figma 562:11122) */
+/* floats over the conversation with the Items bar's darkened blur, so
+   scrolled messages pass softly under it; js/chat.js pads the list by its
+   height */
+/* the tint and blur stay solid down past the title, then fade out over an
+   eased 40px below it -- no visible edge */
+.chx-head{position:absolute;top:0;left:0;right:0;z-index:5;padding-bottom:40px}
+.chx-head::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none}
+.chx-head::after{opacity:.8;background:linear-gradient(to bottom,var(--bg) calc(100% - 40px),color-mix(in srgb,var(--bg) 82%,transparent) calc(100% - 32px),color-mix(in srgb,var(--bg) 55%,transparent) calc(100% - 22px),color-mix(in srgb,var(--bg) 26%,transparent) calc(100% - 12px),color-mix(in srgb,var(--bg) 8%,transparent) calc(100% - 4px),transparent 100%)}
+.chx-bar{display:flex;align-items:center;gap:20px;padding:8px 16px 4px}
+.chx-round{width:40px;height:40px;border-radius:50%;flex:none;display:grid;place-items:center;
+  background:var(--sheet);border:1px solid var(--line-2);color:var(--ink)}
+.chx-round svg{width:16px;height:16px}
+.chx-round.big{width:58px;height:58px}
+.chx-round.big svg{width:24px;height:24px}
+.chx-round.big[aria-label="Voice"] svg{width:22px;height:22px}
+.chx-title{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px;padding-top:4px}
+.chx-status{font-size:12px;text-transform:uppercase}
+.chx-t{max-width:100%;font-size:24px;font-weight:500;letter-spacing:-.55px;text-transform:capitalize;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* conversation, anchored to the bottom (Figma 562:11136) */
+.chx-list{flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;overflow-anchor:none}
+.chx-list::-webkit-scrollbar{display:none}
+.chx-inner{min-height:100%;display:flex;flex-direction:column;justify-content:flex-end;padding:16px}
+.chx-row{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding-bottom:8px}
+.chx-row.me{align-items:flex-end}
+/* bubbles hug their text, at most 80% of the screen width */
+.chx-b{max-width:80cqw;padding:16px;color:var(--bg);font-size:16px;line-height:18px}
+.chx-b p{margin:0}
+.chx-b.me{background:var(--paper);border-radius:24px 24px 0 24px}
+.chx-b.ai{border-radius:24px 24px 24px 0}
+.chx-sent{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.chx-sent .att{margin:0}
+
+/* widget parts shared by the scenarios */
+.chx-widget{padding-bottom:8px}
+/* one row that scrolls sideways, edge to edge of the screen */
+.chx-chips{display:flex;gap:8px;margin:0 -16px;padding:2px 16px 8px;overflow-x:auto;
+  scrollbar-width:none;scroll-padding:0 16px}
+.chx-chips::-webkit-scrollbar{display:none}
+.chx-chips .chx-chip{flex:none;white-space:nowrap}
+.chx-chip{height:40px;padding:2px 16px 0;border-radius:100px;background:var(--line);
+  font-size:16px;line-height:18px;color:var(--ink-faint)}
+/* selected: paper (Figma's 1px #292929 border sits on the black page, so it
+   doesn't show and isn't drawn) */
+.chx-chip[aria-pressed="true"]{background:var(--paper);color:var(--bg)}
+.chx-chip:disabled{cursor:default}
+.chx-act{display:flex;justify-content:flex-end;gap:8px}
+.chx-pill{height:40px;padding:2px 16px 0;border-radius:100px;background:var(--paper);
+  font-size:14px;font-weight:700;text-transform:uppercase;color:var(--bg)}
+.chx-pill:disabled{background:var(--line);color:var(--ink-faint);cursor:default}
+
+/* input bar (Figma 590:8730 / 590:8731) */
+.chx-foot{flex:none;display:flex;align-items:flex-end;gap:8px;padding:12px 16px}
+.chx-ask{flex:1;min-width:0;min-height:58px;border-radius:100px;background:var(--line);display:flex;align-items:center;padding:19px 24px 16px}
+.chx-ask.multi{border-radius:29px}
+.chx-field{display:block;width:100%;height:18px;padding:0;border:0;resize:none;overflow-y:auto;scrollbar-width:none;
+  background:none;font:inherit;font-size:16px;line-height:18px;color:var(--ink);caret-color:var(--orange)}
+.chx-field::-webkit-scrollbar{display:none}
+.chx-field::placeholder{color:var(--ink-faint)}
+/* the field shows focus with its orange caret (and the keyboard), as on the
+   Log screen -- no ring */
+.chx-field:focus-visible{outline:none}
+.chx-media{display:flex;gap:8px;flex:none}
+.chx-att{flex:none}
+.chx-att[hidden]{display:none}
+/* the iOS keyboard (js/keyboard.js, Figma 590:8740: 402 x 317), open by
+   default. Its three system colours have no match among the app's tokens,
+   so they're kept here, for the keyboard only. */
+.chx-kb{--kb-bg:#232323;--kb-key:#474747;--kb-blue:#0091ff;
+  flex:none;height:0;overflow:hidden;transition:height .28s var(--ease)}
+.chx-kb.open{height:317px}
+.kb{height:317px;display:flex;flex-direction:column;padding-top:12px;border-radius:27px 27px 0 0;background:var(--kb-bg)}
+.kb-keys{display:flex;flex-direction:column;gap:11px;padding:12px 8.5px 0}
+.kb-row{display:flex;gap:6px}
+.kb-row.in{padding:0 20px}
+.kb-row.third{gap:14.25px}
+.kb-mid{flex:1;display:flex;gap:6px}
+.kb-k{flex:1;min-width:0;height:45px;border-radius:8.5px;background:var(--kb-key);color:var(--ink);
+  font-size:25px;line-height:30px;padding-bottom:3px;display:grid;place-items:center;touch-action:manipulation}
+.kb-k.mod{flex:none;width:44.67px;font-size:18px}
+.kb-k.del{width:45px}
+.kb-k.switch{width:91.67px;font-size:18px;padding-bottom:0}
+.kb-k.ret{flex:none;width:92px;background:var(--kb-blue)}
+.kb-mid.wide .kb-k{font-size:25px}
+.kb-k svg{width:24px;height:24px}
+.kb-k.del svg{width:28px}
+.kb-k.on{background:var(--ink);color:var(--kb-bg)}
+.kb-k.down{filter:brightness(1.5)}
+.kb-foot{height:70px;display:flex;justify-content:space-between;align-items:flex-start;padding:27px 39px 15px 36px}
+.kb-icon{color:var(--ink);opacity:.73;display:grid;place-items:center}
+.kb-icon:first-child svg{width:26.92px;height:26.92px}
+.kb-icon:last-child svg{width:18.87px;height:28.21px}
+
+/* 1 patterns: the piece (a 400px image inside a 169px band, as in Figma) */
+.pv-pic{position:relative;height:169px;overflow:hidden}
+.pv-pic img{position:absolute;left:50%;top:calc(50% - 27.8px);width:400px;height:400px;max-width:none;
+  transform:translate(-50%,-50%);object-fit:cover}
+
+/* dev list */
+.chx-dev{padding:24px 16px}
+.chx-dev-t{margin:0 0 16px;font-size:24px;font-weight:700;letter-spacing:-.55px;text-transform:uppercase}
+.chx-dev ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:12px;font-size:16px}
+.chx-dev a{color:var(--ink)}
+.chx-dev span{color:var(--ink-faint)}
+
+/* 44px touch targets: Figma draws chips, pills and header buttons at 40px.
+   Chips and pills get a clear 2px border (background kept inside it) and a
+   -2px margin, so they tap at 44px and look and sit exactly as before. The
+   round header buttons, which have a visible border, get a 2px hit ring. */
+.chx-chip,.chx-pill{position:relative;height:44px;border:2px solid transparent;background-clip:padding-box;margin:-2px}
+.chx-round{position:relative}
+.chx-round::after{content:"";position:absolute;inset:-3px;border-radius:50%}
