@@ -2,7 +2,7 @@
 import { h, ICON, toast, pblur } from './ui.js';
 import * as S from './store.js';
 import { nav } from './nav.js';
-import { renderItems, openSearch, openReadyToPost } from './screens/items.js';
+import { renderItems, filters, openSearch, openReadyToPost } from './screens/items.js';
 import { openPostEdit } from './screens/post.js';
 import { renderInsights } from './screens/insights.js';
 import { openCard, openChat } from './screens/card.js';
@@ -12,6 +12,7 @@ import { openCollide } from './screens/collide.js';
 import { openLock, openWatch } from './screens/studio.js';
 import { openShare } from './screens/share.js';
 import { openOnboarding, runImport } from './screens/onboarding.js';
+import { mountKeyboard } from './keyboard.js';
 
 const app = document.getElementById('app');
 let route = 'items';
@@ -21,8 +22,8 @@ function chrome() {
     h('button', { class: 'navword' + (route === 'items' ? ' on' : ''), onclick: () => go('items') }, 'Items'),
     h('button', { class: 'navword' + (route === 'insights' ? ' on' : ''), onclick: () => go('insights') }, 'Insights'),
     h('div', { class: 'spacer' }),
-    /* Search on both tabs (Insights used to show a Discover icon here) */
-    h('button', { class: 'circlebtn', html: ICON.topSearch, onclick: () => openSearch(), 'aria-label': 'Search' }));
+    /* Items' filter tags live in the bar, above its fade */
+    route === 'items' ? filters() : null);
 
   const dock = h('div', { class: 'logdock' }, pblur('up'),
     h('button', { class: 'side', html: ICON.dockDiscover, onclick: openDiscover, 'aria-label': 'Discover' }),
@@ -115,6 +116,7 @@ devbar.addEventListener('click', e => {
 
 /* ---------- boot ---------- */
 render();
+mountKeyboard(document.getElementById('device'));
 
 const s = S.get();
 if (!s.onboarded) {

@@ -85,27 +85,30 @@ export function classify(text, attachments = []) {
   const t = norm(text);
   const cons = conceptsIn(text);
 
-  /* explicit name match wins */
-  let best = null, bestScore = 0;
-  for (const c of cs) {
-    let sc = 0;
-    const tw = words(c.title).filter(w => w.length > 3);
-    for (const w of tw) if (t.includes(w)) sc += 8;
-    const cc = conceptsIn(corpus(c));
-    for (const k of cons) if (cc.includes(k)) sc += 2.2;
-    if (c.state === 'making') sc *= 1.7;                    /* what you're working on now */
-    else if (c.state === 'idea') sc *= 0.85;
-    const age = (Date.now() - (c.updated || 0)) / 864e5;
-    sc += Math.max(0, 3 - age / 30);
-    if (sc > bestScore) { bestScore = sc; best = c; }
-  }
-
+  /* a card has to earn the match: a word of its title in the text, or at
+     least two shared concepts. What you're making now and what you touched
+     recently only break ties between real matches -- they can't win alone. */
   const isObservation = /\b(worked|better|cracked|crack|dried|too|should|next time|degrees|cone|coats|layers|note|it)\b/i.test(text);
   const isNewIdea = /\b(idea|want to make|i want|make a|make some|try making|would be|next i|new)\b/i.test(text);
 
+  let best = null, bestScore = 0, bestNamed = false;
+  for (const c of cs) {
+    const named = words(c.title).filter(w => w.length > 3).filter(w => t.includes(w)).length;
+    const cc = conceptsIn(corpus(c));
+    const shared = cons.filter(k => cc.includes(k)).length;
+    if (!named && shared < 2) continue;
+    if (isNewIdea && !named) continue;      /* "I want to make X" is new unless it names the piece */
+    let sc = named * 8 + shared * 2.2;
+    if (c.state === 'making') sc *= 1.15;
+    else if (c.state === 'idea') sc *= 0.95;
+    const age = (Date.now() - (c.updated || 0)) / 864e5;
+    sc += Math.max(0, 1 - age / 30);
+    if (sc > bestScore) { bestScore = sc; best = c; bestNamed = named > 0; }
+  }
+
   const attachKind = attachments.length ? attachments[0].kind : null;
 
-  if (isNewIdea && bestScore < 12) return newIdeaFrom(text, attachments);
+  if (isNewIdea && !bestNamed) return newIdeaFrom(text, attachments);
   if (attachKind === 'inspiration' && bestScore < 12) return newIdeaFrom(text, attachments);
   /* a photo of a known object that isn't clearly about an existing card
      starts its own card (a finished piece, or one being made) */

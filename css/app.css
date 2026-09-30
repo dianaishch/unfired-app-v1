@@ -95,6 +95,13 @@ img{display:block;max-width:100%}
   text-transform:uppercase;color:var(--ink-faint);transition:color .25s var(--ease)}
 .navword.on{color:#f6f4ec}
 .topbar .spacer{flex:1}
+.topbar{flex-wrap:wrap;row-gap:12px}
+.topbar .filters{flex-basis:calc(100% + 32px);margin:0 -16px;padding-bottom:0}
+.screen .scroll.feed{padding-top:calc(var(--safe-t) + 56px + 36px)}
+/* the fade below the bar lets taps through to what's under it */
+.topbar,.logdock{pointer-events:none}
+.topbar>*,.logdock>*{pointer-events:auto}
+.topbar>.pblur,.logdock>.pblur{pointer-events:none}
 .iconbtn{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;
   background:#0e0e0e;border:1px solid #292929;color:#f6f4ec;flex:none}
 .iconbtn svg{width:16px;height:16px}
@@ -129,12 +136,45 @@ img{display:block;max-width:100%}
 .pblur.up i:nth-child(4){-webkit-mask-image:linear-gradient(to top,transparent 56%,var(--bg) 68%,var(--bg) 76%,transparent 88%);mask-image:linear-gradient(to top,transparent 56%,var(--bg) 68%,var(--bg) 76%,transparent 88%)}
 .pblur.up i:nth-child(5){-webkit-mask-image:linear-gradient(to top,transparent 74%,var(--bg) 84%,var(--bg) 92%,transparent 100%);mask-image:linear-gradient(to top,transparent 74%,var(--bg) 84%,var(--bg) 92%,transparent 100%)}
 
+/* the app's iOS keyboard (js/keyboard.js mountKeyboard): slides up over the
+   bottom of the phone when a text field is tapped; the screen and any open
+   layer shrink to sit above it, like iOS */
+/* iOS keyboard keys (js/keyboard.js, Figma 590:8740: 402 x 317). Its three
+   system colours have no match among the app's tokens, so they're kept
+   here, for the keyboard only. */
+.kb{--kb-bg:#232323;--kb-key:#474747;--kb-blue:#0091ff;height:317px;display:flex;flex-direction:column;padding-top:12px;border-radius:27px 27px 0 0;background:var(--kb-bg)}
+.kb-keys{display:flex;flex-direction:column;gap:11px;padding:12px 8.5px 0}
+.kb-row{display:flex;gap:6px}
+.kb-row.in{padding:0 20px}
+.kb-row.third{gap:14.25px}
+.kb-mid{flex:1;display:flex;gap:6px}
+.kb-k{flex:1;min-width:0;height:45px;border-radius:8.5px;background:var(--kb-key);color:var(--ink);
+  font-size:25px;line-height:30px;padding-bottom:3px;display:grid;place-items:center;touch-action:manipulation}
+.kb-k.mod{flex:none;width:44.67px;font-size:18px}
+.kb-k.del{width:45px}
+.kb-k.switch{width:91.67px;font-size:18px;padding-bottom:0}
+.kb-k.ret{flex:none;width:92px;background:var(--kb-blue)}
+.kb-mid.wide .kb-k{font-size:25px}
+.kb-k svg{width:24px;height:24px}
+.kb-k.del svg{width:28px}
+.kb-k.on{background:var(--ink);color:var(--kb-bg)}
+.kb-k.down{filter:brightness(1.5)}
+.kb-foot{height:70px;display:flex;justify-content:space-between;align-items:flex-start;padding:27px 39px 15px 36px}
+.kb-icon{color:var(--ink);opacity:.73;display:grid;place-items:center}
+.kb-icon:first-child svg{width:26.92px;height:26.92px}
+.kb-icon:last-child svg{width:18.87px;height:28.21px}
+.chx-kb.app-kb{position:absolute;left:0;right:0;bottom:0;z-index:95;height:317px;
+  transform:translateY(100%);transition:transform .28s var(--ease)}
+.chx-kb.app-kb.open{transform:none}
+#device .screen,#device .layer{transition:bottom .28s var(--ease)}
+#device.kb-open .screen,#device.kb-open .layer{bottom:317px}
+
 /* ---------- log button (global) ---------- */
 /* tab bars (Figma 562:8445): near-clear fill + the progressive blur above,
    floating over the content so it scrolls underneath */
 .logdock{position:absolute;left:0;right:0;bottom:0;padding:12px 16px calc(16px + var(--safe-b));
   display:flex;align-items:center;justify-content:space-between;z-index:40;background:rgba(0,0,0,.01)}
-.logbtn{height:58px;padding:4px 30px 0 28px;border-radius:34px;background:var(--paper);
+.logbtn{height:58px;padding:1px 29px 0;justify-content:center;border-radius:34px;background:var(--paper);
   color:#000;font-size:16px;font-weight:700;letter-spacing:normal;text-transform:uppercase;
   display:flex;align-items:center;gap:8px;box-shadow:0 10px 17px rgba(255,255,255,.13);
   transition:transform .22s var(--ease)}
@@ -173,7 +213,7 @@ img{display:block;max-width:100%}
 .mkcard .img{width:240px;height:190px;overflow:hidden;flex:none}
 .mkcard .img img{width:100%;height:100%;object-fit:contain}
 .mkcard .acts{display:flex;gap:8px;justify-content:center;padding-top:4px}
-.mkcard .acts button{height:40px;padding:2px 16px 0;border-radius:100px;background:#f6f4ec;
+.mkcard .acts button{height:40px;padding:1px 16px 0;border-radius:100px;background:#f6f4ec;
   border:1px solid var(--line-2);font-size:14px;font-weight:700;text-transform:uppercase;
   color:#040404}
 
@@ -252,7 +292,7 @@ img{display:block;max-width:100%}
 
 .rtp-bottombar{display:flex;gap:8px;justify-content:center;
   padding:8px 12px calc(20px + var(--safe-b))}
-.rtp-bottombar button{height:58px;padding:4px 24px 0;border-radius:100px;background:#0e0e0e;
+.rtp-bottombar button{height:58px;padding:1px 24px 0;border-radius:100px;background:#0e0e0e;
   border:1px solid #292929;font-size:16px;font-weight:700;text-transform:uppercase;
   color:#f6f4ec}
 .rtp-bottombar button.post{background:#FF451A;border-color:#FF451A;color:#040404;box-shadow:0 10px 17px rgba(255,255,255,.13)}
@@ -270,7 +310,7 @@ img{display:block;max-width:100%}
 .pe-name{font-size:24px;font-weight:500;letter-spacing:-.55px;text-transform:capitalize;white-space:nowrap;
   overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .pe-tabs{display:flex;margin:16px 16px 0;padding:2px;border-radius:100px;background:#181818;flex:none}
-.pe-tab{flex:1;height:40px;padding-top:2px;border-radius:100px;font-size:14px;font-weight:700;
+.pe-tab{flex:1;height:40px;padding-top:1px;border-radius:100px;font-size:14px;font-weight:700;
   letter-spacing:-.14px;text-transform:uppercase;color:#54524e}
 .pe-tab.on{background:#f4f2ec;color:#040404}
 .pe-slot{flex:1;min-height:0;display:flex;flex-direction:column}
@@ -319,7 +359,7 @@ img{display:block;max-width:100%}
 .pe-regen{width:58px;height:58px;border-radius:29px;background:#0e0e0e;border:1px solid #292929;
   display:grid;place-items:center;color:#f6f4ec;flex:none}
 .pe-regen svg{width:24px;height:24px}
-.pe-btn{height:58px;padding:4px 24px 0;border-radius:100px;font-size:16px;font-weight:700;
+.pe-btn{height:58px;padding:1px 24px 0;border-radius:100px;font-size:16px;font-weight:700;
   text-transform:uppercase;color:#040404}
 .pe-btn.paper{background:#f6f4ec;box-shadow:0 10px 17px rgba(255,255,255,.13)}
 .pe-btn.accent{background:#FF451A;box-shadow:0 10px 17px rgba(255,255,255,.13)}
@@ -573,7 +613,7 @@ img{display:block;max-width:100%}
    matches the LOG button (.logbtn): 16px/700 uppercase, inherited font
    stack, normal tracking -- only the colour differs (light on the dark
    surface here vs dark on paper there). */
-.regen-plan{display:flex;height:58px;padding:2px 24px 0;justify-content:center;align-items:center;
+.regen-plan{display:flex;height:58px;padding:1px 24px 0;justify-content:center;align-items:center;
   margin:16px 0 32px;border-radius:29px;border:1px solid var(--line-2);background:#0E0E0E;
   font-size:16px;font-weight:700;letter-spacing:normal;text-transform:uppercase;color:#F6F4EC}
 
@@ -643,12 +683,14 @@ img{display:block;max-width:100%}
 .cx-in.dark .cx-btn{background:#0e0e0e;color:#f6f4ec}
 .cx-btn svg{width:16px;height:16px}
 .cx-title{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px;padding-top:4px}
-.cx-status{display:flex;align-items:center;gap:4px;font-size:12px;text-transform:uppercase;line-height:normal}
+.cx-status{display:flex;align-items:center;gap:4px;font-size:12px;text-transform:uppercase;line-height:12px}
 .cx-status .ic{width:8px;height:8px;display:grid;place-items:center;padding-bottom:1px}
 .cx-status .ic svg{width:7px;height:7px}
 .cx-status.making{color:#ff451a}
 .cx-status .dot{width:6px;height:6px;border-radius:50%;background:#ff451a}
-.cx-t{font-size:24px;font-weight:500;letter-spacing:-.55px;line-height:normal;text-align:center;
+.cx-t{font-size:24px;font-weight:500;letter-spacing:-.55px;line-height:24px;
+  padding:4px 0;margin:-4px 0;  /* room for descenders; the line still counts as 24px */
+  text-align:center;
   max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;outline:none}
 .cx-t:focus{white-space:normal}
 .cx-hero{position:relative;width:100%;min-height:210px;padding:12px 20px 0;display:flex;
@@ -685,7 +727,7 @@ img{display:block;max-width:100%}
   margin-bottom:16px}
 .pl-text{width:100%;font-size:16px;line-height:18px;color:#040404;white-space:pre-wrap;outline:none}
 .pl-text:empty:before{content:attr(data-ph);color:#54524e}
-.pl-regen{height:40px;padding:2px 16px 0;border-radius:100px;background:#f6f4ec;border:1px solid #292929;
+.pl-regen{height:40px;padding:1px 16px 0;border-radius:100px;background:#f6f4ec;border:1px solid #292929;
   font-size:14px;font-weight:700;text-transform:uppercase;color:#040404}
 
 /* LOG: the Log screen's typing area, minimal height */
@@ -793,7 +835,7 @@ img{display:block;max-width:100%}
   color:var(--ink-dim)}
 
 /* large pill (Items LOG / card bar / Edit): accent default, .paper, .ghost = dark */
-.bigact{margin:26px 20px 0;height:58px;border-radius:100px;padding:4px 24px 0;background:#FF451A;color:#040404;
+.bigact{margin:26px 20px 0;height:58px;border-radius:100px;padding:1px 24px 0;background:#FF451A;color:#040404;
   width:calc(100% - 40px);font-size:16px;font-weight:700;letter-spacing:normal;
   text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:10px;
   box-shadow:0 10px 17px rgba(255,255,255,.13)}
@@ -858,7 +900,7 @@ img{display:block;max-width:100%}
   border:2px solid rgba(255,69,26,.45);animation:ring 1.5s infinite}
 @keyframes ring{0%{transform:scale(.9);opacity:1}100%{transform:scale(1.28);opacity:0}}
 .mic svg{width:22px;height:22px}
-.capture .send{flex:1;min-width:0;height:58px;border-radius:100px;padding:4px 30px 0;background:#f6f4ec;
+.capture .send{flex:1;min-width:0;height:58px;border-radius:100px;padding:1px 30px 0;background:#f6f4ec;
   color:#040404;font-size:16px;font-weight:700;letter-spacing:normal;text-transform:uppercase}
 .capture .send:not(.on){cursor:default}
 .attachrow{display:flex;gap:12px;padding:6px 16px 0;overflow-x:auto;scrollbar-width:none}
@@ -911,7 +953,7 @@ img{display:block;max-width:100%}
 .mp-round{width:58px;height:58px;border-radius:50%;background:#0e0e0e;border:1px solid #292929;
   color:#f6f4ec;display:grid;place-items:center;flex:none}
 .mp-round svg{width:24px;height:24px}
-.mp-pill{height:58px;padding:4px 30px 0;border-radius:29px;background:#0e0e0e;border:1px solid #292929;
+.mp-pill{height:58px;padding:1px 30px 0;border-radius:29px;background:#0e0e0e;border:1px solid #292929;
   color:#f6f4ec;font-size:16px;font-weight:700;text-transform:uppercase;white-space:nowrap}
 .mp-pill.accent{background:#ff451a;border-color:#ff451a;color:#040404}
 .mp-view{position:absolute;inset:0;border-radius:30px;overflow:hidden}
@@ -987,7 +1029,7 @@ img{display:block;max-width:100%}
 .ins.orange .note{opacity:1}
 .ins.short{min-height:0}
 .ins .act{margin-top:18px;align-self:flex-start;display:inline-flex;align-items:center;height:40px;
-  border-radius:100px;padding:2px 16px 0;font-size:14px;font-weight:700;letter-spacing:normal;text-transform:uppercase}
+  border-radius:100px;padding:1px 16px 0;font-size:14px;font-weight:700;letter-spacing:normal;text-transform:uppercase}
 .ins.dark{background:#0e0e0e;border:1px solid #292929;color:#f6f4ec}
 .ins.dark .act{background:#f6f4ec;color:#040404}
 .ins.acid{background:#d6ff2e;color:#040404}
@@ -1010,7 +1052,7 @@ img{display:block;max-width:100%}
 /* technique chips: same type as the Items screen's NEW CHAT / STUDIO MODE
    chips (14px bold uppercase, upright); the top one is filled, its text
    taking the panel's own background colour (--ins-bg) so it stays legible */
-.tech .chip{display:inline-flex;align-items:center;height:40px;padding:2px 16px 0;border-radius:100px;
+.tech .chip{display:inline-flex;align-items:center;height:40px;padding:1px 16px 0;border-radius:100px;
   border:1px solid currentColor;font-size:14px;font-weight:700;font-style:normal;
   letter-spacing:normal;text-transform:uppercase;opacity:.75}
 

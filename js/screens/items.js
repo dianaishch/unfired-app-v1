@@ -18,7 +18,6 @@ let itemsScrollTop = 0;
 export function renderItems(root) {
   const scroll = h('div', { class: 'scroll feed' });
   const feat = featured();
-  scroll.append(filters());
   if (feat && (filter === 'all' || filter === feat.state)) {
     scroll.append(h('div', { class: 'feat' }, feat.state === 'making'
       ? nowCard(feat, makingSub(feat), 'making')
@@ -101,7 +100,7 @@ function nowCard(c, sub, mode) {
 }
 
 
-function filters() {
+export function filters() {
   const counts = {
     all: S.cards().length,
     idea: S.ideas().length,
@@ -256,75 +255,11 @@ function archive(feat) {
 }
 
 /* ══════════════ SEMANTIC SEARCH ══════════════ */
+/* ASK YOUR ARCHIVE is a chat now (card.js openChat with no card): the
+   suggested questions, answered in chat with the cards used as a widget.
+   A prefill (an Insights item) is asked straight away. */
 export function openSearch(prefill) {
-  page((p, close) => {
-    const input = h('input', { placeholder: 'Ask your archive anything', value: prefill || '' });
-    const out = h('div');
-    const scroll = h('div', { class: 'scroll' }, out);
-
-    const showSuggests = () => {
-      out.replaceChildren(
-        h('div', { class: 'pad', style: { paddingTop: '26px' } },
-          h('h1', { class: 'h-mega' }, 'ASK\nYOUR\nARCHIVE.')),
-        h('div', { class: 'suggests' },
-          ...AI.SUGGESTED.map(q => h('button', { onclick: () => run(q) }, q))));
-    };
-
-    const run = async (q) => {
-      input.value = q;
-      out.replaceChildren(h('div', { class: 'pad', style: { paddingTop: '30px' } },
-        h('div', { class: 'shimmer', style: { height: '16px', width: '60%', marginBottom: '10px' } }),
-        h('div', { class: 'shimmer', style: { height: '16px', width: '85%', marginBottom: '10px' } }),
-        h('div', { class: 'shimmer', style: { height: '16px', width: '40%' } })));
-      await new Promise(r => setTimeout(r, 520));
-
-      const { answer, results } = AI.search(q);
-      out.replaceChildren();
-
-      if (!answer.paras) {
-        out.append(h('div', { class: 'empty' },
-          h('div', { class: 'h-big' }, 'NOTHING\nMATCHES\nTHAT.'),
-          h('div', { class: 'meta', style: { marginTop: '12px' } },
-            'Your archive has ' + S.cards().length + ' cards. Try handles, glaze, coils, nerikomi, a colour, or a form.'),
-          h('button', { class: 'bigact ghost', style: { marginTop: '24px' }, onclick: showSuggests }, 'SEE EXAMPLES')));
-        return;
-      }
-
-      const ans = h('div', { class: 'answer' });
-      answer.paras.forEach(t => ans.append(h('p', {}, t)));
-      if (answer.src) ans.append(h('div', { class: 'src archive', style: { marginTop: '14px', display: 'inline-block' } }, answer.src));
-      out.append(ans);
-
-      if (results.length) {
-        out.append(h('div', { class: 'label', style: { padding: '26px 20px 0' } },
-          results.length + ' CARD' + (results.length === 1 ? '' : 'S')));
-        const l = h('div', { class: 'reslist' });
-        results.forEach(c => {
-          const src = S.cutoutSrc(c);
-          l.append(h('button', { class: 'res', onclick: () => openCard(c.id) },
-            h('div', { class: 't' }, src ? img(src, '') : h('div', { class: 'state ' + c.state })),
-            h('div', { style: { minWidth: '0' } },
-              h('div', { class: 'n' }, titleCase(c.title)),
-              h('div', { class: 'w' }, AI.memoryLine(c))),
-            h('div', { class: 'state ' + c.state })));
-        });
-        out.append(l);
-      }
-      out.append(h('div', { style: { height: '40px' } }));
-    };
-
-    input.addEventListener('keydown', e => { if (e.key === 'Enter') run(input.value); });
-
-    p.append(
-      pageHead({ left: navBtn(ICON.back, close, 'Back'), title: 'Ask your archive' }),
-      h('div', { class: 'searchbar', style: { flex: 'none' } },
-        h('div', { style: { width: '17px', height: '17px', color: '#8C8A84' }, html: ICON.search }),
-        input),
-      scroll);
-
-    if (prefill) run(prefill); else showSuggests();
-    setTimeout(() => input.focus(), 400);
-  });
+  openChat(null, null, () => nav.refresh(), null, { ask: prefill || undefined });
 }
 
 /* ══════════════ READY TO POST (all) ══════════════

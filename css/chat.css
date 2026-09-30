@@ -12,7 +12,9 @@
    height */
 /* the tint and blur stay solid down past the title, then fade out over an
    eased 40px below it -- no visible edge */
-.chx-head{position:absolute;top:0;left:0;right:0;z-index:5;padding-bottom:40px}
+.chx-head{position:absolute;top:0;left:0;right:0;z-index:5;padding-bottom:40px;pointer-events:none}
+.chx-head>*{pointer-events:auto}
+.chx-head>.pblur{pointer-events:none}
 .chx-head::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none}
 .chx-head::after{opacity:.8;background:linear-gradient(to bottom,var(--bg) calc(100% - 40px),color-mix(in srgb,var(--bg) 82%,transparent) calc(100% - 32px),color-mix(in srgb,var(--bg) 55%,transparent) calc(100% - 22px),color-mix(in srgb,var(--bg) 26%,transparent) calc(100% - 12px),color-mix(in srgb,var(--bg) 8%,transparent) calc(100% - 4px),transparent 100%)}
 .chx-bar{display:flex;align-items:center;gap:20px;padding:8px 16px 4px}
@@ -35,7 +37,7 @@
 .chx-row.me{align-items:flex-end}
 /* bubbles hug their text, at most 80% of the screen width */
 .chx-b{max-width:80cqw;padding:16px;color:var(--bg);font-size:16px;line-height:18px}
-.chx-b p{margin:0}
+.chx-b p{margin:0;white-space:pre-line}
 .chx-b.me{background:var(--paper);border-radius:24px 24px 0 24px}
 .chx-b.ai{border-radius:24px 24px 24px 0}
 .chx-sent{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
@@ -55,7 +57,7 @@
 .chx-chip[aria-pressed="true"]{background:var(--paper);color:var(--bg)}
 .chx-chip:disabled{cursor:default}
 .chx-act{display:flex;justify-content:flex-end;gap:8px}
-.chx-pill{height:40px;padding:2px 16px 0;border-radius:100px;background:var(--paper);
+.chx-pill{height:40px;padding:1px 16px 0;border-radius:100px;background:var(--paper);
   font-size:14px;font-weight:700;text-transform:uppercase;color:var(--bg)}
 .chx-pill:disabled{background:var(--line);color:var(--ink-faint);cursor:default}
 
@@ -73,33 +75,10 @@
 .chx-media{display:flex;gap:8px;flex:none}
 .chx-att{flex:none}
 .chx-att[hidden]{display:none}
-/* the iOS keyboard (js/keyboard.js, Figma 590:8740: 402 x 317), open by
-   default. Its three system colours have no match among the app's tokens,
-   so they're kept here, for the keyboard only. */
-.chx-kb{--kb-bg:#232323;--kb-key:#474747;--kb-blue:#0091ff;
-  flex:none;height:0;overflow:hidden;transition:height .28s var(--ease)}
+/* the chat's keyboard sits in the page flow, open by default (the key
+   styles are shared, in app.css) */
+.chx-kb{flex:none;height:0;overflow:hidden;transition:height .28s var(--ease)}
 .chx-kb.open{height:317px}
-.kb{height:317px;display:flex;flex-direction:column;padding-top:12px;border-radius:27px 27px 0 0;background:var(--kb-bg)}
-.kb-keys{display:flex;flex-direction:column;gap:11px;padding:12px 8.5px 0}
-.kb-row{display:flex;gap:6px}
-.kb-row.in{padding:0 20px}
-.kb-row.third{gap:14.25px}
-.kb-mid{flex:1;display:flex;gap:6px}
-.kb-k{flex:1;min-width:0;height:45px;border-radius:8.5px;background:var(--kb-key);color:var(--ink);
-  font-size:25px;line-height:30px;padding-bottom:3px;display:grid;place-items:center;touch-action:manipulation}
-.kb-k.mod{flex:none;width:44.67px;font-size:18px}
-.kb-k.del{width:45px}
-.kb-k.switch{width:91.67px;font-size:18px;padding-bottom:0}
-.kb-k.ret{flex:none;width:92px;background:var(--kb-blue)}
-.kb-mid.wide .kb-k{font-size:25px}
-.kb-k svg{width:24px;height:24px}
-.kb-k.del svg{width:28px}
-.kb-k.on{background:var(--ink);color:var(--kb-bg)}
-.kb-k.down{filter:brightness(1.5)}
-.kb-foot{height:70px;display:flex;justify-content:space-between;align-items:flex-start;padding:27px 39px 15px 36px}
-.kb-icon{color:var(--ink);opacity:.73;display:grid;place-items:center}
-.kb-icon:first-child svg{width:26.92px;height:26.92px}
-.kb-icon:last-child svg{width:18.87px;height:28.21px}
 
 /* 1 patterns: the piece (a 400px image inside a 169px band, as in Figma) */
 .pv-pic{position:relative;height:169px;overflow:hidden}
@@ -120,3 +99,61 @@
 .chx-chip,.chx-pill{position:relative;height:44px;border:2px solid transparent;background-clip:padding-box;margin:-2px}
 .chx-round{position:relative}
 .chx-round::after{content:"";position:absolute;inset:-3px;border-radius:50%}
+
+/* shared widget parts: small uppercase label, slider */
+.chx-label{font-size:12px;text-transform:uppercase;color:var(--ink)}
+/* slider: a thin Surface Raised track filled with paper up to the thumb
+   (--p, set by the widget), 28px paper thumb; 44px tall to tap */
+.chx-range{-webkit-appearance:none;appearance:none;display:block;width:100%;height:44px;margin:0;
+  background:transparent;cursor:pointer}
+.chx-range::-webkit-slider-runnable-track{height:8px;border-radius:100px;
+  background:linear-gradient(to right,var(--paper) var(--p,50%),var(--line) var(--p,50%))}
+.chx-range::-moz-range-track{height:8px;border-radius:100px;background:var(--line)}
+.chx-range::-moz-range-progress{height:8px;border-radius:100px;background:var(--paper)}
+.chx-range::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;margin-top:-10px;border-radius:50%;
+  background:var(--paper);border:1px solid var(--line-2)}
+.chx-range::-moz-range-thumb{width:28px;height:28px;border-radius:50%;background:var(--paper);border:1px solid var(--line-2)}
+
+/* 2 shrinkage */
+.sh-head{display:flex;justify-content:space-between;align-items:baseline}
+.sh-val{font-size:24px;font-weight:500;letter-spacing:-.55px}
+.sh-bars{display:flex;flex-direction:column;gap:12px;padding:4px 0 16px}
+.sh-bar{display:flex;flex-direction:column;gap:6px}
+.sh-track{display:flex;align-items:center;gap:8px}
+/* bars like the Insights "pieces fired" chart: paper at 28%, the answer
+   (throwing height) at full */
+.sh-track i{height:12px;border-radius:100px;background:var(--paper);opacity:.28;transition:width .2s var(--ease)}
+.sh-bar.wet .sh-track i{opacity:1}
+.sh-num{font-size:16px;line-height:18px;white-space:nowrap}
+
+/* 3 layers: tile + the order, then last time in a paper box (like the
+   READY TO POST row) */
+.ly{display:flex;gap:16px;align-items:center;padding-bottom:12px}
+.ly-tile{width:104px;height:130px;flex:none;border-radius:24px;overflow:hidden;transition:opacity .16s}
+.ly-tile svg{display:block;width:100%;height:100%}
+.ly-order{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+.ly-g{display:flex;flex-direction:column;gap:4px;transition:opacity .16s}
+.ly-n{display:flex;align-items:center;gap:8px}
+.ly-n i{width:16px;height:16px;border-radius:50%;flex:none}
+.ly-name{font-size:20px;font-weight:500;letter-spacing:-.4px}
+.swapping .ly-tile,.swapping .ly-g{opacity:0}
+.ly-ref{display:flex;flex-direction:column;gap:4px;padding:16px;margin-bottom:12px;border-radius:24px;
+  background:var(--paper);color:var(--bg)}
+.ly-ref-t{font-size:16px;font-weight:700;text-transform:uppercase}
+.ly-ref-s{font-size:12px}
+
+/* app chat extras: source label under an AI answer, system lines, the
+   typing dots, the empty slot where the header's right button would be */
+.chx-src{margin-top:12px;font-size:12px;text-transform:uppercase}
+.chx-sys{align-self:center;padding:8px 0 16px;font-size:12px;text-transform:uppercase;text-align:center;color:var(--ink-faint)}
+/* an empty chat's opening line: the LOG A NOTE style (.lg-ph / .capture .prompt) */
+.chx-sys.intro{align-self:stretch;font-size:64px;font-weight:700;line-height:55.04px;letter-spacing:-2.88px;text-align:left}
+.chx-typing .typing{padding:0}
+.chx-round.ghost{visibility:hidden}
+
+/* ASK YOUR ARCHIVE: suggested questions stacked on the right, where your
+   message will appear; the cards an answer used, full width */
+.chx-sugs{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.chx-sugs .chx-chip{height:auto;min-height:44px;max-width:80cqw;padding:10px 16px;border-radius:22px;text-align:left;color:var(--ink)}
+.chx-used{padding:0;gap:8px}
+.chx-used .res{width:100%;background:var(--line)}

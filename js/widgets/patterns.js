@@ -1,19 +1,22 @@
 /* Pattern variants (Figma 562:11117): the piece, the variant chips and
-   SELECT. Switching a chip swaps the image; SELECT answers in the chat and
-   locks the choice. */
+   SELECT. Switching a chip swaps the image. SELECT locks the choice and
+   calls data.onSelect(variant, btn) -- the app answers with how to make it
+   and offers to add it to the plan (card.js); without onSelect (the dev
+   page) SELECT turns into your message and the reply. data.locked: the
+   variant already chosen (a chat opened again): chips locked, no SELECT. */
 import { h } from '../ui.js';
 
 export function render(box, data, chat) {
-  let sel = data.selected || 0;
+  const lockedAt = data.variants.findIndex(v => v.label === data.locked);
+  let sel = lockedAt >= 0 ? lockedAt : (data.selected || 0);
   const pic = h('img', { alt: '' });
   const chips = data.variants.map((v, i) => h('button', { class: 'chx-chip', type: 'button',
-    onclick: () => { sel = i; paint(); } }, v.label));
+    disabled: lockedAt >= 0, onclick: () => { sel = i; paint(); } }, v.label));
   const go = h('button', { class: 'chx-pill', type: 'button', onclick: () => {
     const v = data.variants[sel];
     chips.forEach(c => { c.disabled = true; });
-    go.disabled = true; go.textContent = 'Selected';
-    chat.say('me', v.label);
-    setTimeout(() => chat.say('ai', data.reply.replace('{variant}', v.label)), 500);
+    if (data.onSelect) data.onSelect(v, go);
+    else chat.act(go, v.label, data.reply.replace('{variant}', v.label));
   } }, data.action);
 
   const paint = () => {
@@ -32,6 +35,6 @@ export function render(box, data, chat) {
   box.append(
     h('div', { class: 'pv-pic' }, pic),
     h('div', { class: 'chx-chips', role: 'group', 'aria-label': 'Pattern variant' }, ...chips),
-    h('div', { class: 'chx-act' }, go));
+    lockedAt >= 0 ? null : h('div', { class: 'chx-act' }, go));
   paint();
 }

@@ -126,7 +126,8 @@ export async function runImport(force = false) {
   });
 
   let created = null;
-  if (newIdea && !S.cards().some(c => c.hero?.src === newIdea.src)) {
+  /* the card's hero is the cut-out (newIdea.piece), so match either image */
+  if (newIdea && !S.cards().some(c => [newIdea.src, newIdea.piece].includes(c.hero?.src))) {
     created = {
       /* what the photo shows sets the status (S.stateFor): glazed -> finished */
       id: S.uid('c'), state: S.stateFor(newIdea.src) || 'idea', title: (newIdea.name || 'Marbled mug').toUpperCase(),

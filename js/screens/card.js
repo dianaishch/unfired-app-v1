@@ -6,6 +6,9 @@ import { nav } from '../nav.js';
 import { mediaPicker, popMenu, BACK16_SVG, DOTS16_SVG } from './media.js';
 import { postsForCard, openPostEdit } from './post.js';
 import { SAMPLES, CLOSE_SVG, MIC_SVG, STOP_SVG, PLAY_SVG } from './capture.js';
+import { chatView } from '../chatui.js';
+import { render as patternsWidget } from '../widgets/patterns.js';
+import { PATTERNS } from '../seed.js';
 
 export function openCard(id) {
   page((p, close) => {
@@ -139,15 +142,17 @@ function readyToPostRow(c) {
    The space under LOG is the Log screen's typing area, sized to its
    content: LOG A NOTE until you type, the caret in orange, photos added
    with "+" as 100px tiles under the text (x removes one), the mic types the
-   transcript in. Photos join the card as they're added; the text becomes a
-   note on the card when you leave the page. */
+   transcript in. Photos join the card as they're added. The text is the
+   card's description (what the feed card shows) and is saved back to it
+   when you leave the page. */
 const drafts = new Map();   // card id -> { text, photos: [photo ids] }
-const draftOf = (id) => drafts.get(id) || (drafts.set(id, { text: '', photos: [] }), drafts.get(id));
+const draftOf = (id) => drafts.get(id) || (drafts.set(id, { text: S.byId(id)?.desc || '', photos: [] }), drafts.get(id));
 
 function commitLog(id) {
   const d = drafts.get(id);
   drafts.delete(id);
-  if (d && d.text.trim() && S.byId(id)) { S.addNote(id, { text: d.text.trim(), src: 'type' }); nav.refresh(); }
+  const c = S.byId(id);
+  if (d && c && d.text.trim() !== (c.desc || '').trim()) { S.updateCard(id, { desc: d.text.trim() }); nav.refresh(); }
 }
 
 function logSection(c, render) {
@@ -312,25 +317,37 @@ function chatsSection(c, render) {
     h('div', { class: 'sum' }, summary),
     h('div', { class: 'w' }, meta));
 
-  bubbles.append(bub('Visualize this idea with different painted patterns', 'Suggestion, now',
-    () => openChat(c.id, null, render)));
+  /* Suggestions. Tapping one starts its chat with the question as your
+     message and UNFIRED's answer; from then on that chat is just a thread
+     in the list (marked SUGGESTION) and the suggestion itself is gone --
+     tapping it again opens the same chat, never a copy. */
+  const threads = c.threads || [];
+  const suggest = (key, q, msgs) => {
+    if (threads.some(t => t.suggest === key || (key === 'patterns' && t.patterns) || (key === 'plan' && t.planQuestions))) return;
+    bubbles.append(bub(q, 'Suggestion, now', () => {
+      const m = msgs();
+      const tid = S.addThread(c.id, { title: q, suggestion: true, suggest: key,
+        patterns: key === 'patterns' || undefined, planQuestions: key === 'plan' || undefined,
+        msgs: [{ role: 'me', text: q }, ...m] });
+      render();
+      openChat(c.id, tid, render, null, { reply: !m.length });
+    }));
+  };
+
+  /* Pink Pitcher (the one piece with variant images) answers this one with
+     the pattern variants widget; elsewhere UNFIRED answers in words */
+  suggest(c.id === PATTERNS.cardId ? 'patterns' : 'visualize', PATTERNS.ask, () =>
+    c.id === PATTERNS.cardId ? [{ role: 'ai', text: PATTERNS.question, widget: 'patterns' }] : []);
 
   /* Ideas get a second suggestion: with a thin plan, the questions UNFIRED
-     needs answered to build one (until that chat exists); otherwise a
-     question drawn from the plan's own first risk. */
+     needs answered to build one; otherwise a question drawn from the
+     plan's own first risk. */
   if (c.state === 'idea') {
     if (planIsThin(c.plan)) {
-      if (!(c.threads || []).some(t => t.planQuestions))
-        bubbles.append(bub('Answer a few questions to build your plan', 'Suggestion, now', () => {
-          const tid = S.addThread(c.id, { title: 'BUILD THE PLAN', planQuestions: true,
-            msgs: [{ role: 'ai', text: PLAN_QUESTIONS }] });
-          openChat(c.id, tid, render);
-          render();
-        }));
+      suggest('plan', 'Answer a few questions to build your plan', () => [{ role: 'ai', text: PLAN_QUESTIONS }]);
     } else {
       const risk = (c.plan.risks || [])[0];
-      const q = risk ? `How do I avoid ${risk.k.toLowerCase()}?` : 'Which step is the riskiest here?';
-      bubbles.append(bub(q, 'Suggestion, now', () => openChat(c.id, null, render, null, { ask: q })));
+      suggest('risk', risk ? `How do I avoid ${risk.k.toLowerCase()}?` : 'Which step is the riskiest here?', () => []);
     }
   }
 
@@ -342,7 +359,7 @@ function chatsSection(c, render) {
     })),
     ...(c.threads || []).map(t => ({
       at: t.at, summary: t.title,
-      meta: (t.msgs[0]?.role === 'ai' ? 'Suggestion' : 'Chat') + ', ' + bubWhen(t.at),
+      meta: (t.suggestion || t.msgs[0]?.role === 'ai' ? 'Suggestion' : 'Chat') + ', ' + bubWhen(t.at),
       open: () => openChat(c.id, t.id, render),
     })),
   ].sort((a, b) => b.at - a.at).forEach(it => bubbles.append(bub(it.summary, it.meta, it.open)));
@@ -469,42 +486,104 @@ function openNote(cardId, n, render) {
 
 /* ---------- CHAT THREAD ---------- */
 /* seed: a note to ask about ("About this note: …"); ask: a question sent
-   as-is (the suggested-question bubbles).
+   as-is; reply: the thread ends on your question (a suggestion just
+   tapped), so UNFIRED answers it.
+   With no card the chat starts as ASK YOUR ARCHIVE: the suggested
+   questions, answered from every card, with the cards it used as a
+   widget.
    cardId null = the bottom bar's chat button: no card yet. The first
    message is routed like a Log note (AI.classify) -- it joins the card it's
    about, or starts a new idea card -- and the chat lives on there. */
-export function openChat(cardId, threadId, onDone, seed, { ask } = {}) {
+export function openChat(cardId, threadId, onDone, seed, { ask, reply } = {}) {
   let cid = cardId;
   let tid = threadId;
   if (cid && !tid) tid = S.addThread(cid, { title: 'NEW CHAT', msgs: [] });
-  const thread = () => cid && ((S.byId(cid).threads || []).find(x => x.id === tid) || null);
+  const card = () => cid && S.byId(cid);
+  const thread = () => cid && ((card().threads || []).find(x => x.id === tid) || null);
+  /* header: the status line is the piece (or "Suggested, now" for a
+     suggestion; today's date before a card-less chat is filed), the
+     title the thread */
+  const head = () => {
+    const t = thread();
+    const status = t && t.suggestion ? 'Suggested, ' + bubWhen(t.at) : card() ? titleCase(card().title) : fmtShort(Date.now());
+    return [status, titleCase(t && t.title !== 'NEW CHAT' ? t.title : 'New chat')];
+  };
 
   page((p, close) => {
-    const list = h('div', { class: 'thread' });
-    const cardLabel = h('span', {}, cid ? titleCase(S.byId(cid).title) : '');
-    const headTitle = h('span', {}, thread()?.title || 'NEW CHAT');
-    const ti = h('div', { class: 'ti', contenteditable: 'true',
-      'data-ph': cid ? 'Ask about this piece…' : 'Ask UNFIRED anything…' });
     let busy = false;
+    const view = chatView({ status: head()[0], title: head()[1], glow: card() ? S.pieceColor(card()) : undefined,
+      onBack: () => { if (cid) cleanEmpty(cid, tid); onDone && onDone(); close(); },
+      onSend: (text, photos) => send(text, photos) });
+    p.append(view.el);
 
-    const paint = () => {
-      const t = thread();
-      list.replaceChildren();
-      if (!t || !t.msgs.length)
-        list.append(h('div', { class: 'meta', style: { padding: '30px 0', textAlign: 'center' } },
-          cid ? 'UNFIRED already knows this card and everything else you have made.'
-              : 'Say what’s on your mind. UNFIRED files this chat under the piece it’s about, or starts a new idea.'));
-      (t ? t.msgs : []).forEach(m => {
-        if (m.role === 'sys') { list.append(h('div', { class: 'meta chat-sys' }, m.text)); return; }
-        const el = h('div', { class: 'msg ' + (m.role === 'me' ? 'me' : 'ai') });
-        el.append(document.createTextNode(m.text));
-        if (m.role === 'ai' && m.src)
-          el.append(h('div', { class: 'src ' + (m.src === 'archive' ? 'archive' : '') },
-            m.src === 'archive' ? 'YOUR ARCHIVE' : 'CERAMIC REFERENCE'));
-        list.append(el);
-      });
-      list.scrollTop = list.scrollHeight;
+    const persist = (msg) => { S.addMessage(cid, tid, msg); return thread().msgs.length - 1; };
+    const patch = (i, fields) => S.mutate(st => {
+      const t = st.cards.find(x => x.id === cid).threads.find(x => x.id === tid);
+      Object.assign(t.msgs[i], fields);
+    });
+    const answer = (msg, ms = 700) => new Promise(res => {
+      const done = view.typing();
+      setTimeout(() => { done(); const i = persist(msg); show(msg, i); res(i); }, ms);
+    });
+
+    /* pattern variants: SELECT -> your pick, then how to make it with
+       ADD TO PLAN; that adds the steps to the card's plan */
+    const pick = (i, v, btn) => {
+      (btn.closest('.chx-act') || btn).remove();
+      patch(i, { pick: v.label });
+      const me = { role: 'me', text: v.label };
+      show(me, persist(me));
+      answer({ role: 'ai', pattern: v.label, action: 'Add to plan',
+        text: `Here's how to make the ${v.label.toLowerCase()} pattern:\n\n` +
+          v.steps.map((st, k) => String(k + 1).padStart(2, '0') + ' · ' + st).join('\n') });
     };
+    const addToPlan = (i, m, btn) => {
+      (btn.closest('.chx-act') || btn).remove();
+      patch(i, { done: true });
+      const me = { role: 'me', text: m.action };
+      show(me, persist(me));
+      const v = PATTERNS.variants.find(x => x.label === m.pattern);
+      const block = `PATTERN · ${v.label.toUpperCase()}\n` + v.steps.map((st, k) => String(k + 1).padStart(2, '0') + ' · ' + st).join('\n');
+      S.updateCard(cid, cc => ({ plan: { ...cc.plan, text: (cc.plan.text || planFallbackText(cc)).trim() + '\n\n' + block } }));
+      nav.refresh(); onDone && onDone();
+      answer({ role: 'ai', text: `Added to the plan of ${titleCase(card().title)}, under PATTERN · ${v.label.toUpperCase()}.` });
+    };
+
+    /* ASK YOUR ARCHIVE: suggested questions as chips under the intro;
+       one becomes your message, the answer cites the cards it used */
+    let sugBox = null;
+    const suggestions = () => {
+      sugBox = view.widget();
+      sugBox.classList.add('chx-sugs');
+      sugBox.append(...AI.SUGGESTED.map(q => h('button', { class: 'chx-chip', type: 'button', onclick: () => archive(q) }, q)));
+    };
+    const looksLikeQuestion = (v) => /\?$|^(what|which|where|when|how|why|who|show|find|did|have|list)\b/i.test(v);
+    async function archive(q) {
+      if (busy) return;
+      busy = true;
+      if (sugBox) { sugBox.remove(); sugBox = null; }
+      view.say('me', q);
+      const done = view.typing();
+      await sleep(700 + Math.random() * 400);
+      done();
+      const { answer, results } = AI.search(q);
+      if (!answer.paras) {
+        view.say('ai', `Nothing in your archive matches that yet. You have ${S.cards().length} cards — try handles, glaze, coils, nerikomi, a colour or a form.`);
+      } else {
+        view.say('ai', answer.paras.join('\n\n'), { src: answer.src });
+        if (results.length) usedCards(view.widget(), results);
+      }
+      busy = false;
+    }
+
+    function show(m, i) {
+      if (m.role === 'sys') return view.sys(m.text);
+      if (m.role === 'me') return view.say('me', m.text, { photos: m.photos || [] });
+      view.say('ai', m.text, { src: m.src });
+      if (m.widget === 'patterns')
+        patternsWidget(view.widget(), { ...PATTERNS, locked: m.pick, onSelect: (v, btn) => pick(i, v, btn) }, view);
+      if (m.action && !m.done) view.pill(m.action, (btn) => addToPlan(i, m, btn));
+    }
 
     /* first message of a card-less chat: decide where it belongs */
     const route = (v) => {
@@ -513,56 +592,59 @@ export function openChat(cardId, threadId, onDone, seed, { ask } = {}) {
       else { S.addCard(res.card); cid = res.card.id; }
       tid = S.addThread(cid, { title: 'NEW CHAT', msgs: [] });
       const name = titleCase(S.byId(cid).title);
-      S.addMessage(cid, tid, { role: 'sys',
-        text: res.kind === 'attach' ? `Added to ${name}` : `Started a new idea: ${name}` });
-      cardLabel.textContent = titleCase(S.byId(cid).title);
-      ti.dataset.ph = 'Ask about this piece…';
+      const sys = { role: 'sys', text: res.kind === 'attach' ? `Added to ${name}` : `Started a new idea: ${name}` };
+      show(sys, persist(sys));
       nav.refresh();
     };
 
-    const send = async (text) => {
-      const v = (text ?? ti.textContent).trim();
-      if (!v || busy) return;
+    async function send(text, photos = []) {
+      const v = (text || '').trim();
+      if ((!v && !photos.length) || busy) return;
       busy = true;
-      ti.textContent = '';
-      if (!cid) route(v);
-      S.addMessage(cid, tid, { role: 'me', text: v });
-      if (thread().title === 'NEW CHAT') S.updateCard(cid, cc => {
+      if (!cid && v && !photos.length && looksLikeQuestion(v) && AI.search(v).answer.paras) { busy = false; return archive(v); }
+      if (!cid) route(v || 'photo');
+      const me = { role: 'me', text: v, photos: photos.length ? photos : undefined };
+      show(me, persist(me));
+      if (thread().title === 'NEW CHAT' && v) S.updateCard(cid, cc => {
         const tt = cc.threads.find(x => x.id === tid);
         tt.title = v.replace(/[?.]$/, '').split(/\s+/).slice(0, 3).join(' ').toUpperCase();
         return {};
       });
-      headTitle.textContent = thread()?.title || 'NEW CHAT';
-      paint();
-      const typing = h('div', { class: 'msg ai' }, h('div', { class: 'typing' }, h('i'), h('i'), h('i')));
-      list.append(typing); list.scrollTop = list.scrollHeight;
+      view.setHead(...head());
       await sleep(700 + Math.random() * 500);
-      typing.remove();
-      const r = AI.reply(S.byId(cid), v);
-      S.addMessage(cid, tid, r);
-      paint();
+      await answer(AI.reply(S.byId(cid), v || 'a photo'), 0);
       busy = false;
       onDone && onDone();
-    };
+    }
 
-    ti.addEventListener('keydown', e => {
-      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
-    });
-
-    p.append(
-      /* header like Ready to post: thread title, card name under it (both
-         fill in once a card-less chat has been routed) */
-      pageHead({ left: navBtn(ICON.back, () => { if (cid) cleanEmpty(cid, tid); onDone && onDone(); close(); }, 'Back'),
-        title: headTitle, sub: cardLabel }),
-      list,
-      h('div', { class: 'composer' }, ti,
-        h('button', { class: 'sendb', html: ICON.send, onclick: () => send() }))
-    );
-    paint();
+    const t = thread();
+    if (!t || !t.msgs.length)
+      view.sys('Ask what’s on your mind', { intro: true });
+    if (!cid && !ask) suggestions();
+    (t ? t.msgs : []).forEach((m, i) => show(m, i));
     if (seed) setTimeout(() => send(`About this note: ${seed}`), 250);
+    else if (ask && !cid) setTimeout(() => archive(ask), 250);
     else if (ask) setTimeout(() => send(ask), 250);
-    setTimeout(() => ti.focus(), 420);
+    else if (reply && t && t.msgs.at(-1)?.role === 'me') {
+      busy = true;
+      setTimeout(async () => { await answer(AI.reply(card(), t.msgs.at(-1).text)); busy = false; onDone && onDone(); }, 250);
+    }
+    setTimeout(() => view.focus(), 420);
   });
+}
+
+/* the cards an archive answer used: a row per card (cut-out or state
+   swatch, name, one memory line); tapping one opens it */
+function usedCards(box, cards) {
+  box.append(h('div', { class: 'reslist chx-used' }, ...cards.map(c => {
+    const src = S.cutoutSrc(c);
+    return h('button', { class: 'res', type: 'button', onclick: () => openCard(c.id) },
+      h('div', { class: 't' }, src ? img(src, '') : h('div', { class: 'state ' + c.state })),
+      h('div', { style: { minWidth: '0' } },
+        h('div', { class: 'n' }, titleCase(c.title)),
+        h('div', { class: 'w' }, AI.memoryLine(c))),
+      h('div', { class: 'state ' + c.state }));
+  })));
 }
 
 function cleanEmpty(cardId, tid) {

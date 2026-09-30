@@ -1036,3 +1036,38 @@ export const PINTEREST_BOARDS = [
   { id:'b4', name:'Shapes', n:63 },
   { id:'b5', name:'Weird handles', n:41 },
 ];
+
+/* Pattern variants for the "Visualize this idea with different painted
+   patterns" chat (widgets/patterns.js). Only the pitcher has variant images
+   for now, so only Pink Pitcher offers it. steps: how to make each one --
+   the chat's answer, and what ADD TO PLAN adds to the card's plan. */
+export const PATTERNS = {
+  cardId: 'red-pink-pitcher',
+  ask: 'Visualize this idea with different painted patterns',
+  question: 'Which variant would you like to explore?',
+  selected: 1,
+  action: 'Select',
+  reply: "Saved {variant} to the pitcher. It's on the card as a new direction.",
+  variants: [
+    { label: 'Glaze run', img: 'assets/chat/glaze run.png', steps: [
+      'Glaze the whole pitcher in a stable base glaze',
+      'Pour a runny glaze around the shoulder only',
+      'Leave 2 cm bare above the foot, it will run',
+      'Fire on a waste slab to catch the drips'] },
+    { label: 'Fade', img: 'assets/chat/fade.png', steps: [
+      'Wax the foot',
+      'Dip the whole pitcher in the light glaze',
+      'Spray the dark glaze up from the foot, thinning it towards the shoulder',
+      'Fire to cone 6'] },
+    { label: 'Stamped', img: 'assets/chat/stampped.png', steps: [
+      'Stamp at leather-hard, before the handle goes on',
+      'Bisque',
+      'Brush oxide into the marks, sponge the surface back',
+      'Clear glaze over the top, cone 6'] },
+    { label: 'Brush', img: 'assets/chat/brush.png', steps: [
+      'At leather-hard, brush underglaze in single loose strokes',
+      'Let each stroke dry before crossing it',
+      'Bisque, then a thin coat of clear glaze',
+      'Fire to cone 6'] },
+  ],
+};
