@@ -1042,12 +1042,12 @@ export const PINTEREST_BOARDS = [
    for now, so only Pink Pitcher offers it. steps: how to make each one --
    the chat's answer, and what ADD TO PLAN adds to the card's plan. */
 export const PATTERNS = {
-  cardId: 'red-pink-pitcher',
+  cardId: 'idea-blue-engobe-jug',
   ask: 'Visualize this idea with different painted patterns',
   question: 'Which variant would you like to explore?',
   selected: 1,
   action: 'Select',
-  reply: "Saved {variant} to the pitcher. It's on the card as a new direction.",
+  reply: "Saved {variant} to the jug. It's on the card as a new direction.",
   variants: [
     { label: 'Glaze run', img: 'assets/chat/glaze run.png', steps: [
       'Glaze the whole pitcher in a stable base glaze',

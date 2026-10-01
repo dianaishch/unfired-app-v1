@@ -32,6 +32,11 @@ const fresh = () => ({
 /* One-off patches for seed changes that saved state (localStorage) would
    otherwise hide from anyone who opened the prototype before. */
 const MIGRATIONS = {
+  /* "Visualize this idea…" used to be offered on every card and opened a
+     generic answer; it's now only the Blue Engobe Jug's pattern widget */
+  'drop-visualize-chats': (s) => {
+    for (const c of s.cards) c.threads = (c.threads || []).filter(t => t.suggest !== 'visualize');
+  },
   /* A Flock of Birds demonstrates the "not enough info for a plan" idea. */
   'bird-flock-thin-plan': (s) => {
     const seed = CARDS.find(c => c.id === 'idea-bird-flock');

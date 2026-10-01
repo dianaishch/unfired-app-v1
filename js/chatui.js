@@ -112,6 +112,9 @@ export function chatView({ status = '', title = '', glow = '#dab4ff', onBack, on
 
   const plus = h('button', { class: 'chx-round big', type: 'button', html: PLUS24_SVG, 'aria-label': 'Add photo or video' });
   const mic = h('button', { class: 'mic', type: 'button', html: MIC_SVG, 'aria-label': 'Voice' });
+  /* tapping + or the mic doesn't take the focus from the field, so the
+     keyboard stays where it is */
+  [plus, mic].forEach(b => b.addEventListener('mousedown', (e) => e.preventDefault()));
   const media = h('div', { class: 'chx-media' }, plus, mic);
   plus.addEventListener('click', () => mediaPicker({ anchor: plus, align: media,
     onPick: (src, guess, { video } = {}) => { attachments.push({ src, video: !!video }); paintAtt(); } }));
@@ -149,7 +152,12 @@ export function chatView({ status = '', title = '', glow = '#dab4ff', onBack, on
      bar's progressive blur (strongest at the bottom), so messages pass
      softly under it; the list keeps room for it at the end */
   const dock = h('div', { class: 'chx-dock' }, pblur('up'), attRow, h('div', { class: 'chx-foot' }, ask, media));
-  new ResizeObserver(() => { list.style.paddingBottom = dock.offsetHeight + 'px'; if (stick) list.scrollTop = list.scrollHeight; }).observe(dock);
+  /* (next frame: changing the list's padding inside the observer would set
+     off "ResizeObserver loop" errors) */
+  new ResizeObserver(() => requestAnimationFrame(() => {
+    list.style.paddingBottom = dock.offsetHeight + 'px';
+    if (stick) list.scrollTop = list.scrollHeight;
+  })).observe(dock);
   const el = h('div', { class: 'chatx' }, head, h('div', { class: 'chx-main' }, list, dock));
 
   /* the dev page's own keyboard, open by default; tapping the conversation

@@ -3,7 +3,6 @@ import { h, ICON, toast, pblur } from './ui.js';
 import * as S from './store.js';
 import { nav } from './nav.js';
 import { renderItems, filters, openSearch, openReadyToPost } from './screens/items.js';
-import { openPostEdit } from './screens/post.js';
 import { renderInsights } from './screens/insights.js';
 import { openCard, openChat } from './screens/card.js';
 import { openCapture } from './screens/capture.js';
@@ -95,15 +94,15 @@ devbar.addEventListener('click', e => {
   const a = e.target.dataset.dev;
   if (!a) return;
   /* screens open on a fresh Items screen, so Back behaves normally */
-  const fresh = () => { document.getElementById('layers').replaceChildren(); route = 'items'; render(); };
-  /* the chat dev page (chat.html): card-fill screens and other scenarios */
-  if (a.startsWith('go:')) { location.href = a.slice(3); return; }
+  const fresh = (to = 'items') => { document.getElementById('layers').replaceChildren(); route = to; render(); };
+  if (a === 'items') fresh();
+  if (a === 'insights') fresh('insights');
   if (a.startsWith('card:')) { fresh(); openCard(a.slice(5)); }
   if (a === 'rtp') { fresh(); openReadyToPost(); }
-  if (a === 'edit') { fresh(); openPostEdit('post-1'); }
   if (a === 'log') { fresh(); openCapture({}); }
-  if (a === 'log-rec') { fresh(); openCapture({ listen: true }); }
+  if (a === 'chat') { fresh(); openChat(null); }
   if (a === 'lock') { fresh(); openLock('lavender-teapot-2'); }
+  if (a === 'discover') { fresh(); openDiscover(); }
   if (a === 'shake') { fresh(); shake(); }
   if (a === 'onboard') openOnboarding();
   if (a === 'reset') {
