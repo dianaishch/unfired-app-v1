@@ -1197,16 +1197,16 @@ img{display:block;max-width:100%}
 .lock .clock .t{font-size:74px;font-weight:200;line-height:1;letter-spacing:-.03em;
   font-family:var(--font)}
 /* live activity card, Figma 494:24966 */
-/* 48px, the piece card's radius (.mkcard / .cardhero2) */
-.la{background:#0a0a0a;border-radius:48px;padding:16px 14px;box-shadow:0 10px 15px rgba(0,0,0,.28)}
+/* Figma 610:9303 -- 40px radius, 24px padding all round */
+.la{background:#0a0a0a;border-radius:40px;padding:24px;box-shadow:0 10px 15px rgba(0,0,0,.28)}
 .la .lah{display:flex;align-items:center;gap:10px}
-.la .latx{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.la .latx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
 /* the chevron folds the plan; 44px hit area around the 16px icon */
 .la .laic{width:44px;height:44px;margin:-10px -12px -10px 0;display:grid;place-items:center;flex:none}
 .la .laic svg{width:16px;height:16px;transition:transform .2s}
 .la .laic.up svg{transform:rotate(180deg)}
 .la-done{margin-top:16px;font-size:14px;line-height:17px;color:#f6f4ec}
-.la .title{font-size:20px;font-weight:500;letter-spacing:-.4px;line-height:normal;color:#fff;
+.la .title{font-size:24px;font-weight:500;letter-spacing:-.4px;line-height:normal;color:#fff;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .la .lastate{display:flex;align-items:center;gap:4px;font-size:12px;
   text-transform:uppercase;color:#FF451A}

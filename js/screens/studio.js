@@ -15,7 +15,7 @@ function activeCard(preferred) {
 /* ---------- LOCK SCREEN ---------- */
 /* Live activity card: Figma 494:24966 ("Live session"). MAKING above the title,
    then the making card's plan (steps as checkboxes, no risks or archive
-   notes), and the app's buttons: END SESSION (turns
+   notes), and the app's buttons: CLOSE (turns
    Live mode off on the card) · + · mic · new chat. */
 
 const LA_CHEVRON_SVG = '<svg viewBox="0 0 15.9961 15.9961" fill="none"><path d="M3.99903 5.99854L7.99805 9.99756L11.9971 5.99854" stroke="white" stroke-opacity="0.6" stroke-width="1.13306" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -33,7 +33,7 @@ export function openLock(cardId, onChange) {
       const card = S.byId(c.id);
       if (!card) { kill(); return; }
 
-      /* the app's own bottom-bar buttons (card.js): END SESSION on the left,
+      /* the app's own bottom-bar buttons (card.js): CLOSE on the left,
          + and mic in the middle, new chat on the right */
       const round = (html, label, onclick) => h('button', { class: 'cb-round', type: 'button', html, onclick, 'aria-label': label });
       const plus = round(PLUS24_SVG, 'Add photo or video', () => mediaDrawer((src, guess) => {
@@ -63,7 +63,7 @@ export function openLock(cardId, onChange) {
       const end = h('button', { class: 'pe-btn accent', type: 'button', onclick: () => {
         S.updateCard(card.id, { live: false });
         nav.refresh(); onChange && onChange(); kill();
-      } }, 'End session');
+      } }, 'Close');
 
       const list = planChecklist(card, undefined, { brief: true });
       const ticked = list.querySelectorAll('input:checked').length;
