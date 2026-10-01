@@ -78,6 +78,25 @@
       ],
       "guess": 0,
       "next": "Next gap: how did it come out? Add a photo."
+    },
+    "cause": {
+      "pattern": "tags",
+      "title": "What happened",
+      "question": "Sorry about this one. What happened?",
+      "options": [
+        "Cracked while drying",
+        "Cracked in bisque",
+        "Broke in glaze firing",
+        "Dropped it",
+        "Other"
+      ],
+      "guess": -1,
+      "next": "Noted. If it broke before bisque, you can reclaim the clay.",
+      "nextFor": {
+        "Cracked while drying": "Want to find out why? I can show you the usual causes.",
+        "Cracked in bisque": "Want to find out why? I can show you the usual causes.",
+        "Broke in glaze firing": "Want to find out why? I can show you the usual causes."
+      }
     }
   },
   "saved": "Saved to card · {field}: {value}",

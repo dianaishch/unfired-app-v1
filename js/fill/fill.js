@@ -29,7 +29,8 @@ export function runFill(view, data, key, card) {
     last = { before: card.get() };
     if (v !== null) card.set(v);
     view.say('ai', savedText(data, f.title, v));
-    view.say('ai', f.next);
+    /* the next gap -- or, per answer, what follows from it (What happened) */
+    view.say('ai', (v !== null && f.nextFor?.[v]) || f.next);
   };
 
   ask();

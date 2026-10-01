@@ -96,6 +96,8 @@ devbar.addEventListener('click', e => {
   if (!a) return;
   /* screens open on a fresh Items screen, so Back behaves normally */
   const fresh = () => { document.getElementById('layers').replaceChildren(); route = 'items'; render(); };
+  /* the chat dev page (chat.html): card-fill screens and other scenarios */
+  if (a.startsWith('go:')) { location.href = a.slice(3); return; }
   if (a.startsWith('card:')) { fresh(); openCard(a.slice(5)); }
   if (a === 'rtp') { fresh(); openReadyToPost(); }
   if (a === 'edit') { fresh(); openPostEdit('post-1'); }

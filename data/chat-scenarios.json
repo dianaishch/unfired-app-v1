@@ -19,84 +19,6 @@
       ]
     },
     {
-      "id": "shrinkage",
-      "name": "Shrinkage calculator",
-      "status": "Chat, now",
-      "title": "Throwing size for a mug",
-      "glow": "#dab4ff",
-      "messages": [
-        {
-          "role": "me",
-          "text": "I want a mug 9 cm tall after firing. How tall should I throw it?"
-        },
-        {
-          "role": "ai",
-          "text": "Throw it at {wet} cm. Your clay shrinks about {pct}%.",
-          "widget": "shrinkage"
-        }
-      ],
-      "widget": {
-        "fired": 9,
-        "min": 5,
-        "max": 20,
-        "step": 0.5,
-        "clay": 1,
-        "clays": [
-          {
-            "label": "Earthenware",
-            "shrink": 8
-          },
-          {
-            "label": "My stoneware",
-            "shrink": 12
-          },
-          {
-            "label": "Porcelain",
-            "shrink": 14
-          }
-        ],
-        "action": "Save to recipe",
-        "reply": "Saved to your recipe: throw at {wet} cm in {clay} for a {fired} cm mug."
-      }
-    },
-    {
-      "id": "layers",
-      "name": "Glaze layer order",
-      "status": "Chat, now",
-      "title": "Glaze layer order",
-      "glow": "#9fbfa6",
-      "messages": [
-        {
-          "role": "me",
-          "text": "What if I put my two glazes the other way around?"
-        },
-        {
-          "role": "ai",
-          "text": "Tap swap to flip the order. Test both on tiles first.",
-          "widget": "layers"
-        }
-      ],
-      "widget": {
-        "glazes": [
-          {
-            "name": "Iron red",
-            "color": "#8a3a22"
-          },
-          {
-            "name": "Celadon",
-            "color": "#a9c6ae"
-          }
-        ],
-        "top": 0,
-        "reference": {
-          "title": "Last time",
-          "text": "Iron over Celadon on the Ash Bowl · you rated it “keep”."
-        },
-        "action": "Plan test tiles",
-        "reply": "Added two test tiles to your next glaze firing: {a} over {b}, and {b} over {a}."
-      }
-    },
-    {
       "id": "archive",
       "name": "Archive recall"
     },
@@ -142,6 +64,11 @@
       "id": "fill-firing",
       "name": "Card fill · Firing",
       "fill": "firing"
+    },
+    {
+      "id": "fill-cause",
+      "name": "Card fill · What happened",
+      "fill": "cause"
     }
   ]
 }

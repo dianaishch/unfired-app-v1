@@ -100,48 +100,6 @@
 .chx-round{position:relative}
 .chx-round::after{content:"";position:absolute;inset:-3px;border-radius:50%}
 
-/* shared widget parts: small uppercase label, slider */
-.chx-label{font-size:12px;text-transform:uppercase;color:var(--ink)}
-/* slider: a thin Surface Raised track filled with paper up to the thumb
-   (--p, set by the widget), 28px paper thumb; 44px tall to tap */
-.chx-range{-webkit-appearance:none;appearance:none;display:block;width:100%;height:44px;margin:0;
-  background:transparent;cursor:pointer}
-.chx-range::-webkit-slider-runnable-track{height:8px;border-radius:100px;
-  background:linear-gradient(to right,var(--paper) var(--p,50%),var(--line) var(--p,50%))}
-.chx-range::-moz-range-track{height:8px;border-radius:100px;background:var(--line)}
-.chx-range::-moz-range-progress{height:8px;border-radius:100px;background:var(--paper)}
-.chx-range::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;margin-top:-10px;border-radius:50%;
-  background:var(--paper);border:1px solid var(--line-2)}
-.chx-range::-moz-range-thumb{width:28px;height:28px;border-radius:50%;background:var(--paper);border:1px solid var(--line-2)}
-
-/* 2 shrinkage */
-.sh-head{display:flex;justify-content:space-between;align-items:baseline}
-.sh-val{font-size:24px;font-weight:500;letter-spacing:-.55px}
-.sh-bars{display:flex;flex-direction:column;gap:12px;padding:4px 0 16px}
-.sh-bar{display:flex;flex-direction:column;gap:6px}
-.sh-track{display:flex;align-items:center;gap:8px}
-/* bars like the Insights "pieces fired" chart: paper at 28%, the answer
-   (throwing height) at full */
-.sh-track i{height:12px;border-radius:100px;background:var(--paper);opacity:.28;transition:width .2s var(--ease)}
-.sh-bar.wet .sh-track i{opacity:1}
-.sh-num{font-size:16px;line-height:18px;white-space:nowrap}
-
-/* 3 layers: tile + the order, then last time in a paper box (like the
-   READY TO POST row) */
-.ly{display:flex;gap:16px;align-items:center;padding-bottom:12px}
-.ly-tile{width:104px;height:130px;flex:none;border-radius:24px;overflow:hidden;transition:opacity .16s}
-.ly-tile svg{display:block;width:100%;height:100%}
-.ly-order{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:8px}
-.ly-g{display:flex;flex-direction:column;gap:4px;transition:opacity .16s}
-.ly-n{display:flex;align-items:center;gap:8px}
-.ly-n i{width:16px;height:16px;border-radius:50%;flex:none}
-.ly-name{font-size:20px;font-weight:500;letter-spacing:-.4px}
-.swapping .ly-tile,.swapping .ly-g{opacity:0}
-.ly-ref{display:flex;flex-direction:column;gap:4px;padding:16px;margin-bottom:12px;border-radius:24px;
-  background:var(--paper);color:var(--bg)}
-.ly-ref-t{font-size:16px;font-weight:700;text-transform:uppercase}
-.ly-ref-s{font-size:12px}
-
 /* app chat extras: source label under an AI answer, system lines, the
    typing dots, the empty slot where the header's right button would be */
 .chx-src{margin-top:12px;font-size:12px;text-transform:uppercase}
