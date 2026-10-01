@@ -97,6 +97,33 @@
         "Cracked in bisque": "Want to find out why? I can show you the usual causes.",
         "Broke in glaze firing": "Want to find out why? I can show you the usual causes."
       }
+    },
+    "size": {
+      "pattern": "card",
+      "control": "size",
+      "title": "Size",
+      "card": "Tall mug",
+      "question": "Same size as your Blue Line Mug? It was 9 cm tall.",
+      "min": 5,
+      "max": 20,
+      "step": 0.5,
+      "value": 9,
+      "_formula": "raw = fired / shrink; wet mug: diameter 0.9 x raw, wall 0.6 cm, base 0.8 cm, clay 1.9 g/cm3, +15% for trimming",
+      "shrink": 0.88,
+      "diameter": 0.9,
+      "wall": 0.6,
+      "base": 0.8,
+      "density": 1.9,
+      "trim": 1.15,
+      "labels": {
+        "fired": "Fired height",
+        "raw": "Raw clay",
+        "unit": "cm",
+        "clay": "≈ {clay} g clay"
+      },
+      "answer": "{h} cm tall",
+      "written": "{h} cm fired · throw at {wet} cm · about {clay} g clay",
+      "next": "Next gap: clay. Speckled stoneware again?"
     }
   },
   "saved": "Saved to card · {field}: {value}",
@@ -105,5 +132,7 @@
   "undoneEmpty": "Undone. {field} is empty again.",
   "nothingToUndo": "There is nothing to undo yet.",
   "undoWords": "undo|change it|change that|go back|revert|that.s wrong|wrong|not that|cancel",
-  "fallback": "Noted. Say “undo” to take back the last answer."
+  "fallback": "Noted. Say “undo” to take back the last answer.",
+  "skip": "Skip",
+  "save": "Save"
 }

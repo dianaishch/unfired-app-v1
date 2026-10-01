@@ -120,3 +120,27 @@
 .chx-tags{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;padding:0 0 8px 40px}
 .chx-tags .chx-chip{display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
 .chx-dot{width:12px;height:12px;border-radius:50%;flex:none}
+
+/* field card: one control in a Surface card (1px Border, 24px corners),
+   SKIP / SAVE right-aligned under it */
+.chx-widget:has(.fc-card){display:flex;flex-direction:column;gap:8px}
+.fc-card{padding:16px;border-radius:24px;background:var(--sheet);border:1px solid var(--line-2);color:var(--ink)}
+.fc-body{display:flex;flex-direction:column;gap:16px}
+.fc-cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.fc-col{display:flex;flex-direction:column;gap:8px}
+.fc-label{font-size:12px;text-transform:uppercase;letter-spacing:.02em}
+.fc-num{display:flex;align-items:baseline;gap:8px}
+.fc-stack{display:flex;flex-direction:column;gap:2px}
+.fc-stack .fc-num{line-height:1}
+.fc-big{font-size:40px;font-weight:500;letter-spacing:-1px}
+.fc-unit{font-size:16px}
+.fc-sub{font-size:14px;line-height:18px}
+.chx-pill.skip{background:var(--line);color:var(--ink)}
+/* slider: 4px Border track, 24px paper thumb; 44px tall to tap */
+.fc-range{-webkit-appearance:none;appearance:none;display:block;width:100%;height:44px;margin:-10px 0;background:transparent;cursor:pointer}
+.fc-range::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:var(--line-2)}
+.fc-range::-moz-range-track{height:4px;border-radius:2px;background:var(--line-2)}
+.fc-range::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;margin-top:-10px;border-radius:50%;background:var(--paper)}
+.fc-range::-moz-range-thumb{width:24px;height:24px;border:none;border-radius:50%;background:var(--paper)}
+.fc-range:focus-visible{outline:none}
+.fc-range:focus-visible::-webkit-slider-thumb{outline:2px solid var(--paper);outline-offset:2px}

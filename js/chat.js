@@ -32,7 +32,7 @@ async function openFill(sc) {
   const data = await (await fetch('data/card-fill.json')).json();
   const card = { values: {} };
   let fill = null;
-  const view = chatView({ status: data.statusPrefix + data.card.name, title: data.fields[sc.fill].title, glow: data.glow,
+  const view = chatView({ status: data.statusPrefix + (data.fields[sc.fill].card || data.card.name), title: data.fields[sc.fill].title, glow: data.glow,
     onBack: () => history.back(), onDelete: () => { location.href = '?'; }, ownKeyboard: true,
     /* your message; "undo" and the like go to the fill */
     onSend: (text) => { view.say('me', text); if (!fill.onText(text)) view.say('ai', data.fallback); } });
