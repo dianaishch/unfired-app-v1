@@ -767,6 +767,8 @@ img{display:block;max-width:100%}
 .lg-text:empty:not(:focus){min-height:0;padding:0}
 /* logged notes: paragraphs in the log's own type, under the description */
 .lg-notes{display:flex;flex-direction:column;gap:16px}
+.lg-notes:not(:empty){padding-bottom:16px}   /* the gap to the photos */
+.lg-note{outline:none;caret-color:#ff451a}
 .lg-note{margin:0;font-size:20px;line-height:20px;font-weight:500;color:#f4f2ec}
 .lg-att{display:flex;gap:12px;flex-wrap:wrap;padding-top:5px}
 .lg-att[hidden]{display:none}

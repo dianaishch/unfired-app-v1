@@ -168,7 +168,22 @@ function logSection(c, render) {
   const text = h('div', { class: 'lg-text', contenteditable: 'true', spellcheck: 'false' }, d.text);
   /* what was logged by voice, Apple Watch, the live activity or typed:
      each note its own paragraph under the description, oldest first */
-  const notes = h('div', { class: 'lg-notes' }, ...[...(c.notes || [])].sort((a, b) => (a.at || 0) - (b.at || 0)).map(n => h('p', { class: 'lg-note' }, n.text)));
+  const notes = h('div', { class: 'lg-notes' }, ...[...(c.notes || [])].sort((a, b) => (a.at || 0) - (b.at || 0)).map(n => {
+    /* editable like the description; saved when you leave it, removed
+       when emptied */
+    const p = h('p', { class: 'lg-note', contenteditable: 'true', spellcheck: 'false' }, n.text);
+    p.addEventListener('blur', () => {
+      const v = p.textContent.trim();
+      if (v === n.text) return;
+      S.updateCard(c.id, cc => ({ notes: v
+        ? (cc.notes || []).map(x => (x.id === n.id ? { ...x, text: v } : x))
+        : (cc.notes || []).filter(x => x.id !== n.id) }));
+      n.text = v;
+      if (!v) p.remove();
+      nav.refresh();
+    });
+    return p;
+  }));
   const att = h('div', { class: 'lg-att' });
   const box = h('div', { class: 'lg' }, ph, text, notes, att);
 
@@ -179,7 +194,14 @@ function logSection(c, render) {
   text.addEventListener('input', sync);
   text.addEventListener('focus', sync);
   text.addEventListener('blur', sync);
-  box.addEventListener('click', (e) => { if (!e.target.closest('.lg-att') && document.activeElement !== text) text.focus(); });
+  /* a tap in LOG outside its texts keeps the text you're in (no blur, so the
+     keyboard doesn't drop and come back); with none, the description */
+  const inText = (el) => el.closest('[contenteditable]');
+  box.addEventListener('mousedown', (e) => { if (!e.target.closest('.lg-att') && !inText(e.target)) e.preventDefault(); });
+  box.addEventListener('click', (e) => {
+    if (e.target.closest('.lg-att') || inText(e.target)) return;
+    if (!box.contains(document.activeElement) || !inText(document.activeElement)) text.focus();
+  });
 
   /* every photo and video on the card, x removes one. Not the piece images
      UNFIRED makes from a photo (pieceOf), and never the old generated
