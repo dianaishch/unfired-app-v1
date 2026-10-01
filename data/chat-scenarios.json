@@ -132,6 +132,11 @@
       "id": "fill-clay",
       "name": "Card fill · Clay",
       "fill": "clay"
+    },
+    {
+      "id": "fill-glaze",
+      "name": "Card fill · Glaze",
+      "fill": "glaze"
     }
   ]
 }

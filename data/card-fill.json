@@ -18,6 +18,52 @@
       ],
       "guess": 0,
       "next": "Next gap: glaze. Which one did you use?"
+    },
+    "glaze": {
+      "pattern": "tags",
+      "title": "Glaze",
+      "question": "Which glaze? Your last three are first.",
+      "options": [
+        {
+          "label": "Floating blue",
+          "dot": "#3c5a93"
+        },
+        {
+          "label": "Celadon",
+          "dot": "#9fbfae"
+        },
+        {
+          "label": "Shino",
+          "dot": "#e0b48a"
+        },
+        {
+          "label": "Tenmoku",
+          "dot": "#5a3420"
+        },
+        {
+          "label": "Iron red",
+          "dot": "#8a3a22"
+        },
+        {
+          "label": "Chun blue",
+          "dot": "#8fb3d9"
+        },
+        {
+          "label": "Satin white",
+          "dot": "#ece6d8"
+        },
+        {
+          "label": "Rutile",
+          "dot": "#b98a4e"
+        },
+        {
+          "label": "Copper red",
+          "dot": "#a3262a"
+        },
+        "Other"
+      ],
+      "guess": 0,
+      "next": "Next gap: firing. Cone 6 oxidation, like usual?"
     }
   },
   "saved": "Saved to card · {field} · {value}",
