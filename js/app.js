@@ -13,6 +13,12 @@ import { openShare } from './screens/share.js';
 import { openOnboarding, runImport } from './screens/onboarding.js';
 import { mountKeyboard } from './keyboard.js';
 
+/* Embedded in an iframe (the landing page) the viewport is phone-sized, so the
+   phone layout applies and env(safe-area-inset-top) is 0 -- everything would
+   sit 14px higher than in the standalone desktop frame. Flag it before the
+   first render so css/app.css can give the frame the same 14px top inset. */
+if (window.self !== window.top) document.documentElement.classList.add('framed');
+
 const app = document.getElementById('app');
 let route = 'items';
 

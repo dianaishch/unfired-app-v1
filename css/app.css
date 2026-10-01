@@ -40,6 +40,10 @@ img{display:block;max-width:100%}
        buttons sit exactly 16px from the frame's edge, as designed */
     --safe-t:14px;--safe-b:0px}
 }
+/* Inside an iframe the viewport is phone-sized, so the rule above never runs
+   and env(safe-area-inset-top) is 0 -- give the embedded frame the same top
+   inset as the standalone desktop one (html.framed is set by js/app.js). */
+@media (max-width:759px){ html.framed #device{--safe-t:14px;--safe-b:0px} }
 .app{position:absolute;inset:0;overflow:hidden}
 
 /* ---------- typography ---------- */
@@ -1179,7 +1183,14 @@ img{display:block;max-width:100%}
 .truth b{color:var(--cyan);font-weight:700;flex:none}
 
 /* ---------- live activity / lock screen ---------- */
-.lock{position:absolute;inset:0;background:linear-gradient(165deg,#1b1a24,#080810 60%,#000);
+/* Colourful wallpaper in the app's own palette: against the old near-black
+   gradient the #0a0a0a live-activity card was invisible. */
+.lock{position:absolute;inset:0;
+  background:
+    radial-gradient(120% 80% at 15% 8%,   #FF4A17 0%, rgba(255,74,23,0) 58%),
+    radial-gradient(110% 70% at 92% 22%,  #2B36FF 0%, rgba(43,54,255,0) 60%),
+    radial-gradient(130% 90% at 50% 105%, #00E2FF 0%, rgba(0,226,255,0) 62%),
+    linear-gradient(165deg,#3A1B46,#1A1030 60%,#0B0A18);
   display:flex;flex-direction:column;padding:calc(var(--safe-t) + 26px) 12px calc(20px + var(--safe-b))}
 .lock .clock{text-align:center;margin-bottom:26px}
 .lock .clock .d{font-size:14px;letter-spacing:.02em;opacity:.7}
