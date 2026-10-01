@@ -137,6 +137,11 @@
       "id": "fill-glaze",
       "name": "Card fill · Glaze",
       "fill": "glaze"
+    },
+    {
+      "id": "fill-firing",
+      "name": "Card fill · Firing",
+      "fill": "firing"
     }
   ]
 }

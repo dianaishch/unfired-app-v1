@@ -64,9 +64,23 @@
       ],
       "guess": 0,
       "next": "Next gap: firing. Cone 6 oxidation, like usual?"
+    },
+    "firing": {
+      "pattern": "tags",
+      "title": "Firing",
+      "question": "Cone 6 oxidation, like usual?",
+      "options": [
+        "Cone 6 · Oxidation",
+        "Cone 6 · Reduction",
+        "Cone 10 · Reduction",
+        "Cone 04 · Oxidation",
+        "Other"
+      ],
+      "guess": 0,
+      "next": "Next gap: how did it come out? Add a photo."
     }
   },
-  "saved": "Saved to card · {field} · {value}",
+  "saved": "Saved to card · {field}: {value}",
   "skipped": "Left {field} empty. I will ask again later.",
   "undone": "Undone. {field} is back to {value}.",
   "undoneEmpty": "Undone. {field} is empty again.",
