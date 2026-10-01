@@ -11,7 +11,10 @@
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0;height:100%;background:#0A0A0A;font-family:var(--font);color:var(--ink)}
-body{overscroll-behavior:none}
+body{overscroll-behavior:none;
+  /* grayscale antialiasing, as Figma draws text: without it macOS browsers
+     thicken light-on-dark text and every weight looks a step bolder */
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;
   -webkit-user-select:none;user-select:none}
 input,textarea{font:inherit;color:inherit;background:none;border:0;outline:none}
