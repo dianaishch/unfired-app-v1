@@ -79,6 +79,11 @@
       "id": "fill-photo",
       "name": "Card fill · Photo",
       "fill": "photo"
+    },
+    {
+      "id": "fill-plan",
+      "name": "Card fill · Session plan",
+      "fill": "plan"
     }
   ]
 }

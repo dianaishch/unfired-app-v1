@@ -4,7 +4,7 @@
    render(box, field, data, onDone): onDone({ value, said, written }) on
    SAVE, onDone(null) on SKIP. The control comes from CONTROLS by
    field.control; each returns { el, result() }. */
-import { h, img } from '../ui.js';
+import { h, img, ICON } from '../ui.js';
 import { openGalleryFor } from '../screens/media.js';
 import { PLUS24_SVG } from '../screens/card.js';
 
@@ -66,6 +66,32 @@ const CONTROLS = {
       result: () => ({ value: src, said: f.answer, written: f.written, photos: [{ src }] }),
     };
   },
+
+  /* Session plan: the PLAN box of a piece card (card.js planSection /
+     planChecklist) -- paper fading to the colour, dark text, the steps as
+     "01 · …" rows with the onboarding checkbox, orange when ticked, the
+     step greyed and struck through; no REGENERATE. The first line counts
+     what's done (a task count, not a score). */
+  plan(f, ready, data) {
+    const ticks = f.steps.map(st => !!st.done);
+    const vars = () => ({ n: ticks.filter(Boolean).length, total: ticks.length });
+    const count = h('div', { class: 'pl-line' });
+    const paintCount = () => { count.textContent = fill(f.labels.count, vars()); };
+    const rows = f.steps.map((st, i) => {
+      const box = h('input', { type: 'checkbox', id: 'fill-step-' + i, checked: ticks[i] || null });
+      box.addEventListener('change', () => { ticks[i] = box.checked; paintCount(); });
+      return h('label', { class: 'pl-step', for: box.id }, box,
+        h('span', { class: 'bx', html: ICON.check, 'aria-hidden': 'true' }),
+        h('span', { class: 'tx' }, String(i + 1).padStart(2, '0') + ' · ' + st.label + (st.note ? '\n' + st.note : '')));
+    });
+    paintCount();
+    return {
+      bare: true,
+      el: h('div', { class: 'pl-box', style: { background: `linear-gradient(0deg, var(--paper) 6.25%, ${data.glow} 100%)` } },
+        h('div', { class: 'pl-text pl-list' }, count, h('div', { class: 'pl-line' }, '\u00a0'), ...rows)),
+      result: () => ({ value: ticks.slice(), said: f.answer, written: fill(f.written, vars()) }),
+    };
+  },
 };
 
 
@@ -73,9 +99,10 @@ export function render(box, f, data, onDone) {
   const save = h('button', { class: 'chx-pill', type: 'button', onclick: () => onDone(control.result()) }, data.save);
   /* a control that needs input first (a photo) holds SAVE until it has it */
   const ready = (on) => { save.disabled = !on; };
-  const control = CONTROLS[f.control](f, ready);
+  const control = CONTROLS[f.control](f, ready, data);
   box.append(
-    h('div', { class: 'fc-card' }, control.el),
+    /* a control may bring its own box (the plan's PLAN box) */
+    control.bare ? control.el : h('div', { class: 'fc-card' }, control.el),
     h('div', { class: 'chx-act' },
       h('button', { class: 'chx-pill skip', type: 'button', onclick: () => onDone(null) }, data.skip),
       save));

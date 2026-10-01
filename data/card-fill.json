@@ -143,6 +143,48 @@
       "written": "After-firing photo added",
       "savedLabel": "Result photo",
       "next": "Nice. Next gap: keep this glaze combo?"
+    },
+    "plan": {
+      "pattern": "card",
+      "control": "plan",
+      "title": "Session plan",
+      "card": "Tall mug",
+      "savedLabel": "Plan",
+      "question": "Here is your plan for tomorrow. Tick steps as you go.",
+      "labels": {
+        "head": "Plan · Tall mug",
+        "count": "{n} of {total} done"
+      },
+      "steps": [
+        {
+          "label": "Wedge 500 g speckled stoneware",
+          "note": "Same as the Blue Line Mug",
+          "done": true
+        },
+        {
+          "label": "Throw 10.2 cm tall",
+          "note": "Fires to 9 cm",
+          "done": true
+        },
+        {
+          "label": "Pull the handle, let it firm up",
+          "note": "Make 2, keep the better one",
+          "done": false
+        },
+        {
+          "label": "Trim at leather-hard",
+          "note": "About 24 h under plastic",
+          "done": false
+        },
+        {
+          "label": "Attach the handle, dry slowly",
+          "note": "Cover the handle joint",
+          "done": false
+        }
+      ],
+      "answer": "Saved the plan",
+      "written": "{total} steps · {n} done",
+      "next": "Pin it to your lock screen for the studio?"
     }
   },
   "saved": "Saved to card · {field}: {value}",
