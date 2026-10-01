@@ -1221,8 +1221,11 @@ img{display:block;max-width:100%}
 .la-plan .pl-step input:checked ~ .tx{color:#54524e}
 /* the app's bottom-bar buttons (.pe-btn / .cb-round) */
 .la-bar{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:16px;container-type:inline-size}
-.la-bar .pe-btn{box-shadow:none;white-space:nowrap;padding-left:max(10px, min(24px, (100cqw - 280px) / 4));
-  padding-right:max(10px, min(24px, (100cqw - 280px) / 4))}
+/* 240, not .card-bar's 280: this bar's container is 40px narrower (24px
+   lock gutters + 48px widget padding, against the card bar's 32px), so the
+   smaller offset makes CLOSE's padding equal POST's at every width. */
+.la-bar .pe-btn{box-shadow:none;white-space:nowrap;padding-left:max(10px, min(24px, (100cqw - 240px) / 4));
+  padding-right:max(10px, min(24px, (100cqw - 240px) / 4))}
 .lock .exit{margin-top:auto;text-align:center;font-size:11px;letter-spacing:.14em;
   text-transform:uppercase;color:var(--ink-faint);padding-top:20px}
 
