@@ -1197,7 +1197,8 @@ img{display:block;max-width:100%}
 .lock .clock .t{font-size:74px;font-weight:200;line-height:1;letter-spacing:-.03em;
   font-family:var(--font)}
 /* live activity card, Figma 494:24966 */
-.la{background:#0a0a0a;border-radius:18px;padding:16px 14px;box-shadow:0 10px 15px rgba(0,0,0,.28)}
+/* 48px, the piece card's radius (.mkcard / .cardhero2) */
+.la{background:#0a0a0a;border-radius:48px;padding:16px 14px;box-shadow:0 10px 15px rgba(0,0,0,.28)}
 .la .lah{display:flex;align-items:center;gap:10px}
 .la .latx{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
 /* the chevron folds the plan; 44px hit area around the 16px icon */
