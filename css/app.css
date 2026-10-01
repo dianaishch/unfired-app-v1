@@ -377,7 +377,7 @@ img{display:block;max-width:100%}
   text-transform:uppercase;color:#040404}
 .pe-btn.paper{background:#f6f4ec;box-shadow:0 10px 17px rgba(255,255,255,.13)}
 .pe-btn.accent{background:#FF451A;box-shadow:0 10px 17px rgba(255,255,255,.13)}
-.pe-btn.dark{width:87px;padding:4px 0 0;background:#0e0e0e;border:1px solid #292929;color:#f6f4ec}
+.pe-btn.dark{width:87px;padding:1px 0 0;background:#0e0e0e;border:1px solid #292929;color:#f6f4ec}
 .ph-modal{padding:28px 4px 20px;font-size:16px;line-height:18px;text-align:center;color:#f6f4ec}
 
 /* piece card: "Ready to post" row (Figma 493:16931) */
@@ -596,7 +596,7 @@ img{display:block;max-width:100%}
    the tokens instead of restating the same hex. */
 .statepick{display:flex;padding:2px;justify-content:center;align-items:center;
   align-self:stretch;border-radius:100px;background:#0E0E0E}
-.statepick button{display:flex;padding:2px 24px 0;flex-direction:column;
+.statepick button{display:flex;padding:1px 24px 0;flex-direction:column;
   justify-content:center;align-items:center;flex:1 0 0;align-self:stretch;
   border-radius:100px;font-family:var(--font);font-size:14px;font-weight:700;
   line-height:normal;letter-spacing:-.14px;text-transform:uppercase;text-align:center;
@@ -1250,15 +1250,15 @@ img{display:block;max-width:100%}
 .onb p{font-size:16px;line-height:20px;color:var(--ink-dim);margin:16px 0 0;max-width:none}
 .onb .ofoot{display:flex;flex-direction:column;gap:10px}
 .onb .prim{height:58px;border-radius:30px;background:#f6f4ec;color:#040404;font-size:16px;
-  font-weight:700;letter-spacing:0;text-transform:uppercase;padding-top:4px}
+  font-weight:700;letter-spacing:0;text-transform:uppercase;padding:0}
 .onb .skip{height:58px;font-size:16px;font-weight:700;letter-spacing:0;text-transform:uppercase;
-  color:var(--ink-dim);padding-top:4px}
+  color:var(--ink-dim);padding:0}
 .boards{display:flex;flex-direction:column;gap:2px;margin-top:26px}
 .boards button{display:flex;align-items:center;gap:14px;padding:16px 0;text-align:left}
 .boards .bx{width:24px;height:24px;border-radius:7px;border:1px solid #292929;flex:none;
   display:grid;place-items:center}
 .boards .bx svg{width:16px;height:16px}
-.boards .on .bx{background:var(--acid);border:1px solid var(--acid);color:#040404}
+.boards .on .bx{background:var(--orange);border:1px solid var(--orange);color:#040404}
 .boards .bn{font-size:16px;letter-spacing:0;color:#f6f4ec}
 .boards .bc{font-size:14px;color:var(--ink-dim);margin-left:auto}
 .scanline{margin-top:24px;display:flex;flex-direction:column;gap:9px}
