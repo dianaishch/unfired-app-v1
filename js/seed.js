@@ -172,7 +172,7 @@ export const CARDS = [
 {
   id:'blue-striped-mug', state:'finished', title:'BLUE LINE MUG',
   created:D('2026-03-02'), updated:D('2026-04-04'), finishedAt:D('2026-04-04'),
-  origin:{ type:'voice', label:'Voice note' }, glow:'#5B8FC9', outcome:'partial', readyToShare:true,
+  origin:{ type:'voice', label:'Voice note' }, glow:'#5B8FC9', readyToShare:true,
   desc:'Cream mug with blue engobe drawn straight down the wall in one pass. The first handle cracked after bisque and I made a second one.',
   tags:['hand built','engobe','turquoise engobe','handle','crack','mug','stoneware','cone 6'],
   hero:{ src:P('08-blue-striped-mug') },
@@ -219,7 +219,7 @@ export const CARDS = [
 {
   id:'deep-blue-bowl', state:'finished', title:'DEEP BLUE BOWL',
   created:D('2026-02-04'), updated:D('2026-03-01'), finishedAt:D('2026-03-01'),
-  origin:{ type:'photo', label:'Photo library' }, glow:'#2A4C8F', outcome:'partial',
+  origin:{ type:'photo', label:'Photo library' }, glow:'#2A4C8F',
   desc:'Pinched bowl in a speckled blue. The glaze pooled beautifully in the bottom and pinholed along the rim where I put it on thickest.',
   tags:['pinched','glaze test','blue glaze','pinhole','bowl','stoneware','cone 6'],
   hero:{ src:P('13-deep-blue-bowl') },
@@ -429,7 +429,7 @@ export const CARDS = [
 {
   id:'striped-bowl', state:'finished', title:'STRIPED BOWL',
   created:D('2026-06-14'), updated:D('2026-07-12'), finishedAt:D('2026-07-12'),
-  origin:{ type:'pinterest', label:'Pinterest · Ceramics' }, glow:'#C08A3E', outcome:'partial',
+  origin:{ type:'pinterest', label:'Pinterest · Ceramics' }, glow:'#C08A3E',
   desc:'Six colours straight down the wall, inside and out. The yellow went thin and I had to go back over it.',
   tags:['press mould','underglaze','stripes','bowl','stoneware','cone 6'],
   hero:{ src:P('05-multicolor-striped-bowl') },
@@ -584,7 +584,7 @@ export const CARDS = [
 {
   id:'nerikomi-bowl', state:'finished', title:'NERIKOMI BOWL',
   created:D('2026-04-02'), updated:D('2026-04-26'), finishedAt:D('2026-04-26'),
-  origin:{ type:'text', label:'Typed idea' }, glow:'#4A4A4A', outcome:'partial',
+  origin:{ type:'text', label:'Typed idea' }, glow:'#4A4A4A',
   desc:'First and so far only nerikomi attempt. Stained blocks, sliced and pressed into a bowl. The pattern smeared when I ribbed it and I never photographed it.',
   tags:['nerikomi','press mould','stained clay','porcelain','bowl','cone 6','experiment'],
   hero:null,
@@ -1004,17 +1004,30 @@ export const CARDS = [
 }
 ];
 
-/* Simulated phone photo library — used by the import simulation */
+/* Simulated phone camera roll (assets/gallery images) -- the Log / card
+   gallery panel (media.js), the post Edit library and the onboarding import.
+   What each photo shows stands in for image recognition: `guess` is its
+   status -- final (glazed: a finished piece), process (unfired: making) or
+   inspiration (not ceramics: an idea) -- and `name` what the object is.
+   video: the clip's length -- the still stands in for the clip; idea: the
+   import turns it into a card; piece: the same object with its background
+   removed -- added to a card alongside the photo as its piece image. */
+const G = (n) => `assets/gallery images/galleryimage${n}.png`;
 export const PHOTO_LIB = [
-  { id:'l1', src:PRC('19-lavender-teapot'), guess:'process', card:'lavender-teapot-2', cap:'Studio, this morning' },
-  { id:'l2', src:SNP('19-lavender-teapot'), guess:'process', card:'lavender-teapot-2', cap:'Bench, Tuesday' },
-  { id:'l3', src:SNP('01-red-star-sun-plate'), guess:'final', card:'starred-plates', cap:'Kitchen table' },
-  { id:'l4', src:SNP('02-red-star-bowl'), guess:'final', card:'starred-plates', cap:'Kitchen table' },
-  { id:'l5', src:P('16-pink-shell-dish'), guess:'inspiration', card:null, cap:'Screenshot' },
-  { id:'l6', src:SNP('12-green-cup'), guess:'final', card:'green-cup', cap:'Window sill' },
-  { id:'l7', src:PRC('14-three-flower-vase'), guess:'process', card:'three-flower-vase', cap:'Drying shelf' },
-  { id:'l8', src:P('20-coral-heart-dish'), guess:'inspiration', card:null, cap:'Screenshot' },
+  { id:'l1',  src:G('01'), piece:G('01nobg'), guess:'final', name:'Marbled mug', idea:true, cap:'Living room' },
+  { id:'l2',  src:G('02'), piece:G('02nobg'), guess:'final', name:'Marbled bowl', cap:'Studio' },
+  { id:'l3',  src:G('03'), piece:G('03nobg'), guess:'final', name:'Glaze test tiles', cap:'Kitchen table' },
+  { id:'l4',  src:G('04'), guess:'inspiration', video:'0:14', cap:'Shop' },
+  { id:'l5',  src:G('05'), guess:'inspiration', cap:'Screenshot' },
+  { id:'l6',  src:G('06'), guess:'inspiration', cap:'Hallway' },
+  { id:'l7',  src:G('07'), guess:'inspiration', cap:'Home' },
+  { id:'l8',  src:G('08'), piece:G('08nobg'), guess:'process', name:'Flower buttons', cap:'Bench' },
+  { id:'l9',  src:G('09'), guess:'inspiration', video:'0:32', cap:'Market' },
+  { id:'l10', src:G('10'), piece:G('10nobg'), guess:'process', name:'Dotted rings', cap:'Drying shelf' },
+  { id:'l11', src:G('11'), guess:'inspiration', cap:'Street' },
+  { id:'l12', src:G('12'), guess:'inspiration', cap:'Evening' },
 ];
+export const GALLERY = PHOTO_LIB;
 
 export const PINTEREST_BOARDS = [
   { id:'b1', name:'Ceramics', n:214 },
@@ -1023,3 +1036,38 @@ export const PINTEREST_BOARDS = [
   { id:'b4', name:'Shapes', n:63 },
   { id:'b5', name:'Weird handles', n:41 },
 ];
+
+/* Pattern variants for the "Visualize this idea with different painted
+   patterns" chat (widgets/patterns.js). Only the pitcher has variant images
+   for now, so only Pink Pitcher offers it. steps: how to make each one --
+   the chat's answer, and what ADD TO PLAN adds to the card's plan. */
+export const PATTERNS = {
+  cardId: 'red-pink-pitcher',
+  ask: 'Visualize this idea with different painted patterns',
+  question: 'Which variant would you like to explore?',
+  selected: 1,
+  action: 'Select',
+  reply: "Saved {variant} to the pitcher. It's on the card as a new direction.",
+  variants: [
+    { label: 'Glaze run', img: 'assets/chat/glaze run.png', steps: [
+      'Glaze the whole pitcher in a stable base glaze',
+      'Pour a runny glaze around the shoulder only',
+      'Leave 2 cm bare above the foot, it will run',
+      'Fire on a waste slab to catch the drips'] },
+    { label: 'Fade', img: 'assets/chat/fade.png', steps: [
+      'Wax the foot',
+      'Dip the whole pitcher in the light glaze',
+      'Spray the dark glaze up from the foot, thinning it towards the shoulder',
+      'Fire to cone 6'] },
+    { label: 'Stamped', img: 'assets/chat/stampped.png', steps: [
+      'Stamp at leather-hard, before the handle goes on',
+      'Bisque',
+      'Brush oxide into the marks, sponge the surface back',
+      'Clear glaze over the top, cone 6'] },
+    { label: 'Brush', img: 'assets/chat/brush.png', steps: [
+      'At leather-hard, brush underglaze in single loose strokes',
+      'Let each stroke dry before crossing it',
+      'Bisque, then a thin coat of clear glaze',
+      'Fire to cone 6'] },
+  ],
+};

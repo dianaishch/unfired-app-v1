@@ -102,10 +102,11 @@ export async function runImport(force = false) {
 
   const teapot = S.byId('lavender-teapot-2');
   const plates = S.byId('starred-plates');
-  const pool = PHOTO_LIB.slice(0, 8);
+  const pool = PHOTO_LIB;
   const toTeapot = pool.filter(p => p.card === 'lavender-teapot-2');
   const toPlates = pool.filter(p => p.card === 'starred-plates');
-  const newIdea = pool.find(p => !p.card);
+  const ideaShots = pool.filter(p => p.idea);
+  const newIdea = ideaShots[0];
 
   const added = { teapot: 0, plates: 0 };
   const snap = S.mutate(state => {
@@ -125,17 +126,23 @@ export async function runImport(force = false) {
   });
 
   let created = null;
-  if (newIdea && !S.cards().some(c => c.hero?.src === newIdea.src)) {
+  /* the card's hero is the cut-out (newIdea.piece), so match either image */
+  if (newIdea && !S.cards().some(c => [newIdea.src, newIdea.piece].includes(c.hero?.src))) {
     created = {
-      id: S.uid('c'), state: 'idea', title: 'SHELL FORM',
-      created: Date.now(), updated: Date.now(),
+      /* what the photo shows sets the status (S.stateFor): glazed -> finished */
+      id: S.uid('c'), state: S.stateFor(newIdea.src) || 'idea', title: (newIdea.name || 'Marbled mug').toUpperCase(),
+      created: Date.now(), updated: Date.now(), startedMaking: Date.now(), finishedAt: Date.now(),
+      readyToShare: S.stateFor(newIdea.src) === 'finished',
       origin: { type: 'photo', label: 'Found in your photos' },
-      glow: '#D89AA8',
-      desc: 'A screenshot UNFIRED found in your camera roll. Shell form, shallow, pressed.',
-      tags: ['press mould', 'shell', 'dish'],
-      hero: { src: newIdea.src, ref: true },
-      plan: AI.generatePlan('press mould shell dish'),
-      photos: [{ id: S.uid('p'), kind: 'inspiration', src: newIdea.src, cap: 'Screenshot' }],
+      glow: '#8C8479',
+      desc: 'A marbled mug UNFIRED found in your camera roll. Nerikomi, dark and light clay swirled together.',
+      tags: ['nerikomi', 'marbled', 'mug'],
+      hero: { src: newIdea.piece || newIdea.src, ref: true },
+      plan: AI.generatePlan('nerikomi marbled mug'),
+      photos: ideaShots.flatMap(p => {
+        const ph = { id: S.uid('p'), kind: p.guess || 'inspiration', src: p.src, cap: p.cap };
+        return p.piece ? [ph, { id: S.uid('p'), kind: 'final', src: p.piece, pieceOf: ph.id, cap: 'Piece image' }] : [ph];
+      }),
       notes: [], threads: [],
     };
     S.addCard(created);
@@ -148,7 +155,7 @@ export async function runImport(force = false) {
     html: `Found ${n} ceramic photo${n === 1 ? '' : 's'}.` +
       (added.teapot ? `<br>Added ${added.teapot} to <b>${teapot?.title || '—'}</b>` : '') +
       (added.plates ? `<br>Added ${added.plates} to <b>${plates?.title || '—'}</b>` : '') +
-      (created ? '<br>Created 1 new idea' : ''),
+      (created ? `<br>Added <b>${created.title}</b>, ${created.state}` : ''),
     ms: 7000,
     undo: () => { S.restore(snap); if (created) S.mutate(st => { st.cards = st.cards.filter(c => c.id !== created.id); }); nav.refresh(); },
   });

@@ -1,0 +1,199 @@
+{
+  "glow": "#6ab8ef",
+  "card": {
+    "name": "Blue Fade Pitcher"
+  },
+  "statusPrefix": "Card · ",
+  "notNow": "Not now",
+  "fields": {
+    "clay": {
+      "pattern": "tags",
+      "title": "Clay",
+      "question": "Speckled stoneware, like last time?",
+      "options": [
+        "Speckled stoneware",
+        "Porcelain",
+        "Red earthenware",
+        "Other"
+      ],
+      "guess": 0,
+      "next": "Next gap: glaze. Which one did you use?"
+    },
+    "glaze": {
+      "pattern": "tags",
+      "title": "Glaze",
+      "question": "Which glaze? Your last three are first.",
+      "options": [
+        {
+          "label": "Floating blue",
+          "dot": "#3c5a93"
+        },
+        {
+          "label": "Celadon",
+          "dot": "#9fbfae"
+        },
+        {
+          "label": "Shino",
+          "dot": "#e0b48a"
+        },
+        {
+          "label": "Tenmoku",
+          "dot": "#5a3420"
+        },
+        {
+          "label": "Iron red",
+          "dot": "#8a3a22"
+        },
+        {
+          "label": "Chun blue",
+          "dot": "#8fb3d9"
+        },
+        {
+          "label": "Satin white",
+          "dot": "#ece6d8"
+        },
+        {
+          "label": "Rutile",
+          "dot": "#b98a4e"
+        },
+        {
+          "label": "Copper red",
+          "dot": "#a3262a"
+        },
+        "Other"
+      ],
+      "guess": 0,
+      "next": "Next gap: firing. Cone 6 oxidation, like usual?"
+    },
+    "firing": {
+      "pattern": "tags",
+      "title": "Firing",
+      "question": "Cone 6 oxidation, like usual?",
+      "options": [
+        "Cone 6 · Oxidation",
+        "Cone 6 · Reduction",
+        "Cone 10 · Reduction",
+        "Cone 04 · Oxidation",
+        "Other"
+      ],
+      "guess": 0,
+      "next": "Next gap: how did it come out? Add a photo."
+    },
+    "cause": {
+      "pattern": "tags",
+      "title": "What happened",
+      "question": "Sorry about this one. What happened?",
+      "options": [
+        "Cracked while drying",
+        "Cracked in bisque",
+        "Broke in glaze firing",
+        "Dropped it",
+        "Other"
+      ],
+      "guess": -1,
+      "next": "Noted. If it broke before bisque, you can reclaim the clay.",
+      "nextFor": {
+        "Cracked while drying": "Want to find out why? I can show you the usual causes.",
+        "Cracked in bisque": "Want to find out why? I can show you the usual causes.",
+        "Broke in glaze firing": "Want to find out why? I can show you the usual causes."
+      }
+    },
+    "size": {
+      "pattern": "card",
+      "control": "size",
+      "title": "Size",
+      "card": "Tall mug",
+      "question": "Same size as your Blue Line Mug? It was 9 cm tall.",
+      "min": 5,
+      "max": 20,
+      "step": 0.5,
+      "value": 9,
+      "_formula": "raw = fired / shrink; wet mug: diameter 0.9 x raw, wall 0.6 cm, base 0.8 cm, clay 1.9 g/cm3, +15% for trimming",
+      "shrink": 0.88,
+      "diameter": 0.9,
+      "wall": 0.6,
+      "base": 0.8,
+      "density": 1.9,
+      "trim": 1.15,
+      "labels": {
+        "fired": "Fired height",
+        "raw": "Raw clay",
+        "unit": "cm",
+        "clay": "≈ {clay} g clay"
+      },
+      "answer": "{h} cm tall",
+      "written": "{h} cm fired · throw at {wet} cm · about {clay} g clay",
+      "next": "Next gap: clay. Speckled stoneware again?"
+    },
+    "photo": {
+      "pattern": "card",
+      "control": "photo",
+      "title": "How it came out",
+      "question": "How did it come out? Add a photo after firing.",
+      "before": {
+        "src": "design-ref/card-fill/designs/pitcher.png",
+        "alt": "Pitcher before firing"
+      },
+      "labels": {
+        "before": "Before firing",
+        "after": "After firing",
+        "add": "Add photo"
+      },
+      "answer": "Here it is",
+      "written": "After-firing photo added",
+      "savedLabel": "Result photo",
+      "next": "Nice. Next gap: keep this glaze combo?"
+    },
+    "plan": {
+      "pattern": "card",
+      "control": "plan",
+      "title": "Session plan",
+      "card": "Tall mug",
+      "savedLabel": "Plan",
+      "question": "Here is your plan for tomorrow. Tick steps as you go.",
+      "labels": {
+        "head": "Plan · Tall mug",
+        "count": "{n} of {total} done"
+      },
+      "steps": [
+        {
+          "label": "Wedge 500 g speckled stoneware",
+          "note": "Same as the Blue Line Mug",
+          "done": true
+        },
+        {
+          "label": "Throw 10.2 cm tall",
+          "note": "Fires to 9 cm",
+          "done": true
+        },
+        {
+          "label": "Pull the handle, let it firm up",
+          "note": "Make 2, keep the better one",
+          "done": false
+        },
+        {
+          "label": "Trim at leather-hard",
+          "note": "About 24 h under plastic",
+          "done": false
+        },
+        {
+          "label": "Attach the handle, dry slowly",
+          "note": "Cover the handle joint",
+          "done": false
+        }
+      ],
+      "answer": "Saved the plan",
+      "written": "{total} steps · {n} done",
+      "next": "Pin it to your lock screen for the studio?"
+    }
+  },
+  "saved": "Saved to card · {field}: {value}",
+  "skipped": "Left {field} empty. I will ask again later.",
+  "undone": "Undone. {field} is back to {value}.",
+  "undoneEmpty": "Undone. {field} is empty again.",
+  "nothingToUndo": "There is nothing to undo yet.",
+  "undoWords": "undo|change it|change that|go back|revert|that.s wrong|wrong|not that|cancel",
+  "fallback": "Noted. Say “undo” to take back the last answer.",
+  "skip": "Skip",
+  "save": "Save"
+}

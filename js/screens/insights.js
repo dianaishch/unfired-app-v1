@@ -1,30 +1,39 @@
 /* INSIGHTS — patterns pulled out of the same dataset. Not a dashboard. */
-import { h, squircle } from '../ui.js';
+import { h, squircle, cardLoop } from '../ui.js';
 import * as AI from '../ai.js';
 import { nav } from '../nav.js';
 import { openCard } from './card.js';
 import { openSearch } from './items.js';
 
+/* One insight at a time, in the same looping deck as Ready to post
+   (ui.js cardLoop): swipe sideways, tap a side card to bring it in. */
 export function renderInsights(root) {
-  const scroll = h('div', { class: 'scroll' });
   const list = AI.insights();
-
-  /* intro heading + "Derived from…" line removed per your call; a small
-     spacer keeps the first panel off the tabs */
-  scroll.append(h('div', { style: { height: '4px' } }));
-  list.forEach(i => scroll.append(panel(i)));
-
-  scroll.append(h('div', { class: 'pad', style: { padding: '20px' } },
-    h('div', { class: 'meta' },
-      'Estimates and patterns, not guarantees. Firing and glaze figures come from what you recorded — check manufacturer specifications before you change a schedule.')));
-
-  root.replaceChildren(scroll);
+  const n = list.length;
+  const total = n * Math.ceil(9 / n);
+  const els = Array.from({ length: total }, (_, j) => panel(list[j % n]));
+  const deck = h('div', { class: 'ins-deck' }, ...els);
+  const wrap = h('div', { class: 'ins-page' }, deck,
+    h('div', { class: 'ins-foot' },
+      'Estimates and patterns, not guarantees. Firing and glaze figures come from what you recorded.'));
+  root.replaceChildren(wrap);
+  cardLoop(wrap, deck, els, n).render();
 }
 
+/* Figma 583:8265: the headline reads as one sentence ("21 pieces fired"),
+   not the stacked caps the data is written in */
+const sentence = (s) => {
+  const t = (s || '').replace(/\s*\n\s*/g, ' ').replace(/\.$/, '').toLowerCase();
+  return t.charAt(0).toUpperCase() + t.slice(1);
+};
+/* "Blue, then red": eight arch bars, the blue-leaning share bright */
+const EVO_H = [76, 96, 100, 69, 59, 70, 69, 50];
+
 function panel(i) {
-  const el = h('div', { class: 'ins ' + i.tone });
+  /* a text-only card (no chart, no button) is as tall as its text */
+  const el = h('div', { class: 'ins ' + i.tone + (i.kind === 'text' && !i.act ? ' short' : '') });
   const top = h('div');
-  top.append(h('h2', { class: 'h-mega', html: (i.big || '').replace(/\n/g, '<br>') }));
+  top.append(h('h2', { class: 'ins-t' }, sentence(i.big)));
 
   if (i.kind === 'bars') {
     const bars = h('div', { class: 'bars' });
@@ -42,18 +51,21 @@ function panel(i) {
   if (i.kind === 'evo') {
     const evo = h('div', { class: 'evo' });
     const total = i.a + i.b || 1;
-    for (let k = 0; k < 8; k++)
-      evo.append(h('i', { style: { height: (30 + (k < (i.a / total) * 8 ? 62 : 34) * Math.random() + 20) + '%', opacity: k < (i.a / total) * 8 ? .85 : .4 } }));
+    const lit = Math.round((i.a / total) * 8);
+    EVO_H.forEach((ht, k) => evo.append(h('i', { class: k < lit ? 'lit' : '', style: { height: ht + '%' } })));
     top.append(evo);
   }
 
-  if (i.note) top.append(h('div', { class: 'note' }, i.note));
+  if (i.note && i.kind !== 'tech') top.append(h('div', { class: 'note' }, i.note));
   el.append(top);
 
   if (i.act)
     el.append(h('button', {
       class: 'act', onclick: () => {
-        if (i.go?.type === 'search') openSearch(i.go.q);
+        /* the chat's AI bubbles take this card's colour (the near-black
+           dark cards keep the default, dark text wouldn't read on it) */
+        const glow = i.tone === 'dark' ? undefined : getComputedStyle(el).backgroundColor;
+        if (i.go?.type === 'search') openSearch(i.go.q, { glow });
         else if (i.go?.type === 'card') openCard(i.go.id);
       }
     }, i.act));

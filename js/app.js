@@ -1,8 +1,8 @@
 /* UNFIRED — app shell: two destinations, one persistent LOG, everything else contextual. */
-import { h, ICON, toast } from './ui.js';
+import { h, ICON, toast, pblur } from './ui.js';
 import * as S from './store.js';
 import { nav } from './nav.js';
-import { renderItems, openSearch, openReadyToPost } from './screens/items.js';
+import { renderItems, filters, openSearch, openReadyToPost } from './screens/items.js';
 import { openPostEdit } from './screens/post.js';
 import { renderInsights } from './screens/insights.js';
 import { openCard, openChat } from './screens/card.js';
@@ -12,19 +12,20 @@ import { openCollide } from './screens/collide.js';
 import { openLock, openWatch } from './screens/studio.js';
 import { openShare } from './screens/share.js';
 import { openOnboarding, runImport } from './screens/onboarding.js';
+import { mountKeyboard } from './keyboard.js';
 
 const app = document.getElementById('app');
 let route = 'items';
 
 function chrome() {
-  const bar = h('div', { class: 'topbar' },
+  const bar = h('div', { class: 'topbar' }, pblur('down'),
     h('button', { class: 'navword' + (route === 'items' ? ' on' : ''), onclick: () => go('items') }, 'Items'),
     h('button', { class: 'navword' + (route === 'insights' ? ' on' : ''), onclick: () => go('insights') }, 'Insights'),
     h('div', { class: 'spacer' }),
-    /* Search on both tabs (Insights used to show a Discover icon here) */
-    h('button', { class: 'circlebtn', html: ICON.topSearch, onclick: () => openSearch(), 'aria-label': 'Search' }));
+    /* Items' filter tags live in the bar, above its fade */
+    route === 'items' ? filters() : null);
 
-  const dock = h('div', { class: 'logdock' },
+  const dock = h('div', { class: 'logdock' }, pblur('up'),
     h('button', { class: 'side', html: ICON.dockDiscover, onclick: openDiscover, 'aria-label': 'Discover' }),
     h('button', { class: 'logbtn', onclick: () => openCapture({}) }, h('span', { class: 'dot' }), 'Log'),
     /* new chat -- UNFIRED files it under the right piece after the first
@@ -95,6 +96,8 @@ devbar.addEventListener('click', e => {
   if (!a) return;
   /* screens open on a fresh Items screen, so Back behaves normally */
   const fresh = () => { document.getElementById('layers').replaceChildren(); route = 'items'; render(); };
+  /* the chat dev page (chat.html): card-fill screens and other scenarios */
+  if (a.startsWith('go:')) { location.href = a.slice(3); return; }
   if (a.startsWith('card:')) { fresh(); openCard(a.slice(5)); }
   if (a === 'rtp') { fresh(); openReadyToPost(); }
   if (a === 'edit') { fresh(); openPostEdit('post-1'); }
@@ -115,6 +118,7 @@ devbar.addEventListener('click', e => {
 
 /* ---------- boot ---------- */
 render();
+mountKeyboard(document.getElementById('device'));
 
 const s = S.get();
 if (!s.onboarded) {

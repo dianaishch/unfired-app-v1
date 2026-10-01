@@ -1,9 +1,10 @@
 /* DISCOVER — a physical stack of ideas. Swipe, tap, or shake to collide. */
-import { h, ICON, toast, fullLayer, img, sleep, titleCase, pageHead, navBtn, squircle } from '../ui.js';
+import { h, ICON, toast, fullLayer, img, sleep, titleCase, pageHead, navBtn, squircle, pblur } from '../ui.js';
 import * as S from '../store.js';
 import * as AI from '../ai.js';
 import { nav } from '../nav.js';
-import { openCard } from './card.js';
+import { openCard, planFallbackText, heroStatusBar, startMaking } from './card.js';
+import { BACK16_SVG } from './media.js';
 import { openCollide } from './collide.js';
 
 export function openDiscover() {
@@ -14,8 +15,7 @@ export function openDiscover() {
 
     /* header: same layout as the Ready to post screen (ui.js pageHead) */
     const head = pageHead({
-      left: navBtn(ICON.close, kill, 'Close'),
-      right: navBtn(ICON.spark, () => { kill(); openCollide(); }, 'Collide'),
+      left: navBtn(ICON.back, kill, 'Back'),
       title: 'Discover',
       sub: 'Swipe · tap to inspect · shake to collide',
     });
@@ -75,8 +75,9 @@ export function openDiscover() {
       paint();
     };
 
-    const save = (item) => {
-      if (item.kind === 'own') { toast({ html: `Already in your ideas — <b>${item.title}</b>` }); return; }
+    /* returns the card's id; quiet: no toast (START MAKING has its own) */
+    const save = (item, { quiet } = {}) => {
+      if (item.kind === 'own') { if (!quiet) toast({ html: `Already in your ideas — <b>${item.title}</b>` }); return item.cardId; }
       const card = {
         id: S.uid('c'), state: 'idea', title: item.title,
         created: Date.now(), updated: Date.now(),
@@ -91,10 +92,11 @@ export function openDiscover() {
       const snap = S.addCard(card);
       S.mutate(s => s.savedFromDiscover.push(item.id));
       nav.refresh();
-      toast({
+      if (!quiet) toast({
         html: `Saved as an idea — <b>${card.title}</b>`,
         undo: () => { S.restore(snap); nav.refresh(); },
       });
+      return card.id;
     };
 
     const attachGestures = (el, item) => {
@@ -115,7 +117,7 @@ export function openDiscover() {
         el.style.transition = '';
         if (Math.abs(dx) > 92) { decide(item, el, dx > 0 ? 1 : -1); return; }
         el.style.transform = ''; yes.style.opacity = 0; no.style.opacity = 0;
-        if (!moved) inspect(item, save);
+        if (!moved) inspect(item, save, colorOf(item));
         dx = 0;
       };
       el.addEventListener('touchstart', e => down(e.touches[0].clientX, e.touches[0].clientY), { passive: true });
@@ -128,7 +130,7 @@ export function openDiscover() {
 
     const acts = h('div', { class: 'dactions' },
       h('button', { class: 'dact', html: '✕', onclick: () => { const el = stage.querySelector('.dcard:last-child'); if (el && feed[0]) decide(feed[0], el, -1); } }),
-      h('button', { class: 'dact big', html: ICON.spark, onclick: () => { kill(); openCollide(); } }),
+      h('button', { class: 'dact big dcollide', onclick: () => { kill(); openCollide(); } }, 'Collide'),
       h('button', { class: 'dact', html: '♥', onclick: () => { const el = stage.querySelector('.dcard:last-child'); if (el && feed[0]) decide(feed[0], el, 1); } }));
 
     root.append(head, stage, acts);
@@ -137,28 +139,41 @@ export function openDiscover() {
   });
 }
 
-/* tap → inspect concept + how to make it */
-function inspect(item, save) {
-  import('../ui.js').then(({ sheet }) => {
-    sheet({ full: true, build: (b, done) => {
-      b.append(
-        h('div', { class: 'src' + (item.source === 'YOUR ARCHIVE' ? ' archive' : ''), style: { display: 'inline-block' } }, item.source),
-        h('h1', { class: 'piece-t', style: { margin: '14px 0 12px' } }, titleCase(item.title)),
-        h('div', { class: 'meta' }, item.why),
-        item.src ? h('div', { style: { margin: '18px 0', display: 'grid', placeItems: 'center' } },
-          img(item.src, '', '')) : null,
-        h('div', { class: 'desc' }, item.desc));
-
-      const plan = AI.generatePlan(item.title + ' ' + item.desc);
-      b.append(h('div', { class: 'assume', style: { marginTop: '22px' } },
-        h('div', { class: 'label' }, 'ASSUMING'),
-        h('p', {}, plan.assumptions.join(' · '))));
-      b.append(h('div', { class: 'label', style: { marginTop: '22px' } }, 'HOW TO MAKE IT'));
-      b.append(h('ol', { class: 'steps' }, ...plan.steps.map(s => h('li', {}, s))));
-      b.append(h('div', { class: 'risks' }, ...plan.risks.map(r =>
-        h('div', { class: 'risk' }, h('b', {}, r.k), h('span', {}, r.t)))));
-      b.append(h('button', { class: 'bigact paper', style: { width: '100%', margin: '24px 0 0' },
-        onclick: () => { save(item); done(); } }, 'SAVE AS CARD'));
-    } });
+/* tap → the idea on the same page as a Collide result (collide.js):
+   the tinted header with its status, name and why, then its PLAN, with
+   SAVE AS IDEA and START MAKING in the floating bar -- just without
+   COMBINED FROM. START MAKING saves it, sets it to making and opens it. */
+function inspect(item, save, glow) {
+  fullLayer((wrap, kill) => {
+    const scroll = h('div', { class: 'scroll under-bar' });
+    const header = h('div', { class: 'cx' }, h('div', { class: 'cx-in tint compact',
+      style: { background: `linear-gradient(0deg, #f6f4ec 11.058%, ${glow} 100%)` } },
+      heroStatusBar(),
+      h('div', { class: 'cx-top' },
+        h('button', { class: 'cx-btn', onclick: kill, html: BACK16_SVG, 'aria-label': 'Back' }),
+        h('div', { class: 'cx-title' }, h('div', { class: 'cl-head' },
+          h('div', { class: 'cx-status' }, h('span', { class: 'ic', html: ICON.ideaStar }), h('span', {}, item.source)),
+          h('div', { class: 'cx-t' }, titleCase(item.title)))),
+        h('span', { class: 'cx-btn ghost' })),
+      h('div', { class: 'cl-why' }, item.desc)));
+    const plan = AI.generatePlan(item.title + ' ' + item.desc);
+    const rest = h('div', { class: 'cl-rest in' },
+      h('div', { class: 'sx open' },
+        h('div', { class: 'sx-h' }, h('div', { class: 'sx-t' }, 'Plan')),
+        h('div', { class: 'pl-box', style: { background: `linear-gradient(0deg, #f6f4ec 6.25%, ${glow} 100%)` } },
+          h('div', { class: 'pl-text' }, planFallbackText({ plan })))));
+    scroll.append(header, rest);
+    const bar = h('div', { class: 'card-bar' }, pblur('up'),
+      h('button', { class: 'pe-btn accent', onclick: () => { save(item); kill(); } }, 'Save as idea'),
+      h('button', { class: 'pe-btn paper', onclick: () => {
+        const id = save(item, { quiet: true });
+        const snap = S.setState(id, 'making');
+        nav.refresh();
+        toast({ html: `<b>making</b> · ${S.byId(id).title}`, undo: () => { S.restore(snap); nav.refresh(); } });
+        startMaking(id);
+        kill();
+        openCard(id);
+      } }, 'Start making'));
+    wrap.append(h('div', { class: 'collide' }, scroll, bar));
   });
 }

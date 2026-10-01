@@ -1,5 +1,5 @@
 /* UNFIRED — state, persistence, undo. Single source of truth for every screen. */
-import { CARDS } from './seed.js';
+import { CARDS, PHOTO_LIB } from './seed.js';
 
 const KEY = 'unfired.v1';
 const listeners = new Set();
@@ -121,9 +121,28 @@ export function heroSrc(c) {
   return f ? f.src : null;
 }
 
+/* A piece image: the object with its background removed -- the seed's
+   cutouts (assets/pieces...) or a camera-roll photo's "...nobg.png". */
+export const isPiece = (src) => /^assets\/pieces\b|nobg\.png$/.test(src || '');
+/* the cutout made from a camera-roll photo, if there is one */
+const libOf = (src) => PHOTO_LIB.find(p => p.src === src) || {};
+export const pieceFor = (src) => libOf(src).piece || null;
+/* What the photo shows, as a status: glazed -> finished, unfired -> making,
+   anything else -> idea; null when we don't know the photo (a real upload). */
+const KIND_STATE = { final: 'finished', process: 'making', inspiration: 'idea' };
+export const stateFor = (src) => KIND_STATE[libOf(src).guess] || null;
+export const nameFor = (src) => libOf(src).name || null;
+const RANK = { idea: 0, making: 1, finished: 2 };
+/* The status a card moves to when this photo lands on it: a finished-piece
+   photo finishes it, an unfired one starts it; never backwards. */
+export function stateFromPhoto(c, src) {
+  const s = stateFor(src);
+  return s && RANK[s] > RANK[c.state] ? s : null;
+}
+
 /* Archive prefers a background-removed cutout when the card has one. */
 export function cutoutSrc(c) {
-  const p = (c.photos || []).find(x => /assets\/pieces\//.test(x.src || ''));
+  const p = (c.photos || []).find(x => isPiece(x.src));
   if (p) return p.src;
   return heroSrc(c);
 }
@@ -160,7 +179,7 @@ export function updateCard(id, patch) {
 export function remakeCard(id) {
   const src = byId(id);
   if (!src) return null;
-  const piece = (src.photos || []).find(p => /assets\/pieces\//.test(p.src || ''));
+  const piece = (src.photos || []).find(p => isPiece(p.src));
   const nid = uid('remake-');
   const now = Date.now();
   mutate(s => {
@@ -214,12 +233,19 @@ export function addNote(id, note) {
   });
 }
 
+/* A photo that has a cutout (pieceFor) brings it along as the card's piece
+   image: the photo stays what you logged, the cutout is what the header,
+   the Items tile and the post show. */
 export function addPhoto(id, photo) {
   return mutate(s => {
     const c = s.cards.find(x => x.id === id);
     if (!c) return;
-    (c.photos ||= []).push({ id: uid('p'), kind: 'process', ...photo });
-    if (!c.hero) c.hero = { src: photo.src, kind: photo.kind || 'process' };
+    const pid = photo.id || uid('p');
+    (c.photos ||= []).push({ kind: 'process', ...photo, id: pid });
+    const piece = pieceFor(photo.src);
+    if (piece && !c.photos.some(p => p.src === piece))
+      c.photos.push({ id: uid('p'), kind: photo.kind || 'process', src: piece, pieceOf: pid, cap: 'Piece image' });
+    if (!c.hero) c.hero = { src: piece || photo.src, kind: photo.kind || 'process' };
     c.updated = c.loggedAt = Date.now();
   });
 }
@@ -228,7 +254,11 @@ export function removePhoto(id, photoId) {
   return mutate(s => {
     const c = s.cards.find(x => x.id === id);
     if (!c) return;
-    c.photos = (c.photos || []).filter(p => p.id !== photoId);
+    /* the photo and the piece image made from it */
+    const gone = (c.photos || []).filter(p => p.id === photoId || p.pieceOf === photoId);
+    c.photos = (c.photos || []).filter(p => !gone.includes(p));
+    /* the header showed one of them: fall back to the next photo, or none */
+    if (c.hero && gone.some(p => p.src === c.hero.src)) c.hero = null;
     c.updated = Date.now();
   });
 }

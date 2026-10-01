@@ -1,0 +1,89 @@
+{
+  "scenarios": [
+    {
+      "id": "patterns",
+      "name": "Pattern variants",
+      "status": "Suggested, now",
+      "title": "Visualize this pitcher with different painted patterns",
+      "glow": "#6ab8ef",
+      "messages": [
+        {
+          "role": "me",
+          "text": "Visualize this pitcher with different painted patterns"
+        },
+        {
+          "role": "ai",
+          "text": "Which variant would you like to explore?",
+          "widget": "patterns"
+        }
+      ]
+    },
+    {
+      "id": "archive",
+      "name": "Archive recall"
+    },
+    {
+      "id": "stale-idea",
+      "name": "Stale idea comes back"
+    },
+    {
+      "id": "defect",
+      "name": "Defect match"
+    },
+    {
+      "id": "profile",
+      "name": "Profile shaper"
+    },
+    {
+      "id": "prep",
+      "name": "Session prep + pin"
+    },
+    {
+      "id": "growth",
+      "name": "Growth over time"
+    },
+    {
+      "id": "tiles",
+      "name": "Test tile grid"
+    },
+    {
+      "id": "drying",
+      "name": "Drying check"
+    },
+    {
+      "id": "fill-clay",
+      "name": "Card fill · Clay",
+      "fill": "clay"
+    },
+    {
+      "id": "fill-glaze",
+      "name": "Card fill · Glaze",
+      "fill": "glaze"
+    },
+    {
+      "id": "fill-firing",
+      "name": "Card fill · Firing",
+      "fill": "firing"
+    },
+    {
+      "id": "fill-cause",
+      "name": "Card fill · What happened",
+      "fill": "cause"
+    },
+    {
+      "id": "fill-size",
+      "name": "Card fill · Size",
+      "fill": "size"
+    },
+    {
+      "id": "fill-photo",
+      "name": "Card fill · Photo",
+      "fill": "photo"
+    },
+    {
+      "id": "fill-plan",
+      "name": "Card fill · Session plan",
+      "fill": "plan"
+    }
+  ]
+}

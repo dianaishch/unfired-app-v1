@@ -1,0 +1,158 @@
+/* UNFIRED chat with widgets (chat.html). Existing tokens only (app.css
+   :root): --bg background, --sheet surface, --line surface raised,
+   --line-2 border, --paper / --ink paper and light text, --ink-faint
+   tertiary text, --ink-dim secondary text, --orange accent. */
+.chatx{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--bg);color:var(--ink);
+  container-type:inline-size}
+.chatx :focus-visible{outline:2px solid var(--paper);outline-offset:2px}
+
+/* header (Figma 562:11122) */
+/* floats over the conversation with the Items bar's progressive blur (no
+   darkening fade), so scrolled messages pass softly under it; chatui.js
+   pads the list by its height */
+.chx-head{position:absolute;top:0;left:0;right:0;z-index:5;padding-bottom:40px;pointer-events:none}
+.chx-head>*{pointer-events:auto}
+.chx-head>.pblur{pointer-events:none}
+.chx-bar{display:flex;align-items:center;gap:20px;padding:8px 16px 4px}
+.chx-round{width:40px;height:40px;border-radius:50%;flex:none;display:grid;place-items:center;
+  background:var(--sheet);border:1px solid var(--line-2);color:var(--ink)}
+.chx-round svg{width:16px;height:16px}
+.chx-round.big{width:58px;height:58px}
+.chx-round.big svg{width:24px;height:24px}
+.chx-round.big[aria-label="Voice"] svg{width:22px;height:22px}
+.chx-title{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px;padding-top:4px}
+.chx-status{font-size:12px;text-transform:uppercase}
+.chx-t{max-width:100%;font-size:24px;font-weight:500;letter-spacing:-.55px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* conversation, anchored to the bottom (Figma 562:11136) */
+.chx-list{flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;overflow-anchor:none}
+.chx-list::-webkit-scrollbar{display:none}
+.chx-inner{min-height:100%;display:flex;flex-direction:column;justify-content:flex-end;padding:16px}
+.chx-row{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding-bottom:8px}
+.chx-row.me{align-items:flex-end}
+/* bubbles hug their text, at most 80% of the screen width */
+.chx-b{max-width:80cqw;padding:16px;color:var(--bg);font-size:16px;line-height:18px}
+.chx-b p{margin:0;white-space:pre-line}
+.chx-b.me{background:var(--paper);border-radius:24px 24px 0 24px}
+.chx-b.ai{border-radius:24px 24px 24px 0}
+.chx-sent{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.chx-sent .att{margin:0}
+
+/* widget parts shared by the scenarios */
+.chx-widget{padding-bottom:8px}
+/* one row that scrolls sideways, edge to edge of the screen */
+.chx-chips{display:flex;gap:8px;margin:0 -16px;padding:2px 16px 8px;overflow-x:auto;
+  scrollbar-width:none;scroll-padding:0 16px}
+.chx-chips::-webkit-scrollbar{display:none}
+.chx-chips .chx-chip{flex:none;white-space:nowrap}
+.chx-chip{height:40px;padding:2px 16px 0;border-radius:100px;background:var(--line);
+  font-size:16px;line-height:18px;color:var(--ink-faint)}
+/* selected: paper (Figma's 1px #292929 border sits on the black page, so it
+   doesn't show and isn't drawn) */
+.chx-chip[aria-pressed="true"]{background:var(--paper);color:var(--bg)}
+.chx-chip:disabled{cursor:default}
+.chx-act{display:flex;justify-content:flex-end;gap:8px}
+.chx-pill{height:40px;padding:1px 16px 0;border-radius:100px;background:var(--paper);
+  font-size:14px;font-weight:700;text-transform:uppercase;color:var(--bg)}
+.chx-pill:disabled{background:var(--line);color:var(--ink-faint);cursor:default}
+
+/* input bar (Figma 590:8730 / 590:8731) */
+/* conversation + the floating input bar (see .logdock in app.css) */
+.chx-main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column}
+.chx-dock{position:absolute;left:0;right:0;bottom:0;z-index:5;background:rgba(0,0,0,.01);pointer-events:none}
+.chx-dock>*{pointer-events:auto}
+.chx-dock>.pblur{pointer-events:none}
+.chx-foot{flex:none;display:flex;align-items:flex-end;gap:8px;padding:12px 16px}
+.chx-ask{flex:1;min-width:0;min-height:58px;border-radius:100px;background:var(--line);display:flex;align-items:center;padding:19px 24px 16px}
+.chx-ask.multi{border-radius:29px}
+.chx-field{display:block;width:100%;height:18px;padding:0;border:0;resize:none;overflow-y:auto;scrollbar-width:none;
+  background:none;font:inherit;font-size:16px;line-height:18px;color:var(--ink);caret-color:var(--orange)}
+.chx-field::-webkit-scrollbar{display:none}
+.chx-field::placeholder{color:var(--ink-faint)}
+/* the field shows focus with its orange caret (and the keyboard), as on the
+   Log screen -- no ring */
+.chx-field:focus-visible{outline:none}
+.chx-media{display:flex;gap:8px;flex:none}
+.chx-att{flex:none}
+.chx-att[hidden]{display:none}
+/* the chat's keyboard sits in the page flow, open by default (the key
+   styles are shared, in app.css) */
+.chx-kb{flex:none;height:0;overflow:hidden;transition:height .28s var(--ease)}
+.chx-kb.open{height:317px}
+
+/* 1 patterns: the piece (a 400px image inside a 169px band, as in Figma) */
+.pv-pic{position:relative;height:169px;overflow:hidden}
+.pv-pic img{position:absolute;left:50%;top:calc(50% - 27.8px);width:400px;height:400px;max-width:none;
+  transform:translate(-50%,-50%);object-fit:cover}
+
+/* dev list */
+.chx-dev{padding:24px 16px}
+.chx-dev-t{margin:0 0 16px;font-size:24px;font-weight:700;letter-spacing:-.55px;text-transform:uppercase}
+.chx-dev ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:12px;font-size:16px}
+.chx-dev a{color:var(--ink)}
+.chx-dev span{color:var(--ink-faint)}
+
+/* 44px touch targets: Figma draws chips, pills and header buttons at 40px.
+   Chips and pills get a clear 2px border (background kept inside it) and a
+   -2px margin, so they tap at 44px and look and sit exactly as before. The
+   round header buttons, which have a visible border, get a 2px hit ring. */
+.chx-chip,.chx-pill{position:relative;height:44px;border:2px solid transparent;background-clip:padding-box;margin:-2px}
+.chx-round{position:relative}
+.chx-round::after{content:"";position:absolute;inset:-3px;border-radius:50%}
+
+/* app chat extras: source label under an AI answer, system lines, the
+   typing dots, the empty slot where the header's right button would be */
+.chx-src{margin-top:12px;font-size:12px;text-transform:uppercase}
+.chx-sys{align-self:center;padding:8px 0 16px;font-size:12px;text-transform:uppercase;text-align:center;color:var(--ink-faint)}
+/* an empty chat's opening line: the LOG A NOTE style (.lg-ph / .capture .prompt) */
+.chx-sys.intro{align-self:stretch;font-size:64px;font-weight:700;line-height:55.04px;letter-spacing:-2.88px;text-align:left}
+.chx-typing .typing{padding:0}
+.chx-round.ghost{visibility:hidden}
+
+/* ASK YOUR ARCHIVE: suggested questions stacked on the right, where your
+   message will appear; the cards an answer used, full width */
+.chx-sugs{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.chx-sugs .chx-chip{height:auto;min-height:44px;max-width:80cqw;padding:10px 16px;border-radius:22px;text-align:left;color:var(--ink)}
+.chx-used{padding:0}
+
+/* CARD-FILL (design-ref/card-fill): answer tags right-aligned under the AI
+   question (40px inset on the left), a colour dot for glazes */
+.chx-tags{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;padding:0 0 8px 40px}
+.chx-tags .chx-chip{display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+.chx-dot{width:12px;height:12px;border-radius:50%;flex:none}
+
+/* field card: one control in a Surface card (1px Border, 24px corners),
+   SKIP / SAVE right-aligned under it */
+.chx-widget:has(.fc-card){display:flex;flex-direction:column;gap:8px}
+.fc-card{padding:16px;border-radius:24px;background:var(--sheet);border:1px solid var(--line-2);color:var(--ink)}
+.fc-body{display:flex;flex-direction:column;gap:16px}
+.fc-cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.fc-col{display:flex;flex-direction:column;gap:8px}
+.fc-label{font-size:12px;text-transform:uppercase;letter-spacing:.02em}
+.fc-num{display:flex;align-items:baseline;gap:8px}
+.fc-stack{display:flex;flex-direction:column;gap:2px}
+.fc-stack .fc-num{line-height:1}
+.fc-big{font-size:40px;font-weight:500;letter-spacing:-1px}
+.fc-unit{font-size:16px}
+.fc-sub{font-size:14px;line-height:18px}
+.chx-pill.skip{background:var(--line);color:var(--ink)}
+/* slider: 4px Border track, 24px paper thumb; 44px tall to tap */
+.fc-range{-webkit-appearance:none;appearance:none;display:block;width:100%;height:44px;margin:-10px 0;background:transparent;cursor:pointer}
+.fc-range::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:var(--line-2)}
+.fc-range::-moz-range-track{height:4px;border-radius:2px;background:var(--line-2)}
+.fc-range::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;margin-top:-10px;border-radius:50%;background:var(--paper)}
+.fc-range::-moz-range-thumb{width:24px;height:24px;border:none;border-radius:50%;background:var(--paper)}
+.fc-range:focus-visible{outline:none}
+.fc-range:focus-visible::-webkit-slider-thumb{outline:2px solid var(--paper);outline-offset:2px}
+/* photo slots, 150px tall with the chat bubbles' 24px corners: the before
+   photo greyed like unfired clay; the after slot is the post editor's tile
+   (.pe-tile in app.css) at the same size, and once it holds a photo it
+   loses the tile's stroke (no orange "selected" outline) */
+.fc-cols.tight{gap:8px}
+.fc-photo{display:block;width:100%;height:150px;object-fit:cover;border-radius:24px;background:var(--line)}
+.fc-photo.before{filter:grayscale(1) brightness(1.15) contrast(.8)}
+.pe-tile.fc-after{width:100%;height:150px;border-radius:24px}
+.pe-tile.fc-after.on{border:0}
+/* session plan: the piece card's PLAN box (.pl-box / .pl-step in app.css)
+   as it is, inside the chat */
