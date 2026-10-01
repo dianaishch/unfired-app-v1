@@ -247,6 +247,12 @@ function archive(feat) {
     return [...mine, ...all.filter(c => !touched(c))];
   };
   const pieces = order(list.filter(c => !isIdeaTile(c)), cached?.photoIds);
+  /* Cat Candle Holder takes the Marbled Mug's place near the top (the mug,
+     added by the photo import, would otherwise lead as a new card), and
+     the mug takes the cat's */
+  const iCat = pieces.findIndex(c => c.id === 'black-cat-candle');
+  const iMug = pieces.findIndex(c => c.title === 'MARBLED MUG');
+  if (iCat >= 0 && iMug >= 0 && iMug < iCat) [pieces[iCat], pieces[iMug]] = [pieces[iMug], pieces[iCat]];
   const ideas = order(list.filter(isIdeaTile), cached?.gradIds);
   archiveShuffleCache.set(filter, { photoIds: pieces.map(c => c.id), gradIds: ideas.map(c => c.id) });
   saveShuffle();
