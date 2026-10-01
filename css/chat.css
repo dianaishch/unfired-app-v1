@@ -156,3 +156,9 @@
 .chx-sugs{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
 .chx-sugs .chx-chip{height:auto;min-height:44px;max-width:80cqw;padding:10px 16px;border-radius:22px;text-align:left;color:var(--ink)}
 .chx-used{padding:0}
+
+/* CARD-FILL (design-ref/card-fill): answer tags right-aligned under the AI
+   question (40px inset on the left), a colour dot for glazes */
+.chx-tags{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;padding:0 0 8px 40px}
+.chx-tags .chx-chip{display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+.chx-dot{width:12px;height:12px;border-radius:50%;flex:none}

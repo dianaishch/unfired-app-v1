@@ -564,6 +564,12 @@ export function openChat(cardId, threadId, onDone, seed, { ask, reply, glow } = 
     let busy = false;
     const view = chatView({ status: head()[0], title: head()[1], glow: glow || (card() ? S.pieceColor(card()) : undefined),
       onBack: () => { if (cid) cleanEmpty(cid, tid); onDone && onDone(); close(); },
+      /* ··· -> DELETE CHAT: the thread goes from the card (a chat not yet
+         filed under a card just closes) */
+      onDelete: () => {
+        if (cid && tid) S.updateCard(cid, cc => ({ threads: (cc.threads || []).filter(x => x.id !== tid) }));
+        nav.refresh(); onDone && onDone(); close();
+      },
       onSend: (text, photos) => send(text, photos) });
     p.append(view.el);
 

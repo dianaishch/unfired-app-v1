@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Fill plan</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;background:#040404;font-family:'Helvetica Neue',Helvetica,sans-serif;color:#f6f4ec}
+button{font-family:inherit;cursor:pointer}
+button:focus-visible{outline:2px solid #6ab8ef;outline-offset:2px}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:24px;background:transparent;margin:0}
+input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:#292929}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:12px;background:#f6f4ec;margin-top:-10px}
+input[type=range]::-moz-range-track{height:4px;border-radius:2px;background:#292929}
+input[type=range]::-moz-range-thumb{width:24px;height:24px;border:none;border-radius:12px;background:#f6f4ec}
+a{color:#f6f4ec}a:hover{color:#ffffff}
+</style>
+</helmet>
+<div style="width: 402px; height: 874px; box-sizing: border-box; background: #040404; display: flex; flex-direction: column; overflow: hidden; font-family: 'Helvetica Neue', Helvetica, sans-serif; color: #f6f4ec">
+<div style="display: flex; gap: 20px; align-items: center; padding: 20px 16px 4px">
+<button aria-label="Back" style="width: 40px; height: 40px; border-radius: 29px; flex-shrink: 0; background: #0e0e0e; border: 1px solid #292929; display: flex; align-items: center; justify-content: center; color: #f6f4ec; padding: 0"><svg width="16" height="16" style="fill: none; stroke: currentColor; stroke-width: 1.6px"><path d="M10 3 L5 8 L10 13"></path></svg></button>
+<div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; padding-top: 4px">
+<div style="font-size: 12px; text-transform: uppercase; color: #f6f4ec">Card · Tall mug</div>
+<div style="font-size: 24px; font-weight: 500; letter-spacing: -0.55px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px">Session plan</div>
+</div>
+<button aria-label="More" style="width: 40px; height: 40px; border-radius: 29px; flex-shrink: 0; background: #0e0e0e; border: 1px solid #292929; display: flex; align-items: center; justify-content: center; color: #f6f4ec; padding: 0"><svg width="16" height="16" style="fill: currentColor"><circle cx="3" cy="8" r="1.5"></circle><circle cx="8" cy="8" r="1.5"></circle><circle cx="13" cy="8" r="1.5"></circle></svg></button>
+</div>
+<div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-end; gap: 8px; padding: 16px; overflow: hidden">
+<div style="align-self: flex-start; max-width: 310px; box-sizing: border-box; background: linear-gradient(180deg,#6ab8ef 0%,#f4f2ec 100%); color: #040404; padding: 16px; border-radius: 24px 24px 24px 0; font-size: 16px; line-height: 18px">Here is your plan for tomorrow. Tick steps as you go.</div>
+<sc-if value="{{open}}" hint-placeholder-val="{{ true }}">
+<div style="background: #0e0e0e; border: 1px solid #292929; border-radius: 24px; padding: 16px; display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding-bottom: 4px">
+<div style="font-size: 12px; text-transform: uppercase; color: #f6f4ec; letter-spacing: 0.02em">Plan · Tall mug</div>
+<div style="font-size: 12px; color: #f6f4ec; text-align: right">{{count}}</div>
+</div>
+<sc-for list="{{steps}}" as="s" hint-placeholder-count="5"><button onClick="{{s.toggle}}" aria-pressed="{{s.on}}" style="display: flex; align-items: flex-start; gap: 12px; min-height: 44px; padding: 10px 0; background: none; border: none; border-top: 1px solid #181818; color: {{s.fg}}; text-align: left; font-size: 16px; line-height: 20px"><span style="width: 24px; height: 24px; box-sizing: border-box; border-radius: 8px; border: 1px solid {{s.bd}}; background: {{s.bg}}; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><sc-if value="{{s.on}}" hint-placeholder-val="{{ false }}"><svg width="12" height="12" style="fill: none; stroke: #040404; stroke-width: 2px"><path d="M2 6.5 L5 9 L10 3"></path></svg></sc-if></span><span style="display: flex; flex-direction: column; gap: 2px; padding-top: 2px"><span style="text-decoration: {{s.deco}}">{{s.label}}</span><span style="font-size: 12px; line-height: 16px; color: #f6f4ec; opacity: 1">{{s.note}}</span></span></button></sc-for>
+</div>
+<div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px">
+<button onClick="{{skip}}" style="height: 40px; padding: 2px 16px 0; border-radius: 100px; border: 1px solid #181818; background: #181818; color: #f6f4ec; font-size: 14px; font-weight: 700; text-transform: uppercase; padding-bottom: 1px">Skip</button>
+<button onClick="{{save}}" style="height: 40px; padding: 2px 16px 0; border-radius: 100px; border: 1px solid #292929; background: #f6f4ec; color: #040404; font-size: 14px; font-weight: 700; text-transform: uppercase; padding-bottom: 1px">Save</button>
+</div>
+</sc-if>
+<sc-if value="{{done}}" hint-placeholder-val="{{ false }}">
+<div style="align-self: flex-end; max-width: 300px; box-sizing: border-box; background: #f6f4ec; color: #040404; padding: 16px; border-radius: 24px 24px 0 24px; font-size: 16px; line-height: 18px">{{answer}}</div>
+<div style="display: flex; align-items: center; gap: 12px; background: #181818; border-radius: 16px; padding: 12px 16px">
+<span style="width: 20px; height: 20px; border-radius: 10px; background: #f6f4ec; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg width="12" height="12" style="fill: none; stroke: #040404; stroke-width: 2px"><path d="M2 6.5 L5 9 L10 3"></path></svg></span>
+<div style="flex-grow: 1; font-size: 14px; line-height: 18px"><div style="font-size: 12px; text-transform: uppercase">Plan · saved to card</div>{{written}}</div>
+<button onClick="{{undo}}" style="height: 40px; padding: 2px 12px 0; border-radius: 100px; border: none; background: transparent; color: #f6f4ec; font-size: 12px; font-weight: 700; text-transform: uppercase">Undo</button>
+</div>
+<div style="align-self: flex-start; max-width: 310px; box-sizing: border-box; background: linear-gradient(180deg,#6ab8ef 0%,#f4f2ec 100%); color: #040404; padding: 16px; border-radius: 24px 24px 24px 0; font-size: 16px; line-height: 18px">{{next}}</div>
+</sc-if>
+</div>
+<div style="display: flex; gap: 8px; align-items: center; padding: 12px 16px 28px">
+<label style="flex-grow: 1; height: 58px; border-radius: 100px; background: #181818; display: flex; align-items: center; padding: 0 24px; font-size: 16px; color: #54524e">Ask unfired</label>
+<button aria-label="Add" style="width: 58px; height: 58px; border-radius: 29px; flex-shrink: 0; background: #0e0e0e; border: 1px solid #292929; display: flex; align-items: center; justify-content: center; color: #f6f4ec; padding: 0"><svg width="24" height="24" style="fill: none; stroke: currentColor; stroke-width: 1.6px"><path d="M12 5 V19 M5 12 H19"></path></svg></button>
+<button aria-label="Voice" style="width: 58px; height: 58px; border-radius: 29px; flex-shrink: 0; background: #0e0e0e; border: 1px solid #292929; display: flex; align-items: center; justify-content: center; color: #f6f4ec; padding: 0"><svg width="22" height="22" style="fill: none; stroke: currentColor; stroke-width: 1.6px"><rect x="8" y="2" width="6" height="11" rx="3"></rect><path d="M4.5 10.5 a6.5 6.5 0 0 0 13 0 M11 17 V20"></path></svg></button>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview": {"width": 402, "height": 874}}'>
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { done: [true, true, false, false, false], saved: false }; }
+  base(answer, written, next) {
+    const sk = this.state.saved === 'skip';
+    return { open: !this.state.saved, done: !!this.state.saved,
+      answer: sk ? 'Not now' : answer, written: sk ? 'Left empty. I will ask again later.' : written, next,
+      save: () => this.setState({ saved: true }), undo: () => this.setState({ saved: false }),
+      skip: () => this.setState({ saved: 'skip' }) };
+  }
+  renderVals() {
+    const S = [
+      ['Wedge 500 g speckled stoneware', 'Same as the Blue Line Mug'],
+      ['Throw 10.2 cm tall', 'Fires to 9 cm'],
+      ['Pull the handle, let it firm up', 'Make 2, keep the better one'],
+      ['Trim at leather-hard', 'About 24 h under plastic'],
+      ['Attach the handle, dry slowly', 'Cover the handle joint']
+    ];
+    const d = this.state.done, n = d.filter(Boolean).length;
+    const steps = S.map((s, i) => ({ label: s[0], note: s[1], on: d[i],
+      fg: d[i] ? '#54524e' : '#f6f4ec', deco: d[i] ? 'line-through' : 'none',
+      bg: d[i] ? '#f6f4ec' : 'transparent', bd: d[i] ? '#f6f4ec' : '#292929',
+      toggle: () => { const x = d.slice(); x[i] = !x[i]; this.setState({ done: x }); } }));
+    return { steps, count: n + ' of ' + S.length + ' done',
+      ...this.base('Saved the plan', S.length + ' steps · ' + n + ' done', 'Pin it to your lock screen for the studio?') };
+  }
+}
+</script>
+</body>
+</html>

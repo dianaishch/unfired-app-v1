@@ -127,6 +127,11 @@
     {
       "id": "drying",
       "name": "Drying check"
+    },
+    {
+      "id": "fill-clay",
+      "name": "Card fill · Clay",
+      "fill": "clay"
     }
   ]
 }

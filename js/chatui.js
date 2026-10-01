@@ -10,12 +10,12 @@
    own iOS keyboard; in the app the shared one (keyboard.js) opens when the
    field gets focus. */
 import { h, img, statusBar, pblur } from './ui.js';
-import { BACK16_SVG, DOTS16_SVG, mediaPicker } from './screens/media.js';
+import { BACK16_SVG, DOTS16_SVG, mediaPicker, popMenu } from './screens/media.js';
 import { PLUS24_SVG } from './screens/card.js';
 import { MIC_SVG, STOP_SVG, CLOSE_SVG, PLAY_SVG, SAMPLES } from './screens/capture.js';
 import { keyboard, showKeyboard } from './keyboard.js';
 
-export function chatView({ status = '', title = '', glow = '#dab4ff', onBack, onSend, ownKeyboard = false }) {
+export function chatView({ status = '', title = '', glow = '#dab4ff', onBack, onSend, onDelete, ownKeyboard = false }) {
   const list = h('div', { class: 'chx-list' });
   const inner = h('div', { class: 'chx-inner' });
   list.append(inner);
@@ -131,13 +131,16 @@ export function chatView({ status = '', title = '', glow = '#dab4ff', onBack, on
     }, 105);
   });
 
+  const more = h('button', { class: 'chx-round', type: 'button', html: DOTS16_SVG, 'aria-label': 'More',
+    onclick: () => popMenu({ anchor: more, below: true, items: [['Delete chat', () => { stopRec(); onDelete(); }]] }) });
   const statusEl = h('div', { class: 'chx-status' }, status);
   const titleEl = h('div', { class: 'chx-t' }, title);
   const head = h('header', { class: 'chx-head' }, pblur('down'), statusBar(),
     h('div', { class: 'chx-bar' },
       h('button', { class: 'chx-round', type: 'button', html: BACK16_SVG, 'aria-label': 'Back', onclick: () => { stopRec(); onBack && onBack(); } }),
       h('div', { class: 'chx-title' }, statusEl, titleEl),
-      h('span', { class: 'chx-round ghost' })));
+      /* "···": DELETE CHAT (when the chat can be deleted) */
+      onDelete ? more : h('span', { class: 'chx-round ghost' })));
   const el = h('div', { class: 'chatx' }, head, list, attRow, h('div', { class: 'chx-foot' }, ask, media));
 
   /* the dev page's own keyboard, open by default; tapping the conversation

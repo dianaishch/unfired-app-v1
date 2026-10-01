@@ -1,0 +1,30 @@
+{
+  "glow": "#6ab8ef",
+  "card": {
+    "name": "Blue Fade Pitcher"
+  },
+  "statusPrefix": "Card · ",
+  "notNow": "Not now",
+  "fields": {
+    "clay": {
+      "pattern": "tags",
+      "title": "Clay",
+      "question": "Speckled stoneware, like last time?",
+      "options": [
+        "Speckled stoneware",
+        "Porcelain",
+        "Red earthenware",
+        "Other"
+      ],
+      "guess": 0,
+      "next": "Next gap: glaze. Which one did you use?"
+    }
+  },
+  "saved": "Saved to card · {field} · {value}",
+  "skipped": "Left {field} empty. I will ask again later.",
+  "undone": "Undone. {field} is back to {value}.",
+  "undoneEmpty": "Undone. {field} is empty again.",
+  "nothingToUndo": "There is nothing to undo yet.",
+  "undoWords": "undo|change it|change that|go back|revert|that.s wrong|wrong|not that|cancel",
+  "fallback": "Noted. Say “undo” to take back the last answer."
+}
