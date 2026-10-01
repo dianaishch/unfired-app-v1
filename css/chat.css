@@ -26,7 +26,7 @@
 .chx-round.big[aria-label="Voice"] svg{width:22px;height:22px}
 .chx-title{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px;padding-top:4px}
 .chx-status{font-size:12px;text-transform:uppercase}
-.chx-t{max-width:100%;font-size:24px;font-weight:500;letter-spacing:-.55px;text-transform:capitalize;
+.chx-t{max-width:100%;font-size:24px;font-weight:500;letter-spacing:-.55px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* conversation, anchored to the bottom (Figma 562:11136) */
@@ -144,3 +144,12 @@
 .fc-range::-moz-range-thumb{width:24px;height:24px;border:none;border-radius:50%;background:var(--paper)}
 .fc-range:focus-visible{outline:none}
 .fc-range:focus-visible::-webkit-slider-thumb{outline:2px solid var(--paper);outline-offset:2px}
+/* photo slots, 150px tall with the chat bubbles' 24px corners: the before
+   photo greyed like unfired clay; the after slot is the post editor's tile
+   (.pe-tile in app.css) at the same size, and once it holds a photo it
+   loses the tile's stroke (no orange "selected" outline) */
+.fc-cols.tight{gap:8px}
+.fc-photo{display:block;width:100%;height:150px;object-fit:cover;border-radius:24px;background:var(--line)}
+.fc-photo.before{filter:grayscale(1) brightness(1.15) contrast(.8)}
+.pe-tile.fc-after{width:100%;height:150px;border-radius:24px}
+.pe-tile.fc-after.on{border:0}

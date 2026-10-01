@@ -26,7 +26,7 @@ export function runFill(view, data, key, card) {
       });
     if (f.pattern === 'card')
       fieldCard(box, f, data, (r) => {
-        view.say('me', r ? r.said : data.notNow);
+        view.say('me', r ? r.said : data.notNow, { photos: r?.photos || [] });
         answer(r ? r.value : null, r && r.written);
       });
   };
@@ -36,7 +36,7 @@ export function runFill(view, data, key, card) {
     if (box) { box.remove(); box = null; }
     last = { before: card.get() };
     if (v !== null) card.set(v);
-    view.say('ai', savedText(data, f.title, v === null ? null : written));
+    view.say('ai', savedText(data, f.savedLabel || f.title, v === null ? null : written));
     /* the next gap -- or, per answer, what follows from it (What happened) */
     view.say('ai', (v !== null && f.nextFor?.[v]) || f.next);
   };
@@ -48,7 +48,7 @@ export function runFill(view, data, key, card) {
       if (isUndo(data, text)) {
         if (!last) { view.say('ai', data.nothingToUndo); return true; }
         card.set(last.before);
-        view.say('ai', undoneText(data, f.title, last.before));
+        view.say('ai', undoneText(data, f.savedLabel || f.title, last.before));
         last = null;
         ask();
         return true;

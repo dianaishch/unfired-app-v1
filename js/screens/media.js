@@ -93,6 +93,9 @@ const roundBtn = (svg, label, onclick) =>
 /* Gallery: 3-up grid, tap to pick (numbered orange badge, in pick order).
    The pill reads ALL PHOTOS (the real library, via the file input) until
    something's picked, then ADD N PHOTOS / VIDEOS in orange. */
+/* straight to the gallery, no dropdown (the card-fill photo slot) */
+export const openGalleryFor = (anchor, onPick) => openGallery(hostOf(anchor), onPick);
+
 function openGallery(host, onPick) {
   const picked = [];
   panel(host, 'mp-gallery', (p, close) => {

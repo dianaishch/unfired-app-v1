@@ -124,6 +124,25 @@
       "answer": "{h} cm tall",
       "written": "{h} cm fired · throw at {wet} cm · about {clay} g clay",
       "next": "Next gap: clay. Speckled stoneware again?"
+    },
+    "photo": {
+      "pattern": "card",
+      "control": "photo",
+      "title": "How it came out",
+      "question": "How did it come out? Add a photo after firing.",
+      "before": {
+        "src": "design-ref/card-fill/designs/pitcher.png",
+        "alt": "Pitcher before firing"
+      },
+      "labels": {
+        "before": "Before firing",
+        "after": "After firing",
+        "add": "Add photo"
+      },
+      "answer": "Here it is",
+      "written": "After-firing photo added",
+      "savedLabel": "Result photo",
+      "next": "Nice. Next gap: keep this glaze combo?"
     }
   },
   "saved": "Saved to card · {field}: {value}",
