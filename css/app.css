@@ -1099,7 +1099,12 @@ img{display:block;max-width:100%}
 /* text at the top, on the paper part -- like the Items idea card */
 .dcard .dtx{position:relative;padding:28px 22px 0;text-align:center;color:#040404}
 .dcard .why{font-size:16px;line-height:16px;color:#040404;margin-top:8px}
-.dcard .stamp{position:absolute;bottom:28px;left:22px;border:2px solid;border-radius:12px;
+/* a photo idea: the photo fills the card, darkest at the top (behind the
+   text) and clearing towards the bottom, like the piece card's photo header */
+.dcard.photo .dbg img{object-fit:cover;padding:0}
+.dcard .ddim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.95) -23%,rgba(0,0,0,0) 100%)}
+.dcard.photo .dtx,.dcard.photo .why,.dcard.photo .dtx .src,.dcard.photo .dtx .src.archive{color:#f6f4ec}
+.dcard .stamp{position:absolute;top:28px;left:22px;z-index:2;border:2px solid;border-radius:12px;
   padding:7px 12px;font-size:14px;font-weight:700;letter-spacing:normal;text-transform:uppercase;opacity:0;
   transform:rotate(-9deg)}
 .dcard .stamp.yes{color:var(--acid)}

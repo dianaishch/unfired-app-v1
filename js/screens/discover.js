@@ -46,12 +46,20 @@ export function openDiscover() {
        suggestions keep the hue of their old gradient. */
     const GRAD_COLOR = { g1: '#2B36FF', g2: '#FF4A17', g3: '#8C8A84', g4: '#FF7BB0' };
     const colorOf = (item) => S.byId(item.cardId || item.from)?.glow || GRAD_COLOR[item.grad] || '#8C8A84';
+    /* An idea that is a photo (a pin, a reference shot) fills the card,
+       darkened from the top like a piece card's photo header; a piece
+       cut-out sits on the paper gradient, as its clean export (never the
+       old generated variants). */
+    const OLD_VARIANT = /^assets\/(process|snap)\//;
     const build = (item) => {
-      const c = h('div', { class: 'dcard', style: {
-        background: `linear-gradient(180deg, #f6f4ec 23.32%, ${colorOf(item)} 100%)` } });
+      const src = item.src && !OLD_VARIANT.test(item.src) ? S.hiRes(item.src) : null;
+      const photo = !!src && !S.isPiece(src);
+      const c = h('div', { class: 'dcard' + (photo ? ' photo' : ''), style: {
+        background: photo ? '#040404' : `linear-gradient(180deg, #f6f4ec 23.32%, ${colorOf(item)} 100%)` } });
       squircle(c, 48);
       const bg = h('div', { class: 'dbg' });
-      if (item.src) bg.append(img(item.src, item.title));
+      if (src) bg.append(img(src, item.title));
+      if (photo) bg.append(h('div', { class: 'ddim' }));
       c.append(bg,
         h('div', { class: 'stamp yes' }, 'SAVE'),
         h('div', { class: 'stamp no' }, 'NOPE'),
