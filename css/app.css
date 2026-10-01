@@ -36,7 +36,9 @@ img{display:block;max-width:100%}
   #device{position:relative;inset:auto;width:402px;height:min(874px,96vh);
     border-radius:44px;
     box-shadow:0 40px 120px rgba(0,0,0,.8),0 0 0 1px rgba(255,255,255,.14);
-    --safe-t:14px;--safe-b:18px}
+    /* no simulated home-indicator inset at the bottom: the bottom bars'
+       buttons sit exactly 16px from the frame's edge, as designed */
+    --safe-t:14px;--safe-b:0px}
 }
 .app{position:absolute;inset:0;overflow:hidden}
 
