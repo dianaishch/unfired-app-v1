@@ -2,6 +2,13 @@
 import { CARDS, PHOTO_LIB } from './seed.js';
 
 const KEY = 'unfired.v1';
+/* The demo data's version. Every browser keeps its own copy of the demo in
+   localStorage, so a returning visitor of the shared (Vercel) link would
+   keep seeing the cards from their first visit. When the version saved in
+   a browser differs from this one, its demo data is replaced with the
+   current seed (onboarding stays done). Bump it whenever seed.js or the
+   shape of the saved state changes in a way people should see. */
+const DEMO_VERSION = '2026-10-01';
 const listeners = new Set();
 
 const fresh = () => ({
@@ -19,6 +26,7 @@ const fresh = () => ({
   /* Live mode sheet's "Save this choice": ['lock', 'widget', 'watch'] or null. */
   liveChoice: null,
   migrations: [],
+  demoVersion: DEMO_VERSION,
 });
 
 /* One-off patches for seed changes that saved state (localStorage) would
@@ -51,6 +59,12 @@ function load() {
     if (!raw) return migrate(fresh());
     const parsed = JSON.parse(raw);
     if (!parsed || !Array.isArray(parsed.cards) || !parsed.cards.length) return migrate(fresh());
+    /* older demo data: start from the current seed, keep onboarding done */
+    if (parsed.demoVersion !== DEMO_VERSION) {
+      const s = { ...fresh(), onboarded: !!parsed.onboarded, perms: parsed.perms || fresh().perms };
+      try { localStorage.setItem(KEY, JSON.stringify(s)); localStorage.removeItem('unfired.feedOrder'); } catch { /* private mode etc. */ }
+      return migrate(s);
+    }
     return migrate({ ...fresh(), ...parsed });
   } catch { return migrate(fresh()); }
 }
