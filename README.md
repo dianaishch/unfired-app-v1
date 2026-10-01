@@ -11,6 +11,21 @@ python3 -m http.server 4321
 Then open http://localhost:4321 — the app centres itself in an iPhone-sized
 viewport on desktop and fills the screen on a phone.
 
+## Share link (Vercel)
+
+https://unfired-app-v1.vercel.app — the Vercel project `unfired-app-v1` is
+connected to this GitHub repo:
+
+- every merge into `main` deploys to that link automatically (static files,
+  no build step; settings in `vercel.json`)
+- every pushed branch gets its own preview deployment (those URLs ask for a
+  Vercel login; the main link doesn't)
+- each viewer's demo data lives in their browser (localStorage). When
+  `seed.js` changes, bump `DEMO_VERSION` in `js/store.js` so returning
+  viewers get the new demo data instead of their old copy
+- files in `assets/` are cached for a year: give a changed image a new file
+  name rather than overwriting it
+
 ## Prototype controls
 
 The small ◍ in the corner opens the demo panel:
