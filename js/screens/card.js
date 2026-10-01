@@ -172,16 +172,19 @@ function logSection(c, render) {
     /* editable like the description; saved when you leave it, removed
        when emptied */
     const p = h('p', { class: 'lg-note', contenteditable: 'true', spellcheck: 'false' }, n.text);
-    p.addEventListener('blur', () => {
+    /* saved as you type (or dictate); removed if you leave it empty */
+    const save = (leaving) => {
       const v = p.textContent.trim();
-      if (v === n.text) return;
+      if (v === n.text || (!v && !leaving)) return;
       S.updateCard(c.id, cc => ({ notes: v
         ? (cc.notes || []).map(x => (x.id === n.id ? { ...x, text: v } : x))
         : (cc.notes || []).filter(x => x.id !== n.id) }));
       n.text = v;
       if (!v) p.remove();
-      nav.refresh();
-    });
+      if (leaving) nav.refresh();      // the feed behind, once you're done
+    };
+    p.addEventListener('input', () => save(false));
+    p.addEventListener('blur', () => save(true));
     return p;
   }));
   const att = h('div', { class: 'lg-att' });
@@ -242,9 +245,14 @@ function logSection(c, render) {
       render(); nav.refresh();
     },
     /* mic in the bottom bar: the transcript types into the log */
+    /* the transcript goes into the text you're in -- the description or a
+       logged note -- after what's there; the caret follows it and the
+       keyboard stays up (the mic doesn't take the focus, see bottomBar) */
     listen(micBtn) {
       el.open();
-      const base = d.text.trim();
+      const a = document.activeElement;
+      const target = a && box.contains(a) && a.isContentEditable ? a : text;
+      const base = target.textContent.trim();
       const words = SAMPLES[Math.floor(Math.random() * SAMPLES.length)].split(' ');
       let i = 0;
       micBtn.classList.add('rec'); micBtn.innerHTML = STOP_SVG;
@@ -254,8 +262,12 @@ function logSection(c, render) {
       };
       const t = setInterval(() => {
         if (i >= words.length) return stop();
-        text.textContent = (base ? base + ' ' : '') + words.slice(0, ++i).join(' ');
-        sync();
+        target.textContent = (base ? base + ' ' : '') + words.slice(0, ++i).join(' ');
+        if (document.activeElement === target) {
+          const r = document.createRange(); r.selectNodeContents(target); r.collapse(false);
+          const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+        }
+        target.dispatchEvent(new Event('input', { bubbles: true }));
       }, 105);
       micBtn.onclick = stop;
       sync();
@@ -509,6 +521,9 @@ function bottomBar(c, render, log) {
   const btn = (cls, text, onclick) => h('button', { class: 'pe-btn ' + cls, onclick }, text);
   const plus = round(PLUS24_SVG, 'Add photo or video', () => mediaPicker({ anchor: plus, onPick: (...a) => log.add(...a) }));
   const mic = round(MIC_SVG, 'Voice', () => log.listen(mic));
+  /* tapping + or the mic keeps the text you're in focused, so the keyboard
+     stays up and the mic types where you are */
+  [plus, mic].forEach(b => b.addEventListener('mousedown', (e) => e.preventDefault()));
   const media = h('div', { class: 'cb-media' }, plus, mic);
   const chat = round(ICON.dockWatch, 'New chat', () => openChat(c.id, null, render));
   const setState = (next, extra) => {

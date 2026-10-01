@@ -65,10 +65,16 @@ export function openCapture({ prompt = 'LOG A NOTE', cardHint = null, source = '
       micBtn.setAttribute('aria-label', 'Stop');
       sample = SAMPLES[Math.floor(Math.random() * SAMPLES.length)];
       const words = sample.split(' ');
-      idx = 0; live.textContent = '';
+      /* added after what you've typed, not instead of it */
+      const base = live.textContent.trim();
+      idx = 0;
       timer = setInterval(() => {
         if (idx >= words.length) { stopRec(); return; }
-        live.textContent = words.slice(0, ++idx).join(' ');
+        live.textContent = (base ? base + ' ' : '') + words.slice(0, ++idx).join(' ');
+        if (document.activeElement === live) {
+          const r = document.createRange(); r.selectNodeContents(live); r.collapse(false);
+          const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+        }
         live.scrollTop = live.scrollHeight;
         sync();
       }, 105);
@@ -80,6 +86,8 @@ export function openCapture({ prompt = 'LOG A NOTE', cardHint = null, source = '
       clearInterval(timer); timer = null; sync();
     };
     micBtn.addEventListener('click', () => recording ? stopRec() : startRec());
+    /* tapping + or the mic keeps the text focused: the keyboard stays up */
+    [micBtn, plusBtn].forEach(b => b.addEventListener('mousedown', (e) => e.preventDefault()));
 
     /* added photos/videos: 100px tiles above the bar, x badge removes one */
     const paintAtt = () => {
