@@ -45,7 +45,11 @@ export function chatView({ status = '', title = '', glow = '#dab4ff', onBack, on
 
   const view = {
     /* a message; returns its text node so a widget can keep it live */
-    say(role, text, opts) { return add(bubble(role, text, opts)).querySelector('p'); },
+    say(role, text, opts) {
+      /* your first message clears the empty chat's big intro line */
+      if (role === 'me') inner.querySelectorAll('.chx-sys.intro').forEach(el => el.remove());
+      return add(bubble(role, text, opts)).querySelector('p');
+    },
     /* a system line ("Added to Pink Pitcher") */
     sys(text, { intro } = {}) { add(h('div', { class: 'chx-sys' + (intro ? ' intro' : '') }, text)); },
     /* the AI is typing; returns a function that removes the dots */
