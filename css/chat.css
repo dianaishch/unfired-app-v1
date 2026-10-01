@@ -7,16 +7,12 @@
 .chatx :focus-visible{outline:2px solid var(--paper);outline-offset:2px}
 
 /* header (Figma 562:11122) */
-/* floats over the conversation with the Items bar's darkened blur, so
-   scrolled messages pass softly under it; js/chat.js pads the list by its
-   height */
-/* the tint and blur stay solid down past the title, then fade out over an
-   eased 40px below it -- no visible edge */
+/* floats over the conversation with the Items bar's progressive blur (no
+   darkening fade), so scrolled messages pass softly under it; chatui.js
+   pads the list by its height */
 .chx-head{position:absolute;top:0;left:0;right:0;z-index:5;padding-bottom:40px;pointer-events:none}
 .chx-head>*{pointer-events:auto}
 .chx-head>.pblur{pointer-events:none}
-.chx-head::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none}
-.chx-head::after{opacity:.8;background:linear-gradient(to bottom,var(--bg) calc(100% - 40px),color-mix(in srgb,var(--bg) 82%,transparent) calc(100% - 32px),color-mix(in srgb,var(--bg) 55%,transparent) calc(100% - 22px),color-mix(in srgb,var(--bg) 26%,transparent) calc(100% - 12px),color-mix(in srgb,var(--bg) 8%,transparent) calc(100% - 4px),transparent 100%)}
 .chx-bar{display:flex;align-items:center;gap:20px;padding:8px 16px 4px}
 .chx-round{width:40px;height:40px;border-radius:50%;flex:none;display:grid;place-items:center;
   background:var(--sheet);border:1px solid var(--line-2);color:var(--ink)}
@@ -62,6 +58,11 @@
 .chx-pill:disabled{background:var(--line);color:var(--ink-faint);cursor:default}
 
 /* input bar (Figma 590:8730 / 590:8731) */
+/* conversation + the floating input bar (see .logdock in app.css) */
+.chx-main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column}
+.chx-dock{position:absolute;left:0;right:0;bottom:0;z-index:5;background:rgba(0,0,0,.01);pointer-events:none}
+.chx-dock>*{pointer-events:auto}
+.chx-dock>.pblur{pointer-events:none}
 .chx-foot{flex:none;display:flex;align-items:flex-end;gap:8px;padding:12px 16px}
 .chx-ask{flex:1;min-width:0;min-height:58px;border-radius:100px;background:var(--line);display:flex;align-items:center;padding:19px 24px 16px}
 .chx-ask.multi{border-radius:29px}

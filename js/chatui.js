@@ -141,7 +141,12 @@ export function chatView({ status = '', title = '', glow = '#dab4ff', onBack, on
       h('div', { class: 'chx-title' }, statusEl, titleEl),
       /* "···": DELETE CHAT (when the chat can be deleted) */
       onDelete ? more : h('span', { class: 'chx-round ghost' })));
-  const el = h('div', { class: 'chatx' }, head, list, attRow, h('div', { class: 'chx-foot' }, ask, media));
+  /* the input bar floats over the end of the conversation with the app tab
+     bar's progressive blur (strongest at the bottom), so messages pass
+     softly under it; the list keeps room for it at the end */
+  const dock = h('div', { class: 'chx-dock' }, pblur('up'), attRow, h('div', { class: 'chx-foot' }, ask, media));
+  new ResizeObserver(() => { list.style.paddingBottom = dock.offsetHeight + 'px'; if (stick) list.scrollTop = list.scrollHeight; }).observe(dock);
+  const el = h('div', { class: 'chatx' }, head, h('div', { class: 'chx-main' }, list, dock));
 
   /* the dev page's own keyboard, open by default; tapping the conversation
      closes it, tapping the field opens it again */

@@ -144,13 +144,14 @@ function readyToPostRow(c) {
 
 /* ---------- LOG (Figma 562:8624 empty / 562:8456 typed / 562:8537 photo) ----------
    The space under LOG is the Log screen's typing area, sized to its
-   content: LOG A NOTE until you type, the caret in orange, photos added
-   with "+" as 100px tiles under the text (x removes one), the mic types the
-   transcript in. Photos join the card as they're added. The text is the
-   card's description (what the feed card shows) and is saved back to it
-   when you leave the page. */
-const drafts = new Map();   // card id -> { text, photos: [photo ids] }
-const draftOf = (id) => drafts.get(id) || (drafts.set(id, { text: S.byId(id)?.desc || '', photos: [] }), drafts.get(id));
+   content: LOG A NOTE until you type, the caret in orange, the mic types
+   the transcript in. The text is the card's description (what the feed
+   card shows) and is saved back to it when you leave the page. Under it,
+   everything else that was logged: each note (voice, Apple Watch, live
+   activity) its own paragraph, then the card's photos and videos as 100px
+   tiles ("+" adds one, x removes one). */
+const drafts = new Map();   // card id -> { text }
+const draftOf = (id) => drafts.get(id) || (drafts.set(id, { text: S.byId(id)?.desc || '' }), drafts.get(id));
 
 function commitLog(id) {
   const d = drafts.get(id);
@@ -163,32 +164,33 @@ function logSection(c, render) {
   const d = draftOf(c.id);
   const ph = h('div', { class: 'lg-ph' }, 'Log', h('br'), 'a note');
   const text = h('div', { class: 'lg-text', contenteditable: 'true', spellcheck: 'false' }, d.text);
+  /* what was logged by voice, Apple Watch, the live activity or typed:
+     each note its own paragraph under the description, oldest first */
+  const notes = h('div', { class: 'lg-notes' }, ...[...(c.notes || [])].sort((a, b) => (a.at || 0) - (b.at || 0)).map(n => h('p', { class: 'lg-note' }, n.text)));
   const att = h('div', { class: 'lg-att' });
-  const box = h('div', { class: 'lg' }, ph, text, att);
+  const box = h('div', { class: 'lg' }, ph, text, notes, att);
 
   const sync = () => {
     d.text = text.textContent;
-    ph.hidden = !!d.text.trim() || !!d.photos.length || document.activeElement === text;
+    ph.hidden = !!d.text.trim() || !!(c.notes || []).length || !!logged().length || document.activeElement === text;
   };
   text.addEventListener('input', sync);
   text.addEventListener('focus', sync);
   text.addEventListener('blur', sync);
   box.addEventListener('click', (e) => { if (!e.target.closest('.lg-att') && document.activeElement !== text) text.focus(); });
 
+  /* every photo and video on the card (not the background-removed piece
+     images UNFIRED makes from them), x removes one */
+  const logged = () => (S.byId(c.id).photos || []).filter(p => !p.pieceOf);
   const paintAtt = () => {
-    const cc = S.byId(c.id);
-    d.photos = d.photos.filter(pid => (cc.photos || []).some(x => x.id === pid));
-    att.replaceChildren(...d.photos.map(pid => {
-      const ph0 = cc.photos.find(x => x.id === pid);
-      return h('div', { class: 'att' }, h('div', { class: 'ph' }, img(ph0.src, '')),
+    att.replaceChildren(...logged().map(ph0 =>
+      h('div', { class: 'att' }, h('div', { class: 'ph' }, img(ph0.src, '')),
         ph0.video ? h('span', { class: 'vid', html: PLAY_SVG }) : null,
         h('button', { class: 'x', html: CLOSE_SVG, 'aria-label': 'Remove', onclick: () => {
-          S.removePhoto(c.id, pid);
-          d.photos = d.photos.filter(x => x !== pid);
+          S.removePhoto(c.id, ph0.id);
           render(); nav.refresh();
-        } }));
-    }));
-    att.hidden = !d.photos.length;
+        } }))));
+    att.hidden = !logged().length;
     sync();
   };
   paintAtt();
@@ -199,10 +201,7 @@ function logSection(c, render) {
     /* "+" in the bottom bar */
     add(src, guess, { video } = {}) {
       const kind = guess || (c.state === 'finished' ? 'final' : c.state === 'making' ? 'process' : 'inspiration');
-      const before = new Set((S.byId(c.id).photos || []).map(x => x.id));
       S.addPhoto(c.id, { src, kind, video: video || undefined, cap: 'Added in the log' });
-      const added = S.byId(c.id).photos.find(x => !before.has(x.id));
-      if (added) d.photos.push(added.id);
       shown.set(c.id + 'log', true);
       /* what the photo shows moves the card on: glazed -> finished,
          unfired -> making (S.stateFromPhoto) */
@@ -358,7 +357,6 @@ function planSection(c, render) {
    is just the first bubble -- generic text ("Ask UNFIRED about this
    piece") rather than Figma's per-card "Visualize this idea with
    different painted patterns", since there's no prompt generator here. */
-const bubType = (src) => ({ voice: 'Voice', type: 'Text', watch: 'Apple Watch', liveactivity: 'Live Activity', import: 'Imported' }[src] || 'Note');
 const bubWhen = (at) => (Date.now() - at < 12 * 36e5 ? 'now' : fmtShort(at));
 
 function chatsSection(c, render) {
@@ -401,12 +399,9 @@ function chatsSection(c, render) {
     }
   }
 
+  /* chats only -- what you logged (voice, watch, live activity, photos)
+     lives in LOG */
   [
-    ...(c.notes || []).map(n => ({
-      at: n.at, summary: n.text,
-      meta: bubType(n.src) + ', ' + bubWhen(n.at),
-      open: () => openNote(c.id, n, render),
-    })),
     ...(c.threads || []).map(t => ({
       at: t.at, summary: t.title,
       meta: (t.suggestion || t.msgs[0]?.role === 'ai' ? 'Suggestion' : 'Chat') + ', ' + bubWhen(t.at),
@@ -515,24 +510,6 @@ function toggleLive(c, render) {
 }
 
 const titleCase = (s) => (s || '').toLowerCase().replace(/\b\w/g, (m) => m.toUpperCase());
-
-const srcLabel = (s) => ({ watch: 'APPLE WATCH', liveactivity: 'LIVE ACTIVITY', voice: 'VOICE', type: 'TYPED', import: 'IMPORTED' }[s] || 'VOICE');
-
-function openNote(cardId, n, render) {
-  sheet({ build: (b, done) => {
-    b.append(
-      h('div', { class: 'label' }, srcLabel(n.src) + ' · ' + fmtShort(n.at)),
-      h('div', { class: 'desc', style: { marginTop: '14px' } }, n.text));
-    const ex = AI.extract(n.text);
-    if (ex.length) {
-      b.append(h('div', { class: 'label', style: { marginTop: '22px' } }, 'UNFIRED PULLED OUT'));
-      b.append(h('div', { class: 'params' }, ...ex.map(x =>
-        h('div', { class: 'ptag est' }, h('div', { class: 'k' }, x.k), h('div', { class: 'v' }, x.v)))));
-    }
-    b.append(h('button', { class: 'bigact ghost', style: { width: '100%', margin: '24px 0 0' },
-      onclick: () => { done(); openChat(cardId, null, render, n.text); } }, 'ASK ABOUT THIS'));
-  } });
-}
 
 /* ---------- CHAT THREAD ---------- */
 /* seed: a note to ask about ("About this note: …"); ask: a question sent

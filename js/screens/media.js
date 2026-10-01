@@ -68,6 +68,12 @@ export function popMenu({ anchor, align = null, below = false, items }) {
   const dismiss = () => { catcher.remove(); pop.classList.remove('in'); setTimeout(() => pop.remove(), 180); };
   catcher.addEventListener('click', dismiss);
   host.append(catcher, pop);
+  /* never past the screen's side: 16px from the edge at most (a "+" on
+     the right of a bottom bar would push it off) */
+  if (pop.style.left) {
+    const maxLeft = hr.width / k - pop.offsetWidth - 16;
+    pop.style.left = Math.max(16, Math.min(parseFloat(pop.style.left), maxLeft)) + 'px';
+  }
   requestAnimationFrame(() => pop.classList.add('in'));
 }
 
