@@ -1107,8 +1107,8 @@ img{display:block;max-width:100%}
 .dcard .stamp{position:absolute;top:28px;left:22px;z-index:2;border:2px solid;border-radius:12px;
   padding:7px 12px;font-size:14px;font-weight:700;letter-spacing:normal;text-transform:uppercase;opacity:0;
   transform:rotate(-9deg)}
-.dcard .stamp.yes{color:var(--acid)}
-.dcard .stamp.no{right:22px;left:auto;color:var(--orange);transform:rotate(9deg)}
+.dcard .stamp.yes{color:var(--orange)}          /* SAVE: the app's orange */
+.dcard .stamp.no{right:22px;left:auto;color:var(--ink-faint);transform:rotate(9deg)}   /* NOPE: the inactive tabs' grey */
 .dactions{flex:none;display:flex;gap:14px;justify-content:center;align-items:center;
   padding:0 20px calc(16px + var(--safe-b))}
 .dact{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;
