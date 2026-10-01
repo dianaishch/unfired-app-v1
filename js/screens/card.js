@@ -59,7 +59,8 @@ const isCutout = S.isPiece;
 function cardHeader(c, render, closePage) {
   const hero = S.hiRes(S.cutoutSrc(c));
   const photo = c.state === 'idea' && !!hero && !isCutout(hero);
-  const compact = !hero || (c.state === 'making' && c.live) || (!photo && !isCutout(hero));
+  /* the piece stays in the header with STUDIO MODE on too */
+  const compact = !hero || (!photo && !isCutout(hero));
   const kind = c.state === 'finished' ? 'dark' : photo ? 'photo' : 'tint';
 
   /* Title Case for display; c.title itself stays stored ALL CAPS */
@@ -71,14 +72,16 @@ function cardHeader(c, render, closePage) {
   title.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); title.blur(); } });
 
   const inner = h('div', { class: 'cx-in ' + kind + (compact ? ' compact' : '') },
-    photo ? h('div', { class: 'cx-photo' }, img(hero, c.title)) : null,
+    photo ? h('div', { class: 'cx-photo' }, Object.assign(img(hero, c.title), { loading: 'eager' })) : null,
     photo ? h('div', { class: 'cx-dim' }) : null,
     heroStatusBar(),
     h('div', { class: 'cx-top' },
       h('button', { class: 'cx-btn', onclick: closePage, html: BACK16_SVG, 'aria-label': 'Back' }),
       h('div', { class: 'cx-title' }, heroStatus(c), title),
       h('button', { class: 'cx-btn', onclick: (e) => cardMenu(c, render, closePage, e.currentTarget), html: DOTS16_SVG, 'aria-label': 'Card options' })),
-    compact ? null : h('div', { class: 'cx-hero' }, photo ? null : img(hero, c.title)));
+    /* eager: the page slides in from off-screen, and a lazy image there
+       isn't fetched until something re-renders it */
+    compact ? null : h('div', { class: 'cx-hero' }, photo ? null : Object.assign(img(hero, c.title), { loading: 'eager' })));
   if (kind === 'tint') {
     const stop = c.state === 'making' ? '6.25%' : '11.058%';
     inner.style.background = `linear-gradient(0deg, #f6f4ec ${stop}, ${S.pieceColor(c)} 100%)`;
@@ -277,12 +280,57 @@ export function planFallbackText(c) {
   return lines.join('\n');
 }
 
+/* Making: the plan is read-only and its numbered steps ("01 · …") are a
+   checklist -- the onboarding checkbox, orange when ticked, the step greyed
+   and struck through (Tailwind's to-do example). Ticks are kept on the
+   card by step text, so steps added later (a pattern from chat) work too.
+   Finished: the same list, locked (disabled), showing what was ticked --
+   or every step, for a piece finished before it had ticks.
+   brief (the live activity, studio.js): without the risks and FROM YOUR
+   ARCHIVE blocks. */
+export function planChecklist(c, text = c.plan?.text || planFallbackText(c), { disabled = false, brief = false } = {}) {
+  const allDone = c.state === 'finished' && !c.plan?.checked;
+  const done = new Set(c.plan?.checked || []);
+  const el = h('div', { class: 'pl-text pl-list' });
+  let k = 0;
+  let lines = text.split('\n');
+  if (brief) {
+    let skip = false;
+    lines = lines.filter(l => {
+      if (/^⚠ /.test(l) || l === 'FROM YOUR ARCHIVE') skip = true;
+      else if (skip && !l.trim()) { skip = false; return false; }
+      return !skip;
+    });
+    while (lines.length && !lines[lines.length - 1].trim()) lines.pop();
+  }
+  const isStep = (l) => /^\d{2} · /.test(l || '');
+  lines.forEach((line, i) => {
+    const m = line.match(/^(\d{2}) · (.*)$/);
+    /* the blank lines between steps: the rows space themselves */
+    if (!line.trim() && isStep(lines[i - 1]) && isStep(lines[i + 1])) return;
+    if (!m) { el.append(h('div', { class: 'pl-line' }, line || '\u00a0')); return; }
+    const key = line;
+    const box = h('input', { type: 'checkbox', id: `pl-${c.id}-${k++}-${Math.random().toString(36).slice(2, 6)}`,
+      checked: allDone || done.has(key) || null, disabled: disabled || null });
+    box.addEventListener('change', () => S.updateCard(c.id, cc => {
+      const set = new Set(cc.plan?.checked || []);
+      box.checked ? set.add(key) : set.delete(key);
+      return { plan: { ...cc.plan, checked: [...set] } };
+    }));
+    el.append(h('label', { class: 'pl-step', for: box.id }, box,
+      h('span', { class: 'bx', html: ICON.check, 'aria-hidden': 'true' }),
+      h('span', { class: 'tx' }, m[1] + ' · ' + m[2])));
+  });
+  return el;
+}
+
 function planSection(c, render) {
   const plan = c.plan || {};
   const currentText = () => plan.text || planFallbackText(c);
-  const text = h('div', { class: 'pl-text', contenteditable: 'true', spellcheck: 'false',
+  const readOnly = c.state === 'making' || c.state === 'finished';
+  const text = readOnly ? planChecklist(c, currentText(), { disabled: c.state === 'finished' }) : h('div', { class: 'pl-text', contenteditable: 'true', spellcheck: 'false',
     'data-ph': 'Type in or regenerate plan…' }, currentText());
-  text.addEventListener('blur', () => {
+  if (!readOnly) text.addEventListener('blur', () => {
     const v = text.textContent.trim();
     clearIfEmpty(text);
     if (v !== currentText()) { S.updateCard(c.id, cc => ({ plan: { ...cc.plan, text: v } })); toast({ text: 'Saved' }); }
@@ -297,8 +345,9 @@ function planSection(c, render) {
     toast({ text: 'Plan regenerated' });
     render();
   } }, 'Regenerate');
+  /* a finished piece's plan is its record: no REGENERATE */
   const box = h('div', { class: 'pl-box', style: {
-    background: `linear-gradient(0deg, #f6f4ec 6.25%, ${S.pieceColor(c)} 100%)` } }, text, regen);
+    background: `linear-gradient(0deg, #f6f4ec 6.25%, ${S.pieceColor(c)} 100%)` } }, text, c.state === 'finished' ? null : regen);
   return section(c, 'plan', 'Plan', box);
 }
 

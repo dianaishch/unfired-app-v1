@@ -723,6 +723,23 @@ img{display:block;max-width:100%}
   margin-bottom:16px}
 .pl-text{width:100%;font-size:16px;line-height:18px;color:#040404;white-space:pre-wrap;outline:none}
 .pl-text:empty:before{content:attr(data-ph);color:#54524e}
+/* making: read-only plan, steps as a checklist (onboarding's .bx box,
+   orange when ticked; the step greys and strikes through) */
+.pl-list{white-space:normal}
+.pl-line{white-space:pre-wrap}
+.pl-step{position:relative;display:flex;align-items:flex-start;gap:12px;min-height:44px;padding:10px 0;cursor:pointer}
+.pl-step input{position:absolute;opacity:0;width:24px;height:24px;margin:0;pointer-events:none}
+.pl-step .bx{width:24px;height:24px;border-radius:7px;border:1px solid #292929;flex:none;margin-top:-3px;
+  display:grid;place-items:center;color:var(--bg);transition:background .2s var(--ease),border-color .2s var(--ease)}
+.pl-step .bx svg{width:16px;height:16px;opacity:0;transform:scale(.4);transition:opacity .18s var(--ease),transform .25s var(--ease)}
+.pl-step .tx{white-space:pre-wrap;text-decoration:line-through;text-decoration-color:transparent;
+  transition:color .25s var(--ease),text-decoration-color .25s var(--ease)}
+.pl-step input:checked + .bx{background:var(--orange);border-color:var(--orange)}
+.pl-step input:checked + .bx svg{opacity:1;transform:none}
+.pl-step input:checked ~ .tx{color:var(--ink-faint);text-decoration-color:currentColor}
+.pl-step input:focus-visible + .bx{outline:2px solid var(--bg);outline-offset:2px}
+/* finished: locked, showing what was ticked while making */
+.pl-step:has(input:disabled){cursor:default}
 .pl-regen{height:40px;padding:1px 16px 0;border-radius:100px;background:#f6f4ec;border:1px solid #292929;
   font-size:14px;font-weight:700;text-transform:uppercase;color:#040404}
 
@@ -1139,38 +1156,37 @@ img{display:block;max-width:100%}
 
 /* ---------- live activity / lock screen ---------- */
 .lock{position:absolute;inset:0;background:linear-gradient(165deg,#1b1a24,#080810 60%,#000);
-  display:flex;flex-direction:column;padding:calc(var(--safe-t) + 26px) 18px calc(20px + var(--safe-b))}
+  display:flex;flex-direction:column;padding:calc(var(--safe-t) + 26px) 12px calc(20px + var(--safe-b))}
 .lock .clock{text-align:center;margin-bottom:26px}
 .lock .clock .d{font-size:14px;letter-spacing:.02em;opacity:.7}
 .lock .clock .t{font-size:74px;font-weight:200;line-height:1;letter-spacing:-.03em;
   font-family:var(--font)}
 /* live activity card, Figma 494:24966 */
-.la{background:#0a0a0a;border-radius:18px;padding:16px;box-shadow:0 10px 15px rgba(0,0,0,.28)}
-.la .lah{display:flex;align-items:center;gap:10px;padding:1px 0}
+.la{background:#0a0a0a;border-radius:18px;padding:16px 14px;box-shadow:0 10px 15px rgba(0,0,0,.28)}
+.la .lah{display:flex;align-items:center;gap:10px}
 .la .latx{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
-.la .lat{display:flex;align-items:center;gap:8px;min-width:0}
+/* the chevron folds the plan; 44px hit area around the 16px icon */
+.la .laic{width:44px;height:44px;margin:-10px -12px -10px 0;display:grid;place-items:center;flex:none}
+.la .laic svg{width:16px;height:16px;transition:transform .2s}
+.la .laic.up svg{transform:rotate(180deg)}
+.la-done{margin-top:16px;font-size:14px;line-height:17px;color:#f6f4ec}
 .la .title{font-size:20px;font-weight:500;letter-spacing:-.4px;line-height:normal;color:#fff;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.la .lastate{display:flex;align-items:center;gap:4px;flex:none;font-size:12px;
+.la .lastate{display:flex;align-items:center;gap:4px;font-size:12px;
   text-transform:uppercase;color:#FF451A}
 .la .lastate i{width:6px;height:6px;border-radius:50%;background:#FF451A}
-.la .lasub{padding-top:2px;font-size:14px;color:#54524e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.la .laic{display:grid;place-items:center;flex:none}
-.la .laic svg{width:18px;height:18px}
-.la button.laic svg{width:16px;height:16px;transition:transform .2s}
-.la button.laic.up svg{transform:rotate(180deg)}
-.la ol{margin:16px 0 0;padding-left:16px;display:flex;flex-direction:column;gap:2px}
-.la ol li{font-size:13px;line-height:20.15px;color:#f6f4ec;padding-left:5px}
-.la ol li.done{font-size:14px;line-height:normal;color:#54524e}
-.la ol li.now{color:#d9ff26}
-.la ol li::marker{font-size:13px}
-.la ol li.now::marker{font-weight:500}
-/* iOS live-activity buttons (Figma uses SF Pro semibold here) */
-.la .labtns{display:flex;gap:7px;margin-top:16px}
-.la .labtns button{flex:1;min-width:0;height:54px;border-radius:11px;padding:8px 4px;
-  background:rgba(255,255,255,.12);color:#fff;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",var(--font);
-  font-size:12px;font-weight:600}
-.la .labtns button.end{background:#ff4b18}
+/* the making card's plan (card.js planChecklist), light on the dark card;
+   long plans scroll inside it */
+.la-plan{margin-top:16px;max-height:44vh;overflow-y:auto;scrollbar-width:none}
+.la-plan::-webkit-scrollbar{display:none}
+.la-plan .pl-text{color:#f6f4ec;font-size:14px;line-height:17px}
+.la-plan .pl-step{min-height:40px;padding:8px 0}
+.la-plan .pl-step .bx{border-color:#54524e}
+.la-plan .pl-step input:checked ~ .tx{color:#54524e}
+/* the app's bottom-bar buttons (.pe-btn / .cb-round) */
+.la-bar{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:16px;container-type:inline-size}
+.la-bar .pe-btn{white-space:nowrap;padding-left:max(10px, min(24px, (100cqw - 280px) / 4));
+  padding-right:max(10px, min(24px, (100cqw - 280px) / 4))}
 .lock .exit{margin-top:auto;text-align:center;font-size:11px;letter-spacing:.14em;
   text-transform:uppercase;color:var(--ink-faint);padding-top:20px}
 

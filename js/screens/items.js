@@ -208,7 +208,15 @@ function shuffled(arr) {
 
 /* Pinned per filter tab: the shuffle only reshuffles when the actual set
    of card ids under that filter changes, not on every re-render. */
-const archiveShuffleCache = new Map();
+/* Kept in the browser too, so a reload shows the feed in the same order
+   (only cards that are new since then get shuffled in). */
+const SHUFFLE_KEY = 'unfired.feedOrder';
+const archiveShuffleCache = new Map((() => {
+  try { return Object.entries(JSON.parse(localStorage.getItem(SHUFFLE_KEY)) || {}); } catch { return []; }
+})());
+const saveShuffle = () => {
+  try { localStorage.setItem(SHUFFLE_KEY, JSON.stringify(Object.fromEntries(archiveShuffleCache))); } catch { /* storage blocked */ }
+};
 
 /* The grid (Figma 562:8266 ...): every card a half-width tile, two per
    row. Pieces (a photo of the object: finished, making, remakes) and ideas
@@ -241,6 +249,7 @@ function archive(feat) {
   const pieces = order(list.filter(c => !isIdeaTile(c)), cached?.photoIds);
   const ideas = order(list.filter(isIdeaTile), cached?.gradIds);
   archiveShuffleCache.set(filter, { photoIds: pieces.map(c => c.id), gradIds: ideas.map(c => c.id) });
+  saveShuffle();
 
   const wrap = h('div', { class: 'archive' });
   let row = 0;
