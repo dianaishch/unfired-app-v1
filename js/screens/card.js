@@ -179,12 +179,16 @@ function logSection(c, render) {
   text.addEventListener('blur', sync);
   box.addEventListener('click', (e) => { if (!e.target.closest('.lg-att') && document.activeElement !== text) text.focus(); });
 
-  /* every photo and video on the card (not the background-removed piece
-     images UNFIRED makes from them), x removes one */
-  const logged = () => (S.byId(c.id).photos || []).filter(p => !p.pieceOf);
+  /* every photo and video on the card, x removes one. Not the piece images
+     UNFIRED makes from a photo (pieceOf), and never the old generated
+     demo images: the rough cut-outs in assets/pieces show as their clean
+     export (S.hiRes), the fake greenware / phone-snap variants
+     (assets/process, assets/snap) don't show at all. */
+  const OLD_VARIANT = /^assets\/(process|snap)\//;
+  const logged = () => (S.byId(c.id).photos || []).filter(p => !p.pieceOf && !OLD_VARIANT.test(p.src));
   const paintAtt = () => {
     att.replaceChildren(...logged().map(ph0 =>
-      h('div', { class: 'att' }, h('div', { class: 'ph' }, img(ph0.src, '')),
+      h('div', { class: 'att' }, h('div', { class: 'ph' }, img(S.hiRes(ph0.src), '')),
         ph0.video ? h('span', { class: 'vid', html: PLAY_SVG }) : null,
         h('button', { class: 'x', html: CLOSE_SVG, 'aria-label': 'Remove', onclick: () => {
           S.removePhoto(c.id, ph0.id);
