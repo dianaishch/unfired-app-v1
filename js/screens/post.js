@@ -1,35 +1,33 @@
 /* POST EDIT + PREVIEW -- the "Ready to post" flow.
    Edit screen: Figma nodes 493:16808 (a post) / 493:18256 (card with no
-   post yet: "Upload an image" placeholder). Preview: Figma 493:16989 -- it
-   shows the same exported post image as the Ready-to-post carousel, not a
-   rebuilt Instagram frame (per your call), so edits made on the Edit screen
-   don't show there. Post / Custom open placeholder modals; no real share
-   sheet or colour picker behind them yet. */
-import { h, ICON, page, sheet, toast, img, ago, pblur } from '../ui.js';
+   post yet: "Upload an image" placeholder). Preview: the post in the
+   preset Instagram frame (postFrame), the same as the Ready-to-post
+   carousel, so edits made on the Edit screen show in both. Post / Custom
+   open placeholder modals; no real share sheet or colour picker behind
+   them yet. */
+import { h, ICON, page, sheet, toast, img, ago, pblur, cardLoop } from '../ui.js';
 import * as S from '../store.js';
 import { openCard, PLUS24_SVG } from './card.js';
 import { mediaPicker, BACK16_SVG, DOTS16_SVG } from './media.js';
 import { statusBar } from './items.js';
 
-/* The exported posts, each tied to its real piece card. Both plate posts
-   belong to Starred Plates (the bowl and the sun plate are its photos).
-   `bg` is each export's own backdrop, sampled from the PNG; `name`/`tech`
-   are the labels printed on it. */
+/* The posts, each tied to its real piece card. Both plate posts belong to
+   Starred Plates (the bowl and the sun plate are its photos). `bg` is the
+   backdrop the old exports used; `name`/`tech` are the image's labels. Every
+   post is drawn live in the preset Instagram frame (postFrame). */
 const PINK = 'linear-gradient(0deg, #f6f4ec 0.962%, #f6f4ec 41.334%, #feb2b8 100%)';
 export const POSTS = [
-  { id: 'post-1', img: 'assets/posts/Post 1.png?v=2', cardId: 'lavender-teapot-2',
+  { id: 'post-1', cardId: 'lavender-teapot-2',
     piece: 'assets/pieces without bg/19-lavender-teapot 1.png', name: 'Lavender Teapot', tech: 'Hand Built', bg: 0 },
-  { id: 'post-2', img: 'assets/posts/Post 2.png?v=2', cardId: 'starred-plates',
+  { id: 'post-2', cardId: 'starred-plates',
     piece: 'assets/pieces without bg/02-red-star-bowl 1.png', name: 'Starred Plate N2', tech: 'Pinch Built', bg: PINK },
-  { id: 'post-3', img: 'assets/posts/Post 3.png?v=2', cardId: 'starred-plates',
+  { id: 'post-3', cardId: 'starred-plates',
     piece: 'assets/pieces without bg/01-red-star-sun-plate 1.png', name: 'Starred Plate N1', tech: 'Wheel Thrown', bg: PINK },
 ];
 /* Every card with a piece photo (a background-removed cutout) -- remakes
-   included -- has at least one post: its exported ones above, else one
-   generated from the cutout, with no exported image yet (the carousel/
-   preview show a placeholder card until you replace it). Other photos
-   (inspiration, process shots) don't make posts. Generated posts open on
-   swatch 0, the piece-colour gradient. */
+   included -- has at least one post: the ones above, else one generated
+   from the cutout. Other photos (inspiration, process shots) don't make
+   posts. Generated posts open on swatch 0, the piece-colour gradient. */
 const pieceOf = (c) => {
   const p = (c.photos || []).find(x => S.isPiece(x.src));
   return p ? S.hiRes(p.src) : null;
@@ -38,15 +36,11 @@ const pieceOf = (c) => {
 export function allPosts() {
   const gen = S.cards()
     .filter(c => pieceOf(c) && !POSTS.some(p => p.cardId === c.id))
-    .map(c => ({ id: 'gen-' + c.id, img: null, cardId: c.id, piece: pieceOf(c),
+    .map(c => ({ id: 'gen-' + c.id, cardId: c.id, piece: pieceOf(c),
                  name: titleCase(c.title), tech: techOf(c), bg: 0 }));
   return [...POSTS.filter(p => S.byId(p.cardId)), ...gen];
 }
 export const postsForCard = (cardId) => allPosts().filter(p => p.cardId === cardId);
-
-/* Placeholder for a post with no exported image yet (Figma 493:19727). */
-export const postPlaceholder = (name) =>
-  h('div', { class: 'post-ph' }, h('div', {}, 'Post preview card for ' + name));
 
 /* A light tint of a colour: same hue, lightness lifted to Figma's light
    lavender swatch (#e4caff = hsl(270, 100%, 89.6%)), so for the teapot's
@@ -168,18 +162,49 @@ function composed(r, st) {
     h('div', { class: 'pe-lab br' }, r.tech));
 }
 
+/* A post as it will look on Instagram: the post preset (assets/posts/Post
+   preset.png -- header, actions, likes, caption; its image area is
+   transparent) over the card's composed image, scaled to fill that area,
+   and this post's own caption over the preset's sample one. Used by the
+   Ready to post carousel and the Preview tab, so edits show in both.
+   ref: a post id (or a card id); bg: show it on another backdrop. */
+export const POST_PRESET = 'assets/posts/Post preset.png';
+export function postFrame(ref, { bg } = {}) {
+  const r = typeof ref === 'string' ? resolve(ref) : ref;
+  if (!r) return null;
+  const st = editState(r);
+  if (bg !== undefined) st.bg = bg;           // a backdrop variant
+  const caption = (st.caption || `${r.name} / 2026`).split('\n')[0];
+  const preset = img(POST_PRESET, '');
+  preset.loading = 'eager'; preset.draggable = false; preset.className = 'pf-preset';
+  return h('div', { class: 'post-frame', 'aria-label': r.name },
+    h('div', { class: 'pf-art' }, composed(r, st)),
+    preset,
+    h('div', { class: 'pf-cap' }, caption));
+}
+
 /* Ready to post (Figma 562:9738 edit / 562:9813 preview): EDIT / PREVIEW
    tabs on one screen. Edit: the composed image, backdrop, caption and the
    post's photos (tap one to show it, "+" adds more). Preview: the exported
    post as it'll look on Instagram (the same image as the Ready-to-post
    carousel), or the composed image for a post with no export yet. */
-export function openPostEdit(ref) {
+/* A post's backdrops in carousel order: the one it has, then every other
+   swatch. The carousel's repeats and the Preview deck are these variants. */
+export function backdropVariants(ref) {
+  const r = typeof ref === 'string' ? resolve(ref) : ref;
+  const cur = editState(r).bg;
+  return [cur, ...r.swatches.map((_, i) => i).filter(i => i !== cur)];
+}
+
+/* bg: open on this backdrop (the carousel variant EDIT was tapped on) */
+export function openPostEdit(ref, { bg } = {}) {
   const r = resolve(ref);
   if (!r) return;
   page((p, close) => {
     const st = editState(r);
     let tab = 'edit';
     const save = () => S.updatePostEdit(r.key, { bg: st.bg, caption: st.caption, photos: st.photos });
+    if (bg !== undefined && bg !== st.bg) { st.bg = bg; save(); }
     const slides = () => [...(r.post ? [r.post.piece] : []), ...st.photos];
 
     const imgSlot = h('div', { class: 'pe-imgwrap' });
@@ -249,10 +274,21 @@ export function openPostEdit(ref) {
       h('div', { class: 'pe-sh' }, h('div', { class: 'pe-sh-t' }, 'Photo')),
       tiles);
     const previewBody = h('div', { class: 'pe-body pv' });
-    const paintPreview = () => previewBody.replaceChildren(
-      !r.post ? h('div', { class: 'pv-art composed' }, composed(r, st))
-        : r.post.img ? h('div', { class: 'pv-art' }, img(r.post.img, r.name))
-        : h('div', { class: 'pv-art' }, postPlaceholder(r.name)));
+    /* PREVIEW: the post in the preset Instagram frame on every backdrop, in
+       the same looping deck as Ready to post (ui.js cardLoop), starting on
+       the current one. The backdrop you swipe to becomes the post's (EDIT
+       shows it); tapping the centred post goes to EDIT. */
+    const paintPreview = () => {
+      const variants = backdropVariants(r);
+      const total = variants.length * Math.ceil(9 / variants.length);
+      const els = Array.from({ length: total }, (_, j) => postFrame(r, { bg: variants[j % variants.length] }));
+      const deck = h('div', { class: 'rtp-deck' }, ...els);
+      previewBody.replaceChildren(deck);
+      cardLoop(previewBody, deck, els, variants.length, {
+        onActive: (i) => { if (st.bg !== variants[i]) { st.bg = variants[i]; save(); paintSwatches(); paintImage(); } },
+        onTapCenter: () => { tab = 'edit'; paintTab(); },
+      }).render();
+    };
 
     const tabBtn = (k, label) => h('button', { class: 'pe-tab', onclick: () => { tab = k; paintTab(); } }, label);
     const tEdit = tabBtn('edit', 'Edit'), tPrev = tabBtn('preview', 'Preview');

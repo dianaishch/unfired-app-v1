@@ -4,7 +4,7 @@ import * as S from '../store.js';
 import * as AI from '../ai.js';
 import { nav } from '../nav.js';
 import { openCard, openChat, startMaking } from './card.js';
-import { allPosts, postPlaceholder, openPostEdit, openShareSheet } from './post.js';
+import { allPosts, postFrame, backdropVariants, openPostEdit, openShareSheet } from './post.js';
 import { CARDS } from '../seed.js';
 
 const SEED_IDS = new Set(CARDS.map(c => c.id));
@@ -272,10 +272,10 @@ export function openSearch(prefill, { glow } = {}) {
 }
 
 /* ══════════════ READY TO POST (all) ══════════════
-   Post-preview cards are exact Figma exports (POSTS in post.js, each tied
-   to its real piece card). Carousel animation is a port of
-   infinite-scrolling-cards-slider.webflow.io (see the loop inside
-   openReadyToPost), driven by horizontal scrolling of the screen; none of
+   Each post is drawn in the preset Instagram frame from its piece card
+   (post.js postFrame). Carousel animation is a port of
+   infinite-scrolling-cards-slider.webflow.io (ui.js cardLoop), driven by
+   horizontal scrolling of the screen; none of
    the reference's own UI is used. EDIT (dark chip) then POST (orange
    #FF451A / #040404 text); both act on the centred card. Tapping the
    centred card opens Edit too; tapping a side card brings it to centre. */
@@ -287,25 +287,29 @@ export function openReadyToPost() {
     /* The loop needs enough cards that the wrap point sits off-screen (the
        reference refuses to run with < 6), so the image set is repeated:
        3 images -> 9 cards, visible slots -4..+4 are always distinct cards. */
-    /* Every post: the exported images, then a same-size placeholder card
-       for each generated post (Figma 493:19727) until it gets its export. */
     const posts = allPosts();
     const n = posts.length;
     const total = n * Math.ceil(9 / n);
-    const cardEls = Array.from({ length: total }, (_, j) => {
-      const post = posts[j % n];
-      if (!post.img) return postPlaceholder(post.name);
-      const el = img(post.img, '');
-      el.loading = 'eager';
-      el.draggable = false;
-      return el;
-    });
+    /* each post in the preset Instagram frame, built from its card (post.js
+       postFrame): the piece's gradient, cut-out and labels. Backdrops vary
+       along the deck so neighbours never look alike: a post shows the next
+       of its backdrop variants for its position (and again for each repeat
+       when the loop repeats posts) -- except one whose backdrop was picked
+       in Edit, which keeps it. */
+    const variantsOf = posts.map(p => backdropVariants(p.id));
+    const picked = posts.map(p => S.postEdit(p.id)?.bg !== undefined);
+    const bgAt = (j) => {
+      const i = j % n, v = variantsOf[i], rep = Math.floor(j / n);
+      return v[((picked[i] ? 0 : i) + rep) % v.length];
+    };
+    const cardEls = Array.from({ length: total }, (_, j) => postFrame(posts[j % n].id, { bg: bgAt(j) }));
     const deck = h('div', { class: 'rtp-deck' }, ...cardEls);
     const editBtn = h('button', {}, 'Edit');
     const postBtn = h('button', { class: 'post', onclick: openShareSheet }, 'Post');
-    let currentIdx = 0;
-    const setActive = (i) => { currentIdx = i; };
-    const editCurrent = () => openPostEdit(posts[currentIdx].id);
+    let currentIdx = 0, currentEl = 0;
+    const setActive = (i, j) => { currentIdx = i; currentEl = j; };
+    /* EDIT opens the centred post on the backdrop it's showing */
+    const editCurrent = () => openPostEdit(posts[currentIdx].id, { bg: bgAt(currentEl) });
     editBtn.onclick = editCurrent;
 
     /* the looping card deck (ui.js cardLoop): tap the centre card -> Edit */
