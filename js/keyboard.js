@@ -90,6 +90,43 @@ let setApp = null;
 /* open the app's keyboard now (a chat opens with it up) */
 export const showKeyboard = () => setApp && setApp(true);
 
+/* Keep the field you're typing in visible above the keyboard: scroll its
+   page so the caret (or the field, when there's no caret yet) sits clear of
+   the bottom edge -- with room for a floating bottom bar -- and below a
+   floating header. Fields that aren't in a scrolling page (the chat's input
+   bar) are already above the keyboard. */
+const scroller = (el) => {
+  for (let p = el.parentElement; p; p = p.parentElement) {
+    const o = getComputedStyle(p).overflowY;
+    if ((o === 'auto' || o === 'scroll') && p.scrollHeight > p.clientHeight) return p;
+  }
+  return null;
+};
+function reveal(el, smooth = true) {
+  const box = el && scroller(el);
+  if (!box) return;
+  let r = null;
+  const sel = window.getSelection();
+  if (sel && sel.rangeCount && el.contains(sel.anchorNode)) {
+    const rr = sel.getRangeAt(0).getBoundingClientRect();
+    if (rr.height) r = rr;
+  }
+  if (!r) {
+    const fr = el.getBoundingClientRect();
+    /* a tall field: aim for its first lines, not its far end */
+    r = { top: fr.top, bottom: Math.min(fr.bottom, fr.top + 120) };
+  }
+  const b = box.getBoundingClientRect();
+  const page = box.closest('.layer') || box.parentElement;
+  const bar = page.querySelector('.card-bar, .pe-bottom, .rtp-bottombar');
+  const bottomRoom = (bar ? bar.offsetHeight : 0) + 24;
+  const topRoom = 80;
+  let d = 0;
+  if (r.bottom > b.bottom - bottomRoom) d = r.bottom - (b.bottom - bottomRoom);
+  else if (r.top < b.top + topRoom) d = r.top - (b.top + topRoom);
+  if (d) box.scrollBy({ top: d, behavior: smooth ? 'smooth' : 'auto' });
+}
+
 export function mountKeyboard(device) {
   const kb = keyboard({ onMic: () => {
     const scope = [...document.querySelectorAll('#layers .layer')].pop() || device;
@@ -98,7 +135,15 @@ export function mountKeyboard(device) {
   } });
   kb.classList.add('app-kb');
   device.append(kb);
-  const set = (on) => { kb.classList.toggle('open', on); device.classList.toggle('kb-open', on); };
+  const set = (on) => {
+    const opening = on && !kb.classList.contains('open');
+    kb.classList.toggle('open', on); device.classList.toggle('kb-open', on);
+    /* once the screen has shrunk for the keyboard (.28s), bring the field
+       into view; at once if the keyboard was already up */
+    if (on) setTimeout(() => reveal(document.activeElement), opening ? 320 : 0);
+  };
+  /* typing (a longer note, a new line) keeps the caret in view */
+  device.addEventListener('input', (e) => { if (kb.classList.contains('open')) reveal(e.target, false); });
   setApp = set;
   device.addEventListener('focusin', (e) => {
     if (!isEditable(e.target) || kb.contains(e.target)) return;

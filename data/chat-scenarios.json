@@ -4,12 +4,12 @@
       "id": "patterns",
       "name": "Pattern variants",
       "status": "Suggested, now",
-      "title": "Visualize this pitcher with different painted patterns",
+      "title": "Visualize this idea with different painted patterns",
       "glow": "#6ab8ef",
       "messages": [
         {
           "role": "me",
-          "text": "Visualize this pitcher with different painted patterns"
+          "text": "Visualize this idea with different painted patterns"
         },
         {
           "role": "ai",

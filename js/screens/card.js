@@ -9,6 +9,8 @@ import { SAMPLES, CLOSE_SVG, MIC_SVG, STOP_SVG, PLAY_SVG } from './capture.js';
 import { chatView } from '../chatui.js';
 import { render as patternsWidget } from '../widgets/patterns.js';
 import { PATTERNS } from '../seed.js';
+import { DATA as FILL, fillSuggestions, fillQuestion, fillNext, fieldTitle, renderFill, writer } from '../fill/in-card.js';
+import { savedText, isUndo } from '../fill/receipt.js';
 import { itemTile } from './items.js';
 
 export function openCard(id) {
@@ -166,7 +168,22 @@ function logSection(c, render) {
   const text = h('div', { class: 'lg-text', contenteditable: 'true', spellcheck: 'false' }, d.text);
   /* what was logged by voice, Apple Watch, the live activity or typed:
      each note its own paragraph under the description, oldest first */
-  const notes = h('div', { class: 'lg-notes' }, ...[...(c.notes || [])].sort((a, b) => (a.at || 0) - (b.at || 0)).map(n => h('p', { class: 'lg-note' }, n.text)));
+  const notes = h('div', { class: 'lg-notes' }, ...[...(c.notes || [])].sort((a, b) => (a.at || 0) - (b.at || 0)).map(n => {
+    /* editable like the description; saved when you leave it, removed
+       when emptied */
+    const p = h('p', { class: 'lg-note', contenteditable: 'true', spellcheck: 'false' }, n.text);
+    p.addEventListener('blur', () => {
+      const v = p.textContent.trim();
+      if (v === n.text) return;
+      S.updateCard(c.id, cc => ({ notes: v
+        ? (cc.notes || []).map(x => (x.id === n.id ? { ...x, text: v } : x))
+        : (cc.notes || []).filter(x => x.id !== n.id) }));
+      n.text = v;
+      if (!v) p.remove();
+      nav.refresh();
+    });
+    return p;
+  }));
   const att = h('div', { class: 'lg-att' });
   const box = h('div', { class: 'lg' }, ph, text, notes, att);
 
@@ -177,7 +194,14 @@ function logSection(c, render) {
   text.addEventListener('input', sync);
   text.addEventListener('focus', sync);
   text.addEventListener('blur', sync);
-  box.addEventListener('click', (e) => { if (!e.target.closest('.lg-att') && document.activeElement !== text) text.focus(); });
+  /* a tap in LOG outside its texts keeps the text you're in (no blur, so the
+     keyboard doesn't drop and come back); with none, the description */
+  const inText = (el) => el.closest('[contenteditable]');
+  box.addEventListener('mousedown', (e) => { if (!e.target.closest('.lg-att') && !inText(e.target)) e.preventDefault(); });
+  box.addEventListener('click', (e) => {
+    if (e.target.closest('.lg-att') || inText(e.target)) return;
+    if (!box.contains(document.activeElement) || !inText(document.activeElement)) text.focus();
+  });
 
   /* every photo and video on the card, x removes one. Not the piece images
      UNFIRED makes from a photo (pieceOf), and never the old generated
@@ -361,6 +385,12 @@ function planSection(c, render) {
    is just the first bubble -- generic text ("Ask UNFIRED about this
    piece") rather than Figma's per-card "Visualize this idea with
    different painted patterns", since there's no prompt generator here. */
+/* a chat's title is a sentence ("Plan the next session"); ones stored in
+   capitals (typed chats, "NEW CHAT") read in sentence case */
+const chatTitle = (t) => {
+  const raw = t && t.title && t.title !== 'NEW CHAT' ? t.title : 'New chat';
+  return raw === raw.toUpperCase() ? raw.charAt(0) + raw.slice(1).toLowerCase() : raw;
+};
 const bubWhen = (at) => (Date.now() - at < 12 * 36e5 ? 'now' : fmtShort(at));
 
 function chatsSection(c, render) {
@@ -386,10 +416,15 @@ function chatsSection(c, render) {
     }));
   };
 
-  /* Pink Pitcher (the one piece with variant images) answers this one with
-     the pattern variants widget; elsewhere UNFIRED answers in words */
-  suggest(c.id === PATTERNS.cardId ? 'patterns' : 'visualize', PATTERNS.ask, () =>
-    c.id === PATTERNS.cardId ? [{ role: 'ai', text: PATTERNS.question, widget: 'patterns' }] : []);
+  /* Every suggestion opens a chat built for this card: the pattern variants
+     widget on the one piece it was made for (Blue Engobe Jug), and the fill
+     widgets (js/fill/in-card.js) -- size and glaze for ideas and pieces in
+     the making, the session plan while making, the result photo once
+     finished -- each writing its answer to the card. */
+  if (c.id === PATTERNS.cardId)
+    suggest('patterns', PATTERNS.ask, () => [{ role: 'ai', text: PATTERNS.question, widget: 'patterns' }]);
+  fillSuggestions(c).forEach(({ key, ask }) =>
+    suggest('fill-' + key, ask, () => [{ role: 'ai', text: fillQuestion(key, c), fill: key }]));
 
   /* Ideas get a second suggestion: with a thin plan, the questions UNFIRED
      needs answered to build one; otherwise a question drawn from the
@@ -406,8 +441,9 @@ function chatsSection(c, render) {
   /* chats only -- what you logged (voice, watch, live activity, photos)
      lives in LOG */
   [
-    ...(c.threads || []).map(t => ({
-      at: t.at, summary: t.title,
+    /* a chat opened and left without a message isn't a chat yet */
+    ...(c.threads || []).filter(t => (t.msgs || []).length).map(t => ({
+      at: t.at, summary: chatTitle(t),
       meta: (t.suggestion || t.msgs[0]?.role === 'ai' ? 'Suggestion' : 'Chat') + ', ' + bubWhen(t.at),
       open: () => openChat(c.id, t.id, render),
     })),
@@ -538,7 +574,7 @@ export function openChat(cardId, threadId, onDone, seed, { ask, reply, glow } = 
   const head = () => {
     const t = thread();
     const status = t && t.suggestion ? 'Suggested, ' + bubWhen(t.at) : card() ? titleCase(card().title) : fmtShort(Date.now());
-    return [status, titleCase(t && t.title !== 'NEW CHAT' ? t.title : 'New chat')];
+    return [status, chatTitle(t)];
   };
 
   page((p, close) => {
@@ -614,8 +650,44 @@ export function openChat(cardId, threadId, onDone, seed, { ask, reply, glow } = 
       busy = false;
     }
 
+    /* a fill widget under UNFIRED's question; the answer goes to the card,
+       then your bubble, "Saved to card · …" and what follows */
+    const askFill = (m, i) => {
+      const box = view.widget();
+      renderFill(box, m.fill, card(), (r) => {
+        box.remove();
+        const w = writer(m.fill, cid);
+        const before = w.snap();
+        if (r) w.apply(r.value);
+        patch(i, { done: true, before });
+        const me = { role: 'me', text: r ? r.said : FILL.notNow, photos: r?.photos?.length ? r.photos : undefined };
+        show(me, persist(me));
+        const saved = { role: 'ai', text: savedText(FILL, fieldTitle(m.fill), r ? r.written : null) };
+        show(saved, persist(saved));
+        if (r) { const nx = { role: 'ai', text: fillNext(m.fill) }; show(nx, persist(nx)); }
+        nav.refresh(); onDone && onDone();
+      });
+    };
+    /* "undo" (or "change it", "that's wrong"...) after a fill: the card goes
+       back to how it was and UNFIRED asks again */
+    const undoFill = () => {
+      const msgs = thread()?.msgs || [];
+      const i = msgs.map((m, k) => (m.fill && m.done && !m.undone ? k : -1)).filter(k => k >= 0).pop();
+      if (i === undefined) return false;
+      const m = msgs[i];
+      writer(m.fill, cid).restore(m.before);
+      patch(i, { undone: true });
+      const un = { role: 'ai', text: FILL.inCards.undone.replace('{field}', fieldTitle(m.fill)) };
+      show(un, persist(un));
+      const again = { role: 'ai', text: fillQuestion(m.fill, card()), fill: m.fill };
+      show(again, persist(again));
+      nav.refresh(); onDone && onDone();
+      return true;
+    };
+
     function show(m, i) {
       if (m.role === 'sys') return view.sys(m.text);
+      if (m.fill) { view.say('ai', m.text); if (!m.done) askFill(m, i); return; }
       if (m.role === 'me') return view.say('me', m.text, { photos: m.photos || [] });
       view.say('ai', m.text, { src: m.src });
       if (m.widget === 'patterns')
@@ -643,6 +715,7 @@ export function openChat(cardId, threadId, onDone, seed, { ask, reply, glow } = 
       if (!cid) route(v || 'photo');
       const me = { role: 'me', text: v, photos: photos.length ? photos : undefined };
       show(me, persist(me));
+      if (v && isUndo(FILL, v) && undoFill()) { busy = false; return; }
       if (thread().title === 'NEW CHAT' && v) S.updateCard(cid, cc => {
         const tt = cc.threads.find(x => x.id === tid);
         tt.title = v.replace(/[?.]$/, '').split(/\s+/).slice(0, 3).join(' ').toUpperCase();

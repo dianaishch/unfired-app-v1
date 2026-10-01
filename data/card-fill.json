@@ -195,5 +195,29 @@
   "undoWords": "undo|change it|change that|go back|revert|that.s wrong|wrong|not that|cancel",
   "fallback": "Noted. Say “undo” to take back the last answer.",
   "skip": "Skip",
-  "save": "Save"
+  "save": "Save",
+  "inCards": {
+    "_note": "The fill widgets inside piece cards: the suggestion's text (ask), UNFIRED's question ({name} = the piece) and what it says after saving.",
+    "size": {
+      "ask": "What size should it be?",
+      "question": "How tall should {name} be after firing? I'll work out the throwing height and the clay.",
+      "next": "Height and clay are on the plan now."
+    },
+    "glaze": {
+      "ask": "Which glaze should it get?",
+      "question": "Which glaze for {name}? Your last three are first.",
+      "next": "The glaze is on the plan now."
+    },
+    "session": {
+      "ask": "Plan the next session",
+      "question": "Here is the plan for {name}. Tick what's done, the rest is your next session.",
+      "next": "Turn on studio mode to keep the plan on your lock screen while you work."
+    },
+    "photo": {
+      "ask": "How did it come out? Add a photo",
+      "question": "How did {name} come out? Add a photo after firing.",
+      "next": "It's on the card now, ready for a post."
+    },
+    "undone": "Undone. {field} is back as it was."
+  }
 }
