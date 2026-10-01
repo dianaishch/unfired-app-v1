@@ -5,7 +5,7 @@
    carousel, so edits made on the Edit screen show in both. Post / Custom
    open placeholder modals; no real share sheet or colour picker behind
    them yet. */
-import { h, ICON, page, sheet, toast, img, ago, pblur } from '../ui.js';
+import { h, ICON, page, sheet, toast, img, ago, pblur, cardLoop } from '../ui.js';
 import * as S from '../store.js';
 import { openCard, PLUS24_SVG } from './card.js';
 import { mediaPicker, BACK16_SVG, DOTS16_SVG } from './media.js';
@@ -167,12 +167,13 @@ function composed(r, st) {
    transparent) over the card's composed image, scaled to fill that area,
    and this post's own caption over the preset's sample one. Used by the
    Ready to post carousel and the Preview tab, so edits show in both.
-   ref: a post id (or a card id). */
+   ref: a post id (or a card id); bg: show it on another backdrop. */
 export const POST_PRESET = 'assets/posts/Post preset.png';
-export function postFrame(ref) {
+export function postFrame(ref, { bg } = {}) {
   const r = typeof ref === 'string' ? resolve(ref) : ref;
   if (!r) return null;
   const st = editState(r);
+  if (bg !== undefined) st.bg = bg;           // a backdrop variant
   const caption = (st.caption || `${r.name} / 2026`).split('\n')[0];
   const preset = img(POST_PRESET, '');
   preset.loading = 'eager'; preset.draggable = false; preset.className = 'pf-preset';
@@ -187,13 +188,23 @@ export function postFrame(ref) {
    post's photos (tap one to show it, "+" adds more). Preview: the exported
    post as it'll look on Instagram (the same image as the Ready-to-post
    carousel), or the composed image for a post with no export yet. */
-export function openPostEdit(ref) {
+/* A post's backdrops in carousel order: the one it has, then every other
+   swatch. The carousel's repeats and the Preview deck are these variants. */
+export function backdropVariants(ref) {
+  const r = typeof ref === 'string' ? resolve(ref) : ref;
+  const cur = editState(r).bg;
+  return [cur, ...r.swatches.map((_, i) => i).filter(i => i !== cur)];
+}
+
+/* bg: open on this backdrop (the carousel variant EDIT was tapped on) */
+export function openPostEdit(ref, { bg } = {}) {
   const r = resolve(ref);
   if (!r) return;
   page((p, close) => {
     const st = editState(r);
     let tab = 'edit';
     const save = () => S.updatePostEdit(r.key, { bg: st.bg, caption: st.caption, photos: st.photos });
+    if (bg !== undefined && bg !== st.bg) { st.bg = bg; save(); }
     const slides = () => [...(r.post ? [r.post.piece] : []), ...st.photos];
 
     const imgSlot = h('div', { class: 'pe-imgwrap' });
@@ -263,8 +274,21 @@ export function openPostEdit(ref) {
       h('div', { class: 'pe-sh' }, h('div', { class: 'pe-sh-t' }, 'Photo')),
       tiles);
     const previewBody = h('div', { class: 'pe-body pv' });
-    /* the post in the preset Instagram frame, with this screen's edits */
-    const paintPreview = () => previewBody.replaceChildren(h('div', { class: 'pv-art' }, postFrame(r)));
+    /* PREVIEW: the post in the preset Instagram frame on every backdrop, in
+       the same looping deck as Ready to post (ui.js cardLoop), starting on
+       the current one. The backdrop you swipe to becomes the post's (EDIT
+       shows it); tapping the centred post goes to EDIT. */
+    const paintPreview = () => {
+      const variants = backdropVariants(r);
+      const total = variants.length * Math.ceil(9 / variants.length);
+      const els = Array.from({ length: total }, (_, j) => postFrame(r, { bg: variants[j % variants.length] }));
+      const deck = h('div', { class: 'rtp-deck' }, ...els);
+      previewBody.replaceChildren(deck);
+      cardLoop(previewBody, deck, els, variants.length, {
+        onActive: (i) => { if (st.bg !== variants[i]) { st.bg = variants[i]; save(); paintSwatches(); paintImage(); } },
+        onTapCenter: () => { tab = 'edit'; paintTab(); },
+      }).render();
+    };
 
     const tabBtn = (k, label) => h('button', { class: 'pe-tab', onclick: () => { tab = k; paintTab(); } }, label);
     const tEdit = tabBtn('edit', 'Edit'), tPrev = tabBtn('preview', 'Preview');

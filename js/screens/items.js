@@ -4,7 +4,7 @@ import * as S from '../store.js';
 import * as AI from '../ai.js';
 import { nav } from '../nav.js';
 import { openCard, openChat, startMaking } from './card.js';
-import { allPosts, postFrame, openPostEdit, openShareSheet } from './post.js';
+import { allPosts, postFrame, backdropVariants, openPostEdit, openShareSheet } from './post.js';
 import { CARDS } from '../seed.js';
 
 const SEED_IDS = new Set(CARDS.map(c => c.id));
@@ -291,14 +291,25 @@ export function openReadyToPost() {
     const n = posts.length;
     const total = n * Math.ceil(9 / n);
     /* each post in the preset Instagram frame, built from its card (post.js
-       postFrame): the piece's gradient, cut-out and labels */
-    const cardEls = Array.from({ length: total }, (_, j) => postFrame(posts[j % n].id));
+       postFrame): the piece's gradient, cut-out and labels. Backdrops vary
+       along the deck so neighbours never look alike: a post shows the next
+       of its backdrop variants for its position (and again for each repeat
+       when the loop repeats posts) -- except one whose backdrop was picked
+       in Edit, which keeps it. */
+    const variantsOf = posts.map(p => backdropVariants(p.id));
+    const picked = posts.map(p => S.postEdit(p.id)?.bg !== undefined);
+    const bgAt = (j) => {
+      const i = j % n, v = variantsOf[i], rep = Math.floor(j / n);
+      return v[((picked[i] ? 0 : i) + rep) % v.length];
+    };
+    const cardEls = Array.from({ length: total }, (_, j) => postFrame(posts[j % n].id, { bg: bgAt(j) }));
     const deck = h('div', { class: 'rtp-deck' }, ...cardEls);
     const editBtn = h('button', {}, 'Edit');
     const postBtn = h('button', { class: 'post', onclick: openShareSheet }, 'Post');
-    let currentIdx = 0;
-    const setActive = (i) => { currentIdx = i; };
-    const editCurrent = () => openPostEdit(posts[currentIdx].id);
+    let currentIdx = 0, currentEl = 0;
+    const setActive = (i, j) => { currentIdx = i; currentEl = j; };
+    /* EDIT opens the centred post on the backdrop it's showing */
+    const editCurrent = () => openPostEdit(posts[currentIdx].id, { bg: bgAt(currentEl) });
     editBtn.onclick = editCurrent;
 
     /* the looping card deck (ui.js cardLoop): tap the centre card -> Edit */

@@ -249,7 +249,8 @@ export function img(src, alt = '', cls = '') {
 /* A looping deck of cards, one centred at a time (Ready to post, Insights).
    surface: the element that takes the horizontal swipes / wheel; deck: the
    container holding els (n distinct cards, repeated so the loop has at
-   least 9). onActive(i): the centred card's index 0..n-1. onTapCenter: a
+   least 9). onActive(i, j): the centred card's index 0..n-1, and which
+   element (0..els-1) it is -- repeats can differ (Ready to post backdrops). onTapCenter: a
    tap on the centred card. */
 export function cardLoop(p, deck, cardEls, n, { onActive, onTapCenter } = {}) {
   const total = cardEls.length;
@@ -283,7 +284,7 @@ export function cardLoop(p, deck, cardEls, n, { onActive, onTapCenter } = {}) {
       el.style.zIndex = Math.round(k * 100);
       el.classList.toggle('center', Math.abs(slot) < 0.5);
     });
-    onActive && onActive(((Math.round(shown) % n) + n) % n);
+    onActive && onActive(((Math.round(shown) % n) + n) % n, ((Math.round(shown) % total) + total) % total);
   };
   const tick = (now) => {
     const t = Math.min(1, (now - t0) / SCRUB_MS);
