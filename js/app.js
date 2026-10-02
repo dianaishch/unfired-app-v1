@@ -12,12 +12,18 @@ import { openLock, openWatch } from './screens/studio.js';
 import { openShare } from './screens/share.js';
 import { openOnboarding, runImport } from './screens/onboarding.js';
 import { mountKeyboard } from './keyboard.js';
+import { mountSysbar } from './sysbar.js';
 
 /* Embedded in an iframe (the landing page) the viewport is phone-sized, so the
    phone layout applies and env(safe-area-inset-top) is 0 -- everything would
    sit 14px higher than in the standalone desktop frame. Flag it before the
    first render so css/app.css can give the frame the same 14px top inset. */
 if (window.self !== window.top) document.documentElement.classList.add('framed');
+/* The drawn iPhone status bar (js/sysbar.js) and its 62px top inset: in a
+   frame, on a desktop screen, and in a desktop browser at phone width --
+   everywhere but a real phone, which has its own. */
+if (window.self !== window.top || matchMedia('(min-width:760px), (pointer:fine)').matches)
+  document.documentElement.classList.add('with-sysbar');
 
 const app = document.getElementById('app');
 let route = 'items';
@@ -124,6 +130,7 @@ devbar.addEventListener('click', e => {
 /* ---------- boot ---------- */
 render();
 mountKeyboard(document.getElementById('device'));
+mountSysbar(document.getElementById('device'));
 
 const s = S.get();
 if (!s.onboarded) {
