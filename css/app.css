@@ -51,6 +51,11 @@ html.with-sysbar #device{--safe-t:62px}
 html.with-sysbar .sysbar{display:block;position:absolute;z-index:150;top:0;left:0;width:100%;height:auto;
   aspect-ratio:402/62;pointer-events:none;user-select:none;-webkit-user-select:none}
 html.with-sysbar .sysbar[hidden]{display:none}
+/* under it, the Items top bar's progressive blur, so what scrolls up
+   under the clock goes soft instead of colliding with it */
+.sysbar-blur{display:none}
+html.with-sysbar .sysbar-blur{display:block;position:absolute;z-index:149;top:0;left:0;right:0;
+  height:var(--safe-t);pointer-events:none;isolation:isolate}
 .app{position:absolute;inset:0;overflow:hidden}
 
 /* ---------- typography ---------- */
@@ -1305,14 +1310,8 @@ html.with-sysbar .sysbar[hidden]{display:none}
 .devtoggle{position:fixed;z-index:201;width:32px;height:32px;
   border-radius:50%;background:#141414;border:1px solid #2a2a2a;color:#777;font-size:13px;
   right:calc(50% + 201px + 16px);bottom:calc(50vh - min(437px, 48vh))}
-/* Phone-width (no room beside the phone): the toggle is the Dynamic
-   Island -- in the middle of the status bar, which is never the app's own
-   interface -- and the menu drops down from it. */
-@media (max-width:759px){
-  .devtoggle{right:auto;bottom:auto;left:50%;top:11px;transform:translateX(-50%);width:125px;height:37px;
-    border-radius:20px;border:0;background:#000;font-size:0}
-  .devbar{right:auto;bottom:auto;left:50%;top:54px;transform:translateX(-50%);width:200px}
-}
+/* Phone-width: no room beside the phone, so no prototype menu */
+@media (max-width:759px){ .devtoggle,.devbar{display:none!important} }
 
 .fadein{animation:fi .4s var(--ease)}
 @keyframes fi{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}

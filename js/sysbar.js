@@ -4,8 +4,9 @@
    on top of every layer; it can't be tapped. It's white over black and
    over photos, black over the light gradients (an idea's header, the
    piece cards), picked from what is actually under it, so it changes as
-   a page scrolls or a layer opens. */
-import { h } from './ui.js';
+   a page scrolls or a layer opens. Under it, the Items top bar's
+   progressive blur. */
+import { h, pblur } from './ui.js';
 
 const SRC = { white: 'assets/system/Status%20bar%20white.png', black: 'assets/system/Status%20bar%20black.png' };
 
@@ -37,7 +38,7 @@ export function mountSysbar(device) {
   const white = h('img', { class: 'sysbar', src: SRC.white, alt: '' });
   const black = h('img', { class: 'sysbar', src: SRC.black, alt: '' });
   black.hidden = true;
-  device.append(white, black);
+  device.append(h('div', { class: 'sysbar-blur' }, pblur('down')), white, black);
 
   /* the clock (left) and the icons (right) decide: light under both -> black */
   const pick = () => {
