@@ -17,6 +17,7 @@ import { keyboard, showKeyboard } from './keyboard.js';
 
 export function chatView({ status = '', title = '', glow = '#dab4ff', onBack, onSend, onDelete, ownKeyboard = false }) {
   const list = h('div', { class: 'chx-list' });
+  let head;
   const inner = h('div', { class: 'chx-inner' });
   list.append(inner);
 
@@ -33,15 +34,33 @@ export function chatView({ status = '', title = '', glow = '#dab4ff', onBack, on
     return row;
   };
 
-  /* stay at the end while things change size -- the keyboard sliding open,
-     widget images loading, the field growing -- unless you scrolled up */
-  const scrollDown = () => requestAnimationFrame(() => { list.scrollTop = list.scrollHeight; });
-  let stick = true;
-  const userScroll = () => requestAnimationFrame(() => { stick = list.scrollHeight - list.scrollTop - list.clientHeight < 24; });
+  /* Follow the latest turn: the end of the conversation -- but never past
+     the start of the newest answer (what came after your last message, or
+     the chat's first message), which stays just under the header. So when
+     the keyboard slides up or a long answer arrives, you see the answer
+     from its first line instead of its end. Holds while things change size
+     (the keyboard, widget images loading, the field growing) unless you
+     scrolled away yourself. */
+  const target = () => {
+    const rows = [...inner.children];
+    const me = rows.map(r => r.classList.contains('me')).lastIndexOf(true);
+    const a = rows[me + 1] || rows[me] || rows[0];
+    const end = list.scrollHeight - list.clientHeight;
+    if (!a) return end;
+    const top = a.getBoundingClientRect().top - list.getBoundingClientRect().top + list.scrollTop;
+    return Math.max(0, Math.min(end, top - head.offsetHeight + 24));
+  };
+  let stick = true, gliding = 0;
+  const follow = () => { if (stick && performance.now() > gliding) list.scrollTop = target(); };
+  const glide = () => requestAnimationFrame(() => {
+    gliding = performance.now() + 450;
+    list.scrollTo({ top: target(), behavior: 'smooth' });
+  });
+  const userScroll = () => requestAnimationFrame(() => { gliding = 0; stick = Math.abs(list.scrollTop - target()) < 24; });
   ['wheel', 'touchmove', 'keydown'].forEach(ev => list.addEventListener(ev, userScroll, { passive: true }));
-  new ResizeObserver(() => { if (stick) list.scrollTop = list.scrollHeight; }).observe(list);
-  new ResizeObserver(() => { if (stick) list.scrollTop = list.scrollHeight; }).observe(inner);
-  const add = (el) => { inner.append(el); stick = true; scrollDown(); return el; };
+  new ResizeObserver(follow).observe(list);
+  new ResizeObserver(follow).observe(inner);
+  const add = (el) => { inner.append(el); stick = true; glide(); return el; };
 
   const view = {
     /* a message; returns its text node so a widget can keep it live */
@@ -142,7 +161,7 @@ export function chatView({ status = '', title = '', glow = '#dab4ff', onBack, on
     onclick: () => popMenu({ anchor: more, below: true, items: [['Delete chat', () => { stopRec(); onDelete(); }]] }) });
   const statusEl = h('div', { class: 'chx-status' }, status);
   const titleEl = h('div', { class: 'chx-t' }, title);
-  const head = h('header', { class: 'chx-head' }, pblur('down'), statusBar(),
+  head = h('header', { class: 'chx-head' }, pblur('down'), statusBar(),
     h('div', { class: 'chx-bar' },
       h('button', { class: 'chx-round', type: 'button', html: BACK16_SVG, 'aria-label': 'Back', onclick: () => { stopRec(); onBack && onBack(); } }),
       h('div', { class: 'chx-title' }, statusEl, titleEl),
@@ -156,7 +175,7 @@ export function chatView({ status = '', title = '', glow = '#dab4ff', onBack, on
      off "ResizeObserver loop" errors) */
   new ResizeObserver(() => requestAnimationFrame(() => {
     list.style.paddingBottom = dock.offsetHeight + 'px';
-    if (stick) list.scrollTop = list.scrollHeight;
+    follow();
   })).observe(dock);
   const el = h('div', { class: 'chatx' }, head, h('div', { class: 'chx-main' }, list, dock));
 
