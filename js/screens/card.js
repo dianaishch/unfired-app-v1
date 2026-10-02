@@ -757,7 +757,9 @@ export function openChat(cardId, threadId, onDone, seed, { ask, reply, glow } = 
       busy = true;
       setTimeout(async () => { await answer(AI.reply(card(), t.msgs.at(-1).text)); busy = false; onDone && onDone(); }, 250);
     }
-    setTimeout(() => view.focus(), 420);
+    /* a card's chat opens with the keyboard up; ASK YOUR ARCHIVE opens on
+       its suggested questions and the keyboard waits for a tap on the field */
+    if (cid) setTimeout(() => view.focus(), 420);
   });
 }
 

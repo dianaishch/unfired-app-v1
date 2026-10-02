@@ -150,7 +150,20 @@ export function mountKeyboard(device) {
     e.target.setAttribute('inputmode', 'none');
     set(true);
   });
-  device.addEventListener('focusout', () => setTimeout(() => set(isEditable(document.activeElement)), 0));
+  /* Tapping a button (a suggested question, an answer tag) takes the focus
+     from the field. Closing the keyboard right then would move the screen
+     under your finger and the tap would miss, so while the finger is down
+     the keyboard waits; it closes once the tap has landed (the click
+     handler below, or on release). */
+  let pressing = false;
+  device.addEventListener('pointerdown', (e) => { if (!kb.contains(e.target)) pressing = true; }, true);
+  const release = () => {
+    if (!pressing) return;
+    pressing = false;
+    setTimeout(() => set(isEditable(document.activeElement)), 0);
+  };
+  ['pointerup', 'pointercancel'].forEach(ev => window.addEventListener(ev, release, true));
+  device.addEventListener('focusout', () => setTimeout(() => { if (!pressing) set(isEditable(document.activeElement)); }, 0));
   /* also on the tap itself (some screens focus their field from a tap on a
      larger area, and focus events don't always fire) */
   device.addEventListener('click', (e) => {
