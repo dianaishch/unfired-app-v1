@@ -150,20 +150,33 @@ export function mountKeyboard(device) {
     e.target.setAttribute('inputmode', 'none');
     set(true);
   });
-  /* Tapping a button (a suggested question, an answer tag) takes the focus
-     from the field. Closing the keyboard right then would move the screen
-     under your finger and the tap would miss, so while the finger is down
-     the keyboard waits; it closes once the tap has landed (the click
-     handler below, or on release). */
-  let pressing = false;
-  device.addEventListener('pointerdown', (e) => { if (!kb.contains(e.target)) pressing = true; }, true);
-  const release = () => {
-    if (!pressing) return;
-    pressing = false;
-    setTimeout(() => set(isEditable(document.activeElement)), 0);
+  /* Tapping a button (a suggested question, an answer tag, a pattern chip)
+     takes the focus from the field. Closing the keyboard right then would
+     move the screen under your finger and the tap would miss, so the
+     keyboard waits while the finger is down and until the tap has landed
+     (its click, or half a second). On a touch screen the focus only moves
+     after the finger lifts, so a focus change just after a release waits
+     too. */
+  let pressing = false, upAt = 0;
+  const settle = () => set(isEditable(document.activeElement));
+  const afterTap = () => {
+    let done = false;
+    const go = () => { if (!done) { done = true; setTimeout(settle, 0); } };
+    window.addEventListener('click', go, { capture: true, once: true });
+    setTimeout(go, 500);
   };
-  ['pointerup', 'pointercancel'].forEach(ev => window.addEventListener(ev, release, true));
-  device.addEventListener('focusout', () => setTimeout(() => { if (!pressing) set(isEditable(document.activeElement)); }, 0));
+  device.addEventListener('pointerdown', (e) => { if (!kb.contains(e.target)) pressing = true; }, true);
+  ['pointerup', 'pointercancel'].forEach(ev => window.addEventListener(ev, () => {
+    if (!pressing) return;
+    pressing = false; upAt = performance.now();
+    afterTap();
+  }, true));
+  device.addEventListener('focusout', () => {
+    if (pressing) return;
+    if (performance.now() - upAt < 500) return afterTap();
+    setTimeout(settle, 0);
+  });
+
   /* also on the tap itself (some screens focus their field from a tap on a
      larger area, and focus events don't always fire) */
   device.addEventListener('click', (e) => {
