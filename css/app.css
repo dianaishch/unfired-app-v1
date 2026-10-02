@@ -48,8 +48,10 @@ img{display:block;max-width:100%}
    402 x 62): content starts under it, as in every Figma screen */
 html.with-sysbar #device{--safe-t:62px}
 .sysbar{display:none}
-html.with-sysbar .sysbar{display:block;position:absolute;z-index:150;top:0;left:0;width:100%;height:auto;
-  aspect-ratio:402/62;pointer-events:none;user-select:none;-webkit-user-select:none}
+/* always 62px tall: at 402 wide the whole image; narrower, the same
+   size, its sides cropped evenly */
+html.with-sysbar .sysbar{display:block;position:absolute;z-index:150;top:0;left:0;width:100%;height:62px;
+  object-fit:cover;object-position:center;pointer-events:none;user-select:none;-webkit-user-select:none}
 html.with-sysbar .sysbar[hidden]{display:none}
 /* under it, the Items top bar's progressive blur, so what scrolls up
    under the clock goes soft instead of colliding with it */
@@ -274,8 +276,8 @@ html.with-sysbar .sysbar-blur{display:block;position:absolute;z-index:149;top:0;
 .rtp-statusbar .batt i{display:block;flex:1;height:100%;background:#fff;border-radius:1px}
 
 .rtp-page-head{display:flex;flex-direction:column;align-items:center;gap:8px;
-  padding:8px 12px 20px}
-.rtp-page-head .navrow{display:flex;justify-content:space-between;width:100%}
+  padding:0 0 20px}
+.rtp-page-head .navrow{display:flex;justify-content:space-between;align-items:center;width:100%;height:52px;padding:0 16px}
 .rtp-page-head .navbtn{width:40px;height:40px;border-radius:50%;background:#0e0e0e;
   border:1px solid #292929;color:#f6f4ec;display:grid;place-items:center;flex:none}
 .rtp-page-head .navbtn-gap{width:40px;height:40px;flex:none}
@@ -330,16 +332,16 @@ html.with-sysbar .sysbar-blur{display:block;position:absolute;z-index:149;top:0;
 
 /* ---------- post Edit / Preview (screens/post.js, Figma 493:16808 / 493:16989) ---------- */
 .pe-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;
-  padding:8px 16px 4px;flex:none}
+  height:52px;padding:0 16px;flex:none}
 .pe-navbtn{width:40px;height:40px;border-radius:29px;background:#0e0e0e;border:1px solid #292929;
   display:grid;place-items:center;flex:none;color:#f6f4ec}
 .pe-navbtn svg{width:16px;height:16px}
-.pe-title{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px;padding-top:4px;color:#f6f4ec}
-.pe-status{display:flex;align-items:center;gap:4px;font-size:12px;text-transform:uppercase}
+.pe-title{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px;padding-top:4px;height:44px;color:#f6f4ec}
+.pe-status{display:flex;align-items:center;gap:4px;font-size:12px;line-height:12px;text-transform:uppercase}
 .pe-status .ic{width:8px;height:8px;display:grid;place-items:center}
 .pe-status .ic svg{width:7px;height:7px}
-.pe-name{font-size:24px;font-weight:500;letter-spacing:-.55px;text-transform:capitalize;white-space:nowrap;
-  overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.pe-name{font-size:24px;font-weight:500;letter-spacing:-.55px;line-height:24px;text-transform:capitalize;white-space:nowrap;
+  padding:4px 0;margin:-4px 0;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .pe-tabs{display:flex;margin:16px 16px 0;padding:2px;border-radius:100px;background:#181818;flex:none}
 .pe-tab{flex:1;height:40px;padding-top:1px;border-radius:100px;font-size:14px;font-weight:700;
   letter-spacing:-.14px;text-transform:uppercase;color:#54524e}
@@ -703,12 +705,12 @@ html.with-sysbar .sysbar-blur{display:block;position:absolute;z-index:149;top:0;
 .cx .ch-statusbar .batt{width:24px;height:11px;border:1.3px solid currentColor;border-radius:3px;padding:1px;display:flex}
 .cx .ch-statusbar .batt i{display:block;flex:1;background:currentColor;border-radius:1px}
 .cx-top{position:relative;width:100%;display:flex;align-items:center;justify-content:space-between;
-  gap:8px;padding:8px 16px 4px}
+  gap:8px;height:52px;padding:0 16px}
 .cx-btn{width:40px;height:40px;border-radius:50%;flex:none;display:grid;place-items:center;
   background:#f6f4ec;border:1px solid #292929;color:#040404}
 .cx-in.dark .cx-btn{background:#0e0e0e;color:#f6f4ec}
 .cx-btn svg{width:16px;height:16px}
-.cx-title{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px;padding-top:4px}
+.cx-title{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px;padding-top:4px;height:44px}
 .cx-status{display:flex;align-items:center;gap:4px;font-size:12px;text-transform:uppercase;line-height:12px}
 .cx-status .ic{width:8px;height:8px;display:grid;place-items:center;padding-bottom:1px}
 .cx-status .ic svg{width:7px;height:7px}
@@ -918,7 +920,7 @@ html.with-sysbar .sysbar-blur{display:block;position:absolute;z-index:149;top:0;
   transform:translateY(100%);transition:transform .34s var(--ease)}
 .capture.in{transform:translateY(0)}
 /* Log screen, Figma 540:21406 */
-.capture .ctop{padding:8px 16px 4px;display:flex;justify-content:space-between;align-items:center}
+.capture .ctop{height:52px;padding:0 16px;display:flex;justify-content:space-between;align-items:center}
 .capture .cback,.capture .cmenu{border-radius:50%;background:#0e0e0e;border:1px solid #292929;color:#f6f4ec;
   display:grid;place-items:center;flex:none}
 .capture .cback{width:44px;height:44px}
