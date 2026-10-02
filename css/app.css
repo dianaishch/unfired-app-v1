@@ -44,6 +44,13 @@ img{display:block;max-width:100%}
    and env(safe-area-inset-top) is 0 -- give the embedded frame the same top
    inset as the standalone desktop one (html.framed is set by js/app.js). */
 @media (max-width:759px){ html.framed #device{--safe-t:14px;--safe-b:0px} }
+/* the drawn iPhone status bar (js/sysbar.js, Figma "Status bar - iPhone"
+   402 x 62): content starts under it, as in every Figma screen */
+html.with-sysbar #device{--safe-t:62px}
+.sysbar{display:none}
+html.with-sysbar .sysbar{display:block;position:absolute;z-index:150;top:0;left:0;width:100%;height:auto;
+  aspect-ratio:402/62;pointer-events:none;user-select:none;-webkit-user-select:none}
+html.with-sysbar .sysbar[hidden]{display:none}
 .app{position:absolute;inset:0;overflow:hidden}
 
 /* ---------- typography ---------- */
@@ -1298,10 +1305,13 @@ img{display:block;max-width:100%}
 .devtoggle{position:fixed;z-index:201;width:32px;height:32px;
   border-radius:50%;background:#141414;border:1px solid #2a2a2a;color:#777;font-size:13px;
   right:calc(50% + 201px + 16px);bottom:calc(50vh - min(437px, 48vh))}
+/* Phone-width (no room beside the phone): the toggle is the Dynamic
+   Island -- in the middle of the status bar, which is never the app's own
+   interface -- and the menu drops down from it. */
 @media (max-width:759px){
-  .devtoggle{right:auto;bottom:auto;left:0;top:50%;transform:translateY(-50%);width:14px;height:48px;
-    border-radius:0 10px 10px 0;border-left:0;font-size:0;opacity:.6}
-  .devbar{right:auto;bottom:auto;left:18px;top:50%;transform:translateY(-50%);width:190px}
+  .devtoggle{right:auto;bottom:auto;left:50%;top:11px;transform:translateX(-50%);width:125px;height:37px;
+    border-radius:20px;border:0;background:#000;font-size:0}
+  .devbar{right:auto;bottom:auto;left:50%;top:54px;transform:translateX(-50%);width:200px}
 }
 
 .fadein{animation:fi .4s var(--ease)}
